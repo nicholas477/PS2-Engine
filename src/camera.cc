@@ -1,5 +1,7 @@
-#include "camera.h"
+#include <stdio.h>
 
+#include "camera.h"
+#include "types.h"
 #include "input.h"
 
 camera::camera()
@@ -10,28 +12,21 @@ camera::camera()
 
 void camera::tick(float deltaTime)
 {
-	const u32 paddata = input::get_paddata();
+	const u32 paddata   = input::get_paddata();
+	const auto &buttons = input::get_button_status();
 
-	VECTOR movement_vector = {0.f, 0.f, 0.f, 0.f};
-	if (paddata & PAD_LEFT)
+	const float dead_zone = 0.2f;
+
+	Vector input_vector    = Vector();
+	Vector movement_vector = Vector();
+
+	input_vector.x = (buttons.ljoy_h - 128.f) / 128.f;
+	input_vector.z = (buttons.ljoy_v - 128.f) / 128.f;
+
+	if (input_vector.length() > dead_zone)
 	{
-		movement_vector[0] += -1.f;
-	}
-	if (paddata & PAD_RIGHT)
-	{
-		movement_vector[0] += 1.f;
-	}
-	if (paddata & PAD_UP)
-	{
-		movement_vector[2] -= 1.f;
-	}
-	if (paddata & PAD_DOWN)
-	{
-		movement_vector[2] += 1.f;
+		movement_vector = input_vector;
 	}
 
-	for (int i = 0; i < 4; ++i)
-	{
-		location[i] += movement_vector[i] * deltaTime * 50.f;
-	}
+	location += movement_vector * deltaTime * 50.f;
 }

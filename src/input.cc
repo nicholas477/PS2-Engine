@@ -174,7 +174,7 @@ static int initializePad(int port, int slot)
 
 namespace input
 {
-const struct padButtonStatus &get_button_status() { return buttons; }
+const ::padButtonStatus &get_button_status() { return buttons; }
 const u32 &get_paddata() { return paddata; };
 
 void init()

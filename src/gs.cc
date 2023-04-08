@@ -162,8 +162,8 @@ qword_t *render_teapot(qword_t *q, MATRIX view_screen, VECTOR object_position,
 
 	// Create the world_view matrix.
 	create_world_view(world_view,
-	                  const_cast<float *>(engine::_camera->get_location()),
-	                  const_cast<float *>(engine::_camera->get_rotation()));
+	                  const_cast<float *>(engine::_camera->get_location().vector),
+	                  const_cast<float *>(engine::_camera->get_rotation().vector));
 
 	// Create the local_screen matrix.
 	create_local_screen(local_screen, local_world, world_view, view_screen);
