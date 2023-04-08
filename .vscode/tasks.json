@@ -1,0 +1,44 @@
+{
+    "version": "0.1.0",
+    "command": "bash",
+    "isShellCommand": true,
+    "showOutput": "always",
+    "options": {
+        "cwd": "${workspaceRoot}"
+    },
+    "args": [
+        "-ic"
+    ],
+    "tasks": [
+        {
+            "taskName": "build",
+            "suppressTaskName": true,
+            "isBuildCommand": true,
+            "args": [
+                "make clean && make"
+            ]
+        },
+        {
+            "taskName": "test",
+            "suppressTaskName": true,
+            "isTestCommand": true,
+            "args": [
+                "make test"
+            ]
+        },
+        {
+            "taskName": "deploy",
+            "suppressTaskName": true,
+            "args": [
+                "make deploy"
+            ]
+        },
+        {
+            "taskName": "help",
+            "suppressTaskName": true,
+            "args": [
+                "make help"
+            ]
+        }
+    ]
+}
