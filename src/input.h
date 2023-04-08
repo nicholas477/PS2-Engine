@@ -1,5 +1,7 @@
 #pragma once
 
+#include "tamtypes.h"
+
 /*
  * Button bits
  */
@@ -22,9 +24,10 @@
 #define PAD_L2 0x0100
 #endif
 
-namespace input {
+namespace input
+{
 const struct padButtonStatus &get_button_status();
 const u32 &get_paddata();
-void init_inputs();
+void init();
 void read_inputs();
 } // namespace input

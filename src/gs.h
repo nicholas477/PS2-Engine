@@ -1,6 +1,7 @@
 #pragma once
 
-namespace gs {
+namespace gs
+{
 void init();
 void render();
 } // namespace gs
