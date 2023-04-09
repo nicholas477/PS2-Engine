@@ -4,7 +4,7 @@
 
 namespace engine
 {
-extern camera *_camera;
+extern camera* _camera;
 void init();
 void run();
 u32 get_frame_counter();

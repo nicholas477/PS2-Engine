@@ -1,5 +1,5 @@
 EE_BIN = main.elf
-EE_OBJS = main.o input.o engine.o gs.o object.o camera.o
+EE_OBJS = main.o input.o engine.o gs.o camera.o transform_component.o
 EE_OBJS:=$(addprefix $(PREFIX), $(EE_OBJS))
 EE_LIBS = -ldraw -lgraph -lmath3d -lpacket -ldma -lpad -lc -lstdc++ -lgs
 

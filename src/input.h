@@ -27,8 +27,8 @@
 
 namespace input
 {
-const ::padButtonStatus &get_button_status();
-const u32 &get_paddata();
+const ::padButtonStatus& get_button_status();
+const u32& get_paddata();
 void init();
 void read_inputs();
 } // namespace input

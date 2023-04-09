@@ -174,8 +174,8 @@ static int initializePad(int port, int slot)
 
 namespace input
 {
-const ::padButtonStatus &get_button_status() { return buttons; }
-const u32 &get_paddata() { return paddata; };
+const ::padButtonStatus& get_button_status() { return buttons; }
+const u32& get_paddata() { return paddata; };
 
 void init()
 {
@@ -236,98 +236,98 @@ void read_inputs()
 		old_pad = paddata;
 
 		// Directions
-		if (new_pad & PAD_LEFT)
-		{
-			printf("LEFT\n");
-		}
-		if (new_pad & PAD_DOWN)
-		{
-			printf("DOWN\n");
-		}
-		if (new_pad & PAD_RIGHT)
-		{
-			printf("RIGHT\n");
-			/*
-             padSetMainMode(port, slot,
-                            PAD_MMODE_DIGITAL, PAD_MMODE_LOCK));
-      */
-		}
-		if (new_pad & PAD_UP)
-		{
-			printf("UP\n");
-		}
-		if (new_pad & PAD_START)
-		{
-			printf("START\n");
-		}
-		if (new_pad & PAD_R3)
-		{
-			printf("R3\n");
-		}
-		if (new_pad & PAD_L3)
-		{
-			printf("L3\n");
-		}
-		if (new_pad & PAD_SELECT)
-		{
-			printf("SELECT\n");
-		}
-		if (new_pad & PAD_SQUARE)
-		{
-			printf("SQUARE\n");
-		}
-		if (new_pad & PAD_CROSS)
-		{
-			padEnterPressMode(port, slot);
-			printf("CROSS - Enter press mode\n");
-		}
-		if (new_pad & PAD_CIRCLE)
-		{
-			padExitPressMode(port, slot);
-			printf("CIRCLE - Exit press mode\n");
-		}
-		if (new_pad & PAD_TRIANGLE)
-		{
-			// Check for the reason below..
-			printf("TRIANGLE (press mode disabled, see code)\n");
-		}
-		if (new_pad & PAD_R1)
-		{
-			actAlign[0] = 1; // Start small engine
-			padSetActDirect(port, slot, actAlign);
-			printf("R1 - Start little engine\n");
-		}
-		if (new_pad & PAD_L1)
-		{
-			actAlign[0] = 0; // Stop engine 0
-			padSetActDirect(port, slot, actAlign);
-			printf("L1 - Stop little engine\n");
-		}
-		if (new_pad & PAD_R2)
-		{
-			printf("R2\n");
-		}
-		if (new_pad & PAD_L2)
-		{
-			printf("L2\n");
-		}
+		// 	if (new_pad & PAD_LEFT)
+		// 	{
+		// 		printf("LEFT\n");
+		// 	}
+		// 	if (new_pad & PAD_DOWN)
+		// 	{
+		// 		printf("DOWN\n");
+		// 	}
+		// 	if (new_pad & PAD_RIGHT)
+		// 	{
+		// 		printf("RIGHT\n");
+		// 		/*
+		//          padSetMainMode(port, slot,
+		//                         PAD_MMODE_DIGITAL, PAD_MMODE_LOCK));
+		//   */
+		// 	}
+		// 	if (new_pad & PAD_UP)
+		// 	{
+		// 		printf("UP\n");
+		// 	}
+		// 	if (new_pad & PAD_START)
+		// 	{
+		// 		printf("START\n");
+		// 	}
+		// 	if (new_pad & PAD_R3)
+		// 	{
+		// 		printf("R3\n");
+		// 	}
+		// 	if (new_pad & PAD_L3)
+		// 	{
+		// 		printf("L3\n");
+		// 	}
+		// 	if (new_pad & PAD_SELECT)
+		// 	{
+		// 		printf("SELECT\n");
+		// 	}
+		// 	if (new_pad & PAD_SQUARE)
+		// 	{
+		// 		printf("SQUARE\n");
+		// 	}
+		// 	if (new_pad & PAD_CROSS)
+		// 	{
+		// 		padEnterPressMode(port, slot);
+		// 		printf("CROSS - Enter press mode\n");
+		// 	}
+		// 	if (new_pad & PAD_CIRCLE)
+		// 	{
+		// 		padExitPressMode(port, slot);
+		// 		printf("CIRCLE - Exit press mode\n");
+		// 	}
+		// 	if (new_pad & PAD_TRIANGLE)
+		// 	{
+		// 		// Check for the reason below..
+		// 		printf("TRIANGLE (press mode disabled, see code)\n");
+		// 	}
+		// 	if (new_pad & PAD_R1)
+		// 	{
+		// 		//actAlign[0] = 1; // Start small engine
+		// 		//padSetActDirect(port, slot, actAlign);
+		// 		printf("R1 - Start little engine\n");
+		// 	}
+		// 	if (new_pad & PAD_L1)
+		// 	{
+		// 		//actAlign[0] = 0; // Stop engine 0
+		// 		//padSetActDirect(port, slot, actAlign);
+		// 		printf("L1 - Stop little engine\n");
+		// 	}
+		// 	if (new_pad & PAD_R2)
+		// 	{
+		// 		printf("R2\n");
+		// 	}
+		// 	if (new_pad & PAD_L2)
+		// 	{
+		// 		printf("L2\n");
+		// 	}
 
-		// Test the press mode
-		if (buttons.triangle_p)
-		{
-			printf("TRIANGLE %d\n", buttons.triangle_p);
-		}
+		// 	// Test the press mode
+		// 	if (buttons.triangle_p)
+		// 	{
+		// 		printf("TRIANGLE %d\n", buttons.triangle_p);
+		// 	}
 		// Start little engine if we move right analogue stick right
-		if (buttons.rjoy_h > 0xf0)
-		{
-			// Stupid check to see if engine is already running,
-			// just to prevent overloading the IOP with requests
-			if (actAlign[0] == 0)
-			{
-				actAlign[0] = 1;
-				padSetActDirect(port, slot, actAlign);
-			}
-		}
+		// if (buttons.rjoy_h > 0xf0)
+		// {
+		// 	// Stupid check to see if engine is already running,
+		// 	// just to prevent overloading the IOP with requests
+		// 	if (actAlign[0] == 0)
+		// 	{
+		// 		actAlign[0] = 1;
+		// 		padSetActDirect(port, slot, actAlign);
+		// 	}
+		// }
 	}
 }
 

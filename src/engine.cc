@@ -9,15 +9,15 @@
 #include "camera.h"
 #include "graph.h"
 
-static std::vector<class tickable *> &get_tickables()
+static std::vector<class tickable*>& get_tickables()
 {
-	static std::vector<class tickable *> tickables;
+	static std::vector<class tickable*> tickables;
 	return tickables;
 }
 
 namespace engine
 {
-camera *_camera;
+camera* _camera;
 static float tickrate   = 1.f / 59.93f; // ntsc
 static u32 frameCounter = 0;
 void init()
@@ -49,7 +49,7 @@ void init()
 
 static void tick(float deltaTime)
 {
-	for (tickable *_tickable : get_tickables())
+	for (tickable* _tickable : get_tickables())
 	{
 		_tickable->tick(deltaTime);
 	}

@@ -33,7 +33,7 @@ BraceWrapping:
   AfterUnion:            true
   AfterExternBlock:      false
   BeforeCatch:           false
-  BeforeElse:            false
+  BeforeElse:            true
   IndentBraces:          false
   SplitEmptyFunction:    true
   SplitEmptyRecord:      true
@@ -74,7 +74,7 @@ PenaltyBreakString: 1000
 PenaltyBreakTemplateDeclaration: 80
 PenaltyExcessCharacter: 1000000
 PenaltyReturnTypeOnItsOwnLine: 60
-PointerAlignment: Right
+PointerAlignment: Left
 # uncomment below when clang >13 will be out
 # IndentPPDirectives: AfterHash
 # PPIndentWidth: 1

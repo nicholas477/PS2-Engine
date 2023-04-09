@@ -162,8 +162,8 @@ qword_t *render_teapot(qword_t *q, MATRIX view_screen, VECTOR object_position,
 
 	// Create the world_view matrix.
 	create_world_view(world_view,
-	                  const_cast<float *>(engine::_camera->get_location().vector),
-	                  const_cast<float *>(engine::_camera->get_rotation().vector));
+	                  const_cast<float *>(engine::_camera->transform.location.vector),
+	                  const_cast<float *>(engine::_camera->transform.rotation.vector));
 
 	// Create the local_screen matrix.
 	create_local_screen(local_screen, local_world, world_view, view_screen);
@@ -259,8 +259,8 @@ static void init_renderer(framebuffer_t *frame, zbuffer_t *z)
 	rgbaq = (color_t *)memalign(128, sizeof(u64) * vertex_count);
 
 	// Create the view_screen matrix.
-	create_view_screen(view_screen, graph_aspect_ratio(), -3.00f, 3.00f, -3.00f,
-	                   3.00f, 1.00f, 2000.00f);
+	create_view_screen(view_screen, graph_aspect_ratio(), -4.00f, 4.00f, -4.00f,
+	                   4.00f, 1.00f, 2000.00f);
 }
 
 void init()

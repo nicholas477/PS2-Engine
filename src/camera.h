@@ -4,17 +4,17 @@
 #include "tamtypes.h"
 #include "types.h"
 #include "tick.h"
+#include "transform_component.h"
 
 class camera: public tickable
 {
 public:
 	camera();
-	const Vector &get_location() { return location; };
-	const Vector &get_rotation() { return rotation; };
-	virtual void tick(float deltaTime) override;
+	virtual void tick(float delta_time) override;
+
+	transform_component transform;
 
 protected:
-	Vector location;
-	Vector rotation;
-
+	void calculate_rotation_input(float delta_time);
+	void calculate_movement_input(float delta_time);
 }; // namespace camera
