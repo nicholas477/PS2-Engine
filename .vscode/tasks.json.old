@@ -30,7 +30,11 @@
                 "-ic",
                 "make test"
             ],
-            "problemMatcher": []
+            "problemMatcher": [],
+            "group": {
+                "_id": "test",
+                "isDefault": false
+            }
         },
         {
             "label": "deploy",

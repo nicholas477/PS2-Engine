@@ -95,11 +95,8 @@ struct Vector
 		Vector out = *this;
 		for (int i = 0; i < 3; ++i)
 		{
-			out.vector[i] = fmod(out.vector[i], M_PI * 2);
-			if (out.vector[i] < 0.f)
-			{
-				out.vector[i] += M_PI * 2;
-			}
+			out.vector[i] += 2 * M_PI;
+			out.vector[i] = fmod(out.vector[i], 2 * M_PI);
 		}
 
 		return out;
@@ -109,6 +106,13 @@ struct Vector
 	{
 		Vector out;
 		vector_cross_product(out.vector, const_cast<float*>(vector), const_cast<float*>(Rhs.vector));
+		return out;
+	}
+
+	Vector normalize() const
+	{
+		Vector out;
+		vector_normalize(out.vector, const_cast<float*>(vector));
 		return out;
 	}
 

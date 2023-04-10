@@ -1,10 +1,11 @@
 #pragma once
-#include "camera.h"
 #include "tamtypes.h"
+
+class tickable;
 
 namespace engine
 {
-extern camera* _camera;
+void add_tickable(::tickable* tickable);
 void init();
 void run();
 u32 get_frame_counter();

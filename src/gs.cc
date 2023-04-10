@@ -1,7 +1,7 @@
 #include <malloc.h>
 #include <stdio.h>
 
-#include "engine.h"
+#include "objects/camera.h"
 #include "gs.h"
 #include "input.h"
 
@@ -27,14 +27,6 @@ namespace gs
 static framebuffer_t frame[2];
 static zbuffer_t z;
 
-static VECTOR *temp_normals;
-static VECTOR *temp_lights;
-static VECTOR *temp_colours;
-static VECTOR *temp_vertices;
-
-static xyz_t *xyz;
-static color_t *rgbaq;
-
 static int light_count = 4;
 
 static const int screen_width  = 640;
@@ -53,7 +45,7 @@ static VECTOR light_colour[4] = {{0.00f, 0.00f, 0.00f, 1.00f},
 static int light_type[4] = {LIGHT_AMBIENT, LIGHT_DIRECTIONAL, LIGHT_DIRECTIONAL,
                             LIGHT_DIRECTIONAL};
 
-static void init_gs(framebuffer_t *frame, zbuffer_t *z)
+static void init_gs(framebuffer_t* frame, zbuffer_t* z)
 {
 	// Define a 32-bit 640x512 framebuffer.
 	frame->width  = 640;
@@ -89,12 +81,12 @@ static void init_gs(framebuffer_t *frame, zbuffer_t *z)
 	                 0);
 }
 
-static void init_drawing_environment(framebuffer_t *frame, zbuffer_t *z)
+static void init_drawing_environment(framebuffer_t* frame, zbuffer_t* z)
 {
-	packet_t *packet = packet_init(20, PACKET_NORMAL);
+	packet_t* packet = packet_init(20, PACKET_NORMAL);
 
 	// This is our generic qword pointer.
-	qword_t *q = packet->data;
+	qword_t* q = packet->data;
 
 	// This will setup a default drawing environment.
 	q = draw_setup_environment(q, 0, frame, z);
@@ -113,10 +105,9 @@ static void init_drawing_environment(framebuffer_t *frame, zbuffer_t *z)
 	free(packet);
 }
 
-static void flip_buffers(packet_t *flip, framebuffer_t *frame)
+static void flip_buffers(packet_t* flip, framebuffer_t* frame)
 {
-
-	qword_t *q = flip->data;
+	qword_t* q = flip->data;
 
 	q = draw_framebuffer(q, 0, frame);
 	q = draw_finish(q);
@@ -127,12 +118,12 @@ static void flip_buffers(packet_t *flip, framebuffer_t *frame)
 	draw_wait_finish();
 }
 
-qword_t *render_teapot(qword_t *q, MATRIX view_screen, VECTOR object_position,
-                       VECTOR object_rotation, prim_t *prim, color_t *color,
-                       framebuffer_t *frame, zbuffer_t *z)
+qword_t* render_teapot(qword_t* q, MATRIX view_screen, VECTOR object_position,
+                       VECTOR object_rotation, prim_t* prim, color_t* color,
+                       framebuffer_t* frame, zbuffer_t* z)
 {
 
-	qword_t *dmatag;
+	qword_t* dmatag;
 
 	MATRIX local_world;
 	MATRIX local_light;
@@ -144,16 +135,6 @@ qword_t *render_teapot(qword_t *q, MATRIX view_screen, VECTOR object_position,
 	dmatag = q;
 	q++;
 
-	while (object_rotation[0] > 3.14f)
-	{
-		object_rotation[0] -= 6.28f;
-	}
-	// object_rotation[1] += 0.112f;
-	while (object_rotation[1] > 3.14f)
-	{
-		object_rotation[1] -= 6.28f;
-	}
-
 	// Create the local_world matrix.
 	create_local_world(local_world, object_position, object_rotation);
 
@@ -162,33 +143,40 @@ qword_t *render_teapot(qword_t *q, MATRIX view_screen, VECTOR object_position,
 
 	// Create the world_view matrix.
 	create_world_view(world_view,
-	                  const_cast<float *>(engine::_camera->transform.location.vector),
-	                  const_cast<float *>(engine::_camera->transform.rotation.vector));
+	                  const_cast<float*>(camera::get().transform.location.vector),
+	                  const_cast<float*>(camera::get().transform.rotation.vector));
 
 	// Create the local_screen matrix.
 	create_local_screen(local_screen, local_world, world_view, view_screen);
 
+	VECTOR* temp_normals;
+
 	// Calculate the normal values.
 	calculate_normals(temp_normals, vertex_count, normals, local_light);
 
+	VECTOR* temp_lights;
 	// Calculate the lighting values.
 	calculate_lights(temp_lights, vertex_count, temp_normals, light_direction,
 	                 light_colour, light_type, light_count);
 
+	VECTOR* temp_colours;
 	// Calculate the colour values after lighting.
 	calculate_colours(temp_colours, vertex_count, colours, temp_lights);
 
+	VECTOR* temp_vertices;
 	// Calculate the vertex values.
 	calculate_vertices(temp_vertices, vertex_count, vertices, local_screen);
 
+	xyz_t* xyz;
 	// Convert floating point vertices to fixed point and translate to center of
 	// screen.
 	draw_convert_xyz(xyz, 2048, 2048, 32, vertex_count,
-	                 (vertex_f_t *)temp_vertices);
+	                 (vertex_f_t*)temp_vertices);
 
+	color_t* rgbaq;
 	// Convert floating point colours to fixed point.
-	draw_convert_rgbq(rgbaq, vertex_count, (vertex_f_t *)temp_vertices,
-	                  (color_f_t *)temp_colours, color->a);
+	draw_convert_rgbq(rgbaq, vertex_count, (vertex_f_t*)temp_vertices,
+	                  (color_f_t*)temp_colours, color->a);
 
 	// Draw the triangles using triangle primitive type.
 	q = draw_prim_start(q, 0, prim, color);
@@ -211,11 +199,11 @@ qword_t *render_teapot(qword_t *q, MATRIX view_screen, VECTOR object_position,
 static int context = 0;
 
 // Packets for doublebuffering dma sends
-static packet_t *packets[2];
-static packet_t *current;
+static packet_t* packets[2];
+static packet_t* current;
 
 // This packet is special for framebuffer switching
-static packet_t *flip_pkt;
+static packet_t* flip_pkt;
 
 static MATRIX view_screen;
 static prim_t prim;
@@ -224,7 +212,7 @@ static color_t color;
 static VECTOR object_position = {0.00f, 0.00f, 0.00f, 1.00f};
 static VECTOR object_rotation = {0.00f, 0.00f, 0.00f, 1.00f};
 
-static void init_renderer(framebuffer_t *frame, zbuffer_t *z)
+static void init_renderer(framebuffer_t* frame, zbuffer_t* z)
 {
 	packets[0] = packet_init(40000, PACKET_NORMAL);
 	packets[1] = packet_init(40000, PACKET_NORMAL);
@@ -255,8 +243,8 @@ static void init_renderer(framebuffer_t *frame, zbuffer_t *z)
 	temp_vertices = (float(*)[4])memalign(128, sizeof(VECTOR) * vertex_count);
 
 	// Allocate register space.
-	xyz   = (xyz_t *)memalign(128, sizeof(u64) * vertex_count);
-	rgbaq = (color_t *)memalign(128, sizeof(u64) * vertex_count);
+	xyz   = (xyz_t*)memalign(128, sizeof(u64) * vertex_count);
+	rgbaq = (color_t*)memalign(128, sizeof(u64) * vertex_count);
 
 	// Create the view_screen matrix.
 	create_view_screen(view_screen, graph_aspect_ratio(), -4.00f, 4.00f, -4.00f,
@@ -288,11 +276,11 @@ void init()
 	printf("init gs %d\n", 5);
 }
 
-static int gs_render(framebuffer_t *frame, zbuffer_t *z)
+static int gs_render(framebuffer_t* frame, zbuffer_t* z)
 {
 	current         = packets[context];
-	qword_t *q      = current->data;
-	qword_t *dmatag = q;
+	qword_t* q      = current->data;
+	qword_t* dmatag = q;
 	q++;
 
 	// Clear framebuffer without any pixel testing.

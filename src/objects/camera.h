@@ -2,9 +2,9 @@
 
 #include "math3d.h"
 #include "tamtypes.h"
-#include "types.h"
-#include "tick.h"
-#include "transform_component.h"
+#include "../types.h"
+#include "../tick.h"
+#include "components/transform_component.h"
 
 class camera: public tickable
 {
@@ -13,6 +13,8 @@ public:
 	virtual void tick(float delta_time) override;
 
 	transform_component transform;
+
+	static camera& get();
 
 protected:
 	void calculate_rotation_input(float delta_time);
