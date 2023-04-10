@@ -2,7 +2,7 @@
 
 #include "types.hpp"
 
-#include <vector>
+#include <set>
 
 
 class transform_component
@@ -27,7 +27,11 @@ public:
 	void set_location(const Vector& new_location) { location = new_location; }
 	void set_rotation(const Vector& new_rotation) { rotation = new_rotation; }
 
-	void set_parent(transform_component& new_parent) { parent = &new_parent; }
+	void set_parent(transform_component& new_parent)
+	{
+		parent = &new_parent;
+		new_parent.children.insert(this);
+	}
 	transform_component* get_parent() const { return parent; }
 
 protected:
@@ -35,5 +39,5 @@ protected:
 	Vector rotation;
 
 	transform_component* parent = nullptr;
-	std::vector<transform_component*> children;
+	std::set<transform_component*> children;
 };
