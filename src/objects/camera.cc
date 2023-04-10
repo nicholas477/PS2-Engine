@@ -16,8 +16,7 @@ camera& camera::get()
 
 camera::camera()
 {
-	transform.location = Vector(0.f, 0.f, 100.f, 0.f);
-	transform.rotation = Vector(0.f, 0.f, 0.f, 0.f);
+	transform.set_location(Vector(0.f, 0.f, 100.f));
 }
 
 void camera::tick(float delta_time)
@@ -44,10 +43,7 @@ void camera::calculate_rotation_input(float delta_time)
 			input_vector = input_vector.normalize();
 		}
 
-		transform.rotation += -input_vector * delta_time * rotation_speed;
-		transform.rotation      = transform.rotation.normalize_rotation();
-		transform.rotation.roll = 0.f;
-		transform.rotation.w    = 0.f;
+		transform.add_rotation(-input_vector * delta_time * rotation_speed);
 	}
 }
 
@@ -78,5 +74,5 @@ void camera::calculate_movement_input(float delta_time)
 		movement_vector += transform.get_rotation_matrix().transform_vector(input_vector);
 	}
 
-	transform.location += movement_vector * delta_time * movement_speed;
+	transform.add_location(movement_vector * delta_time * movement_speed);
 }

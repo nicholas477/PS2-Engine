@@ -122,6 +122,8 @@ struct Vector
 	// to a unit matrix
 	struct Matrix to_rotation_matrix() const;
 
+	struct Matrix to_translation_matrix() const;
+
 	std::string to_string(bool print_rotation = false, bool print_w = true) const;
 } __attribute__((__aligned__(16)));
 
@@ -140,5 +142,21 @@ struct Matrix
 		Vector output;
 		vector_apply(output.vector, const_cast<float*>(input.vector), const_cast<float*>(matrix));
 		return output;
+	}
+
+	static Matrix from_location_and_rotation(const Vector& location, const Vector& rotation);
+
+	Matrix operator*(const Matrix& Rhs) const
+	{
+		Matrix out_matrix;
+		matrix_multiply(out_matrix.matrix, const_cast<float*>(matrix), const_cast<float*>(Rhs.matrix));
+		return out_matrix;
+	}
+
+	Matrix invert() const
+	{
+		Matrix out_matrix;
+		matrix_inverse(out_matrix.matrix, const_cast<float*>(matrix));
+		return out_matrix;
 	}
 } __attribute__((__aligned__(16)));

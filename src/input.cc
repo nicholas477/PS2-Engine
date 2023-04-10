@@ -162,7 +162,8 @@ static int initializePad(int port, int slot)
 
 		waitPadReady(port, slot);
 		printf("padSetActAlign: %d\n", padSetActAlign(port, slot, actAlign));
-	} else
+	}
+	else
 	{
 		printf("Did not find any actuators.\n");
 	}

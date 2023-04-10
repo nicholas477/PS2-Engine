@@ -2,6 +2,7 @@
 #include "gs.hpp"
 #include "input.hpp"
 #include "objects/camera.hpp"
+#include "objects/teapot.hpp"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -9,9 +10,9 @@
 
 #include "graph.h"
 
-static std::vector<class tickable*> tickables;
 static std::vector<class tickable*>& get_tickables()
 {
+	static std::vector<class tickable*> tickables;
 	return tickables;
 }
 
@@ -47,6 +48,18 @@ void init()
 			break;
 	}
 	printf(" (%d)\n", region);
+
+	static teapot teapot1;
+	teapot1.transform.set_location(Vector(30.f));
+
+	static teapot teapot2;
+	teapot2.transform.set_location(Vector(-30.f));
+
+	static teapot teapot3;
+	teapot3.transform.set_location(Vector(0.f, 20.f));
+
+	static teapot teapot4;
+	teapot4.transform.set_location(Vector(0.f, -20.f));
 }
 
 static void tick(float deltaTime)

@@ -39,6 +39,17 @@ Matrix Vector::to_rotation_matrix() const
 	return Matrix(out_matrix);
 }
 
+Matrix Vector::to_translation_matrix() const
+{
+	MATRIX out_matrix;
+	matrix_unit(out_matrix);
+	out_matrix[0x0C] = vector[0];
+	out_matrix[0x0D] = vector[1];
+	out_matrix[0x0E] = vector[2];
+
+	return Matrix(out_matrix);
+}
+
 std::string Vector::to_string(bool print_rotation, bool print_w) const
 {
 	std::stringstream out_stream;
@@ -57,4 +68,9 @@ std::string Vector::to_string(bool print_rotation, bool print_w) const
 			out_stream << "w: " << w << "\n";
 	}
 	return out_stream.str();
+}
+
+Matrix Matrix::from_location_and_rotation(const Vector& location, const Vector& rotation)
+{
+	return rotation.to_rotation_matrix() * location.to_translation_matrix();
 }

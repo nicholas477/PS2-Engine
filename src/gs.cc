@@ -1,9 +1,11 @@
 #include <malloc.h>
 #include <stdio.h>
+#include <vector>
 
 #include "objects/camera.hpp"
 #include "gs.hpp"
 #include "input.hpp"
+#include "renderable.hpp"
 
 #include <libgs.h>
 #include <packet.h>
@@ -19,31 +21,14 @@
 #include <draw.h>
 #include <draw3d.h>
 
-#include "mesh_data.c"
-
 namespace gs
 {
 // The buffers to be used.
 static framebuffer_t frame[2];
 static zbuffer_t z;
 
-static int light_count = 4;
-
 static const int screen_width  = 640;
 static const int screen_height = 512;
-
-static VECTOR light_direction[4] = {{0.00f, 0.00f, 0.00f, 1.00f},
-                                    {1.00f, 0.00f, -1.00f, 1.00f},
-                                    {0.00f, 1.00f, -1.00f, 1.00f},
-                                    {-1.00f, -1.00f, -1.00f, 1.00f}};
-
-static VECTOR light_colour[4] = {{0.00f, 0.00f, 0.00f, 1.00f},
-                                 {1.00f, 0.00f, 0.00f, 1.00f},
-                                 {0.30f, 0.30f, 0.30f, 1.00f},
-                                 {0.50f, 0.50f, 0.50f, 1.00f}};
-
-static int light_type[4] = {LIGHT_AMBIENT, LIGHT_DIRECTIONAL, LIGHT_DIRECTIONAL,
-                            LIGHT_DIRECTIONAL};
 
 static void init_gs(framebuffer_t* frame, zbuffer_t* z)
 {
@@ -118,83 +103,6 @@ static void flip_buffers(packet_t* flip, framebuffer_t* frame)
 	draw_wait_finish();
 }
 
-qword_t* render_teapot(qword_t* q, MATRIX view_screen, VECTOR object_position,
-                       VECTOR object_rotation, prim_t* prim, color_t* color,
-                       framebuffer_t* frame, zbuffer_t* z)
-{
-
-	qword_t* dmatag;
-
-	MATRIX local_world;
-	MATRIX local_light;
-	MATRIX world_view;
-
-	MATRIX local_screen;
-
-	// Now grab our qword pointer and increment past the dmatag.
-	dmatag = q;
-	q++;
-
-	// Create the local_world matrix.
-	create_local_world(local_world, object_position, object_rotation);
-
-	// Create the local_light matrix.
-	create_local_light(local_light, object_rotation);
-
-	// Create the world_view matrix.
-	create_world_view(world_view,
-	                  const_cast<float*>(camera::get().transform.location.vector),
-	                  const_cast<float*>(camera::get().transform.rotation.vector));
-
-	// Create the local_screen matrix.
-	create_local_screen(local_screen, local_world, world_view, view_screen);
-
-	VECTOR* temp_normals = (float(*)[4])memalign(128, sizeof(VECTOR) * vertex_count);
-	// Calculate the normal values.
-	calculate_normals(temp_normals, vertex_count, normals, local_light);
-
-	VECTOR* temp_lights = (float(*)[4])memalign(128, sizeof(VECTOR) * vertex_count);
-	// Calculate the lighting values.
-	calculate_lights(temp_lights, vertex_count, temp_normals, light_direction,
-	                 light_colour, light_type, light_count);
-
-	VECTOR* temp_colours = (float(*)[4])memalign(128, sizeof(VECTOR) * vertex_count);
-	// Calculate the colour values after lighting.
-	calculate_colours(temp_colours, vertex_count, colours, temp_lights);
-
-	VECTOR* temp_vertices = (float(*)[4])memalign(128, sizeof(VECTOR) * vertex_count);
-	// Calculate the vertex values.
-	calculate_vertices(temp_vertices, vertex_count, vertices, local_screen);
-
-	xyz_t* xyz = (xyz_t*)memalign(128, sizeof(u64) * vertex_count);
-	// Convert floating point vertices to fixed point and translate to center of
-	// screen.
-	draw_convert_xyz(xyz, 2048, 2048, 32, vertex_count,
-	                 (vertex_f_t*)temp_vertices);
-
-	color_t* rgbaq = (color_t*)memalign(128, sizeof(u64) * vertex_count);
-	// Convert floating point colours to fixed point.
-	draw_convert_rgbq(rgbaq, vertex_count, (vertex_f_t*)temp_vertices,
-	                  (color_f_t*)temp_colours, color->a);
-
-	// Draw the triangles using triangle primitive type.
-	q = draw_prim_start(q, 0, prim, color);
-
-	for (int i = 0; i < points_count; i++)
-	{
-		q->dw[0] = rgbaq[points[i]].rgbaq;
-		q->dw[1] = xyz[points[i]].xyz;
-		q++;
-	}
-
-	q = draw_prim_end(q, 2, DRAW_RGBAQ_REGLIST);
-
-	// Define our dmatag for the dma chain.
-	DMATAG_CNT(dmatag, q - dmatag - 1, 0, 0, 0);
-
-	return q;
-}
-
 static int context = 0;
 
 // Packets for doublebuffering dma sends
@@ -204,12 +112,7 @@ static packet_t* current;
 // This packet is special for framebuffer switching
 static packet_t* flip_pkt;
 
-static MATRIX view_screen;
-static prim_t prim;
-static color_t color;
-
-static VECTOR object_position = {0.00f, 0.00f, 0.00f, 1.00f};
-static VECTOR object_rotation = {0.00f, 0.00f, 0.00f, 1.00f};
+static gs_state _gs_state;
 
 static void init_renderer(framebuffer_t* frame, zbuffer_t* z)
 {
@@ -219,50 +122,50 @@ static void init_renderer(framebuffer_t* frame, zbuffer_t* z)
 	// Uncached accelerated
 	flip_pkt = packet_init(3, PACKET_UCAB);
 
-	// Define the triangle primitive we want to use.
-	prim.type         = PRIM_TRIANGLE;
-	prim.shading      = PRIM_SHADE_GOURAUD;
-	prim.mapping      = DRAW_DISABLE;
-	prim.fogging      = DRAW_DISABLE;
-	prim.blending     = DRAW_ENABLE;
-	prim.antialiasing = DRAW_DISABLE;
-	prim.mapping_type = DRAW_DISABLE;
-	prim.colorfix     = PRIM_UNFIXED;
-
-	color.r = 0x80;
-	color.g = 0x80;
-	color.b = 0x80;
-	color.a = 0x80;
-	color.q = 1.0f;
-
 	// Create the view_screen matrix.
-	create_view_screen(view_screen, graph_aspect_ratio(), -4.00f, 4.00f, -4.00f,
+	create_view_screen(_gs_state.view_screen.matrix, graph_aspect_ratio(), -4.00f, 4.00f, -4.00f,
 	                   4.00f, 1.00f, 2000.00f);
+
+	_gs_state.lights.add_light(Vector {0.00f, 0.00f, 0.00f, 1.00f}, Vector {0.00f, 0.00f, 0.00f, 1.00f}, lightsT::type::ambient);
+	_gs_state.lights.add_light(Vector {1.00f, 0.00f, -1.00f, 1.00f}, Vector {1.00f, 0.00f, 0.00f, 1.00f}, lightsT::type::directional);
+	_gs_state.lights.add_light(Vector {0.00f, 1.00f, -1.00f, 1.00f}, Vector {0.30f, 0.30f, 0.30f, 1.00f}, lightsT::type::directional);
+	_gs_state.lights.add_light(Vector {-1.00f, -1.00f, -1.00f, 1.00f}, Vector {0.50f, 0.50f, 0.50f, 1.00f}, lightsT::type::directional);
+}
+
+std::vector<renderable*>& get_renderables()
+{
+	static std::vector<renderable*> renderables;
+	return renderables;
+}
+void add_renderable(renderable* renderable)
+{
+	get_renderables().push_back(renderable);
 }
 
 void init()
 {
-	printf("init gs %d\n", 1);
+	printf("Initializing graphics synthesizer\n");
 
 	// Init GIF dma channel.
 	dma_channel_initialize(DMA_CHANNEL_GIF, NULL, 0);
 	dma_channel_fast_waits(DMA_CHANNEL_GIF);
 
-	printf("init gs %d\n", 2);
-
 	// Init the GS, framebuffer, and zbuffer.
 	init_gs(frame, &z);
-
-	printf("init gs %d\n", 3);
 
 	// Init the drawing environment and framebuffer.
 	init_drawing_environment(frame, &z);
 
-	printf("init gs %d\n", 4);
-
 	init_renderer(frame, &z);
+}
 
-	printf("init gs %d\n", 5);
+static qword_t* draw_objects(qword_t* q, const gs_state& gs_state)
+{
+	for (renderable* _renderable : get_renderables())
+	{
+		q = _renderable->render(q, gs_state);
+	}
+	return q;
 }
 
 static int gs_render(framebuffer_t* frame, zbuffer_t* z)
@@ -280,28 +183,13 @@ static int gs_render(framebuffer_t* frame, zbuffer_t* z)
 
 	DMATAG_CNT(dmatag, q - dmatag - 1, 0, 0, 0);
 
-	// render teapots
-	color.a            = 0x40;
-	object_position[0] = 30.0f;
-	q                  = render_teapot(q, view_screen, object_position, object_rotation, &prim,
-                      &color, frame, z);
+	// Create the world_view matrix.
+	_gs_state.view_world = camera::get().transform.get_matrix().invert();
 
-	object_position[0] = -30.0f;
-	q                  = render_teapot(q, view_screen, object_position, object_rotation, &prim,
-                      &color, frame, z);
+	_gs_state.frame   = frame;
+	_gs_state.zbuffer = z;
 
-	color.a            = 0x80;
-	object_position[0] = 0.0f;
-	object_position[1] = -20.0f;
-	q                  = render_teapot(q, view_screen, object_position, object_rotation, &prim,
-                      &color, frame, z);
-
-	object_position[1] = 20.0f;
-	q                  = render_teapot(q, view_screen, object_position, object_rotation, &prim,
-                      &color, frame, z);
-
-	object_position[0] = 0.0f;
-	object_position[1] = 0.0f;
+	q = draw_objects(q, _gs_state);
 
 	dmatag = q;
 	q++;
