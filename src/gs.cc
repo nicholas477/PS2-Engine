@@ -1,9 +1,9 @@
 #include <malloc.h>
 #include <stdio.h>
 
-#include "objects/camera.h"
-#include "gs.h"
-#include "input.h"
+#include "objects/camera.hpp"
+#include "gs.hpp"
+#include "input.hpp"
 
 #include <libgs.h>
 #include <packet.h>
@@ -149,31 +149,30 @@ qword_t* render_teapot(qword_t* q, MATRIX view_screen, VECTOR object_position,
 	// Create the local_screen matrix.
 	create_local_screen(local_screen, local_world, world_view, view_screen);
 
-	VECTOR* temp_normals;
-
+	VECTOR* temp_normals = (float(*)[4])memalign(128, sizeof(VECTOR) * vertex_count);
 	// Calculate the normal values.
 	calculate_normals(temp_normals, vertex_count, normals, local_light);
 
-	VECTOR* temp_lights;
+	VECTOR* temp_lights = (float(*)[4])memalign(128, sizeof(VECTOR) * vertex_count);
 	// Calculate the lighting values.
 	calculate_lights(temp_lights, vertex_count, temp_normals, light_direction,
 	                 light_colour, light_type, light_count);
 
-	VECTOR* temp_colours;
+	VECTOR* temp_colours = (float(*)[4])memalign(128, sizeof(VECTOR) * vertex_count);
 	// Calculate the colour values after lighting.
 	calculate_colours(temp_colours, vertex_count, colours, temp_lights);
 
-	VECTOR* temp_vertices;
+	VECTOR* temp_vertices = (float(*)[4])memalign(128, sizeof(VECTOR) * vertex_count);
 	// Calculate the vertex values.
 	calculate_vertices(temp_vertices, vertex_count, vertices, local_screen);
 
-	xyz_t* xyz;
+	xyz_t* xyz = (xyz_t*)memalign(128, sizeof(u64) * vertex_count);
 	// Convert floating point vertices to fixed point and translate to center of
 	// screen.
 	draw_convert_xyz(xyz, 2048, 2048, 32, vertex_count,
 	                 (vertex_f_t*)temp_vertices);
 
-	color_t* rgbaq;
+	color_t* rgbaq = (color_t*)memalign(128, sizeof(u64) * vertex_count);
 	// Convert floating point colours to fixed point.
 	draw_convert_rgbq(rgbaq, vertex_count, (vertex_f_t*)temp_vertices,
 	                  (color_f_t*)temp_colours, color->a);
@@ -235,16 +234,6 @@ static void init_renderer(framebuffer_t* frame, zbuffer_t* z)
 	color.b = 0x80;
 	color.a = 0x80;
 	color.q = 1.0f;
-
-	// Allocate calculation space.
-	temp_normals  = (float(*)[4])memalign(128, sizeof(VECTOR) * vertex_count);
-	temp_lights   = (float(*)[4])memalign(128, sizeof(VECTOR) * vertex_count);
-	temp_colours  = (float(*)[4])memalign(128, sizeof(VECTOR) * vertex_count);
-	temp_vertices = (float(*)[4])memalign(128, sizeof(VECTOR) * vertex_count);
-
-	// Allocate register space.
-	xyz   = (xyz_t*)memalign(128, sizeof(u64) * vertex_count);
-	rgbaq = (color_t*)memalign(128, sizeof(u64) * vertex_count);
 
 	// Create the view_screen matrix.
 	create_view_screen(view_screen, graph_aspect_ratio(), -4.00f, 4.00f, -4.00f,

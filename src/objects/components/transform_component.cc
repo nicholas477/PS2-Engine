@@ -1,4 +1,4 @@
-#include "transform_component.h"
+#include "objects/components/transform_component.hpp"
 
 Matrix transform_component::get_rotation_matrix() const
 {
@@ -33,9 +33,6 @@ Matrix transform_component::get_rotation_matrix() const
 	work[0x05] = cosf(input1[2]);
 	matrix_multiply(out_matrix, out_matrix, work);
 
-
-	// matrix_unit(out_matrix.matrix);
-	// matrix_rotate(out_matrix.matrix, out_matrix.matrix, const_cast<float*>(rotation.vector));
 	return Matrix(out_matrix);
 }
 

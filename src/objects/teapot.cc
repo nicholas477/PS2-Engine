@@ -1,1 +1,1 @@
-#pragma once
+#include "objects/teapot.hpp"

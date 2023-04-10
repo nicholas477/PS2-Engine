@@ -1,8 +1,8 @@
 #include <stdio.h>
 
-#include "camera.h"
-#include "../types.h"
-#include "../input.h"
+#include "objects/camera.hpp"
+#include "types.hpp"
+#include "input.hpp"
 
 static const float dead_zone      = 0.2f;
 static const float movement_speed = 150.f;

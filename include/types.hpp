@@ -3,8 +3,7 @@
 #include <stddef.h>
 #include <math.h>
 #include <string.h>
-
-#include <sstream>
+#include <string>
 
 #include "math3d.h"
 
@@ -90,18 +89,6 @@ struct Vector
 		return out * -1.f;
 	}
 
-	Vector normalize_rotation() const
-	{
-		Vector out = *this;
-		for (int i = 0; i < 3; ++i)
-		{
-			out.vector[i] += 2 * M_PI;
-			out.vector[i] = fmod(out.vector[i], 2 * M_PI);
-		}
-
-		return out;
-	}
-
 	Vector cross(const Vector& Rhs) const
 	{
 		Vector out;
@@ -116,25 +103,26 @@ struct Vector
 		return out;
 	}
 
-	std::string to_string(bool print_rotation = false, bool print_w = true) const
+	// Rotation members/functions
+
+	// Normalizes the axes of a rotation vector to [0, 2PI)
+	Vector normalize_rotation() const
 	{
-		std::stringstream out_stream;
-		if (print_rotation)
+		Vector out = *this;
+		for (int i = 0; i < 3; ++i)
 		{
-			out_stream << "pitch: " << pitch << "\n";
-			out_stream << "yaw:   " << yaw << "\n";
-			out_stream << "roll:  " << roll << "\n";
+			out.vector[i] += 2 * M_PI;
+			out.vector[i] = fmod(out.vector[i], 2 * M_PI);
 		}
-		else
-		{
-			out_stream << "x: " << x << "\n";
-			out_stream << "y: " << y << "\n";
-			out_stream << "z: " << z << "\n";
-			if (print_w)
-				out_stream << "w: " << w << "\n";
-		}
-		return out_stream.str();
+
+		return out;
 	}
+
+	// Generates a rotation matrix by applying pitch, yaw, roll (in that order)
+	// to a unit matrix
+	struct Matrix to_rotation_matrix() const;
+
+	std::string to_string(bool print_rotation = false, bool print_w = true) const;
 } __attribute__((__aligned__(16)));
 
 struct Matrix

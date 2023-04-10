@@ -1,9 +1,8 @@
 #include <kernel.h>
 
-#include "engine.h"
-#include "input.h"
+#include "engine.hpp"
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
 
 	engine::init();

@@ -1,9 +1,8 @@
 #pragma once
-#include "types.h"
+#include "draw_buffers.h"
+#include "types.hpp"
 
 class renderable;
-class framebuffer_t;
-class zbuffer_t;
 
 namespace gs
 {

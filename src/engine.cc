@@ -1,7 +1,7 @@
-#include "engine.h"
-#include "gs.h"
-#include "input.h"
-#include "objects/camera.h"
+#include "engine.hpp"
+#include "gs.hpp"
+#include "input.hpp"
+#include "objects/camera.hpp"
 
 #include <stdio.h>
 #include <stdlib.h>

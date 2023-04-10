@@ -2,9 +2,9 @@
 
 #include "math3d.h"
 #include "tamtypes.h"
-#include "../types.h"
-#include "../tick.h"
-#include "components/transform_component.h"
+#include "types.hpp"
+#include "tick.hpp"
+#include "objects/components/transform_component.hpp"
 
 class camera: public tickable
 {
