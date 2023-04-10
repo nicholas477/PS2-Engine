@@ -27,7 +27,8 @@ public:
 	void set_location(const Vector& new_location) { location = new_location; }
 	void set_rotation(const Vector& new_rotation) { rotation = new_rotation; }
 
-	void set_parent(transform_component* new_parent) { parent = new_parent; }
+	void set_parent(transform_component& new_parent) { parent = &new_parent; }
+	transform_component* get_parent() const { return parent; }
 
 protected:
 	Vector location;

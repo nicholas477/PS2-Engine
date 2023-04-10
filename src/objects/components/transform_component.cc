@@ -4,7 +4,7 @@ Matrix transform_component::get_matrix() const
 {
 	if (parent)
 	{
-		return parent->get_matrix() * Matrix::from_location_and_rotation(location, rotation);
+		return Matrix::from_location_and_rotation(location, rotation) * parent->get_matrix();
 	}
 	else
 	{
@@ -14,7 +14,14 @@ Matrix transform_component::get_matrix() const
 
 Matrix transform_component::get_rotation_matrix() const
 {
-	return rotation.to_rotation_matrix();
+	if (parent)
+	{
+		return rotation.to_rotation_matrix() * parent->get_rotation_matrix();
+	}
+	else
+	{
+		return rotation.to_rotation_matrix();
+	}
 }
 
 Vector transform_component::get_forward_vector() const

@@ -1,6 +1,7 @@
 #include "engine.hpp"
 #include "gs.hpp"
 #include "input.hpp"
+#include "world.hpp"
 #include "objects/camera.hpp"
 #include "objects/teapot.hpp"
 
@@ -49,17 +50,7 @@ void init()
 	}
 	printf(" (%d)\n", region);
 
-	static teapot teapot1;
-	teapot1.transform.set_location(Vector(30.f));
-
-	static teapot teapot2;
-	teapot2.transform.set_location(Vector(-30.f));
-
-	static teapot teapot3;
-	teapot3.transform.set_location(Vector(0.f, 20.f));
-
-	static teapot teapot4;
-	teapot4.transform.set_location(Vector(0.f, -20.f));
+	world::init();
 }
 
 static void tick(float deltaTime)
