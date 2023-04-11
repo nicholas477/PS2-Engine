@@ -13,6 +13,20 @@
 
 #include <dma.h>
 
+static inline bool cullBackFacingTriangle(const Vector* eye, const Vector* v0,
+                                          const Vector* v1, const Vector* v2)
+{
+	// Plane equation of the triangle will give us its orientation
+	// which can be compared with the viewer's world position.
+	//
+	// const Vector d = crossProduct(*v2 - *v0, *v1 - *v0);
+	// const Vector c = *v0 - *eye;
+	// return dotProduct3(c, d) <= 0.0f;
+	const Vector d = (*v2 - *v0).cross((*v1 - *v0));
+	const Vector c = *v0 - *eye;
+	return c.dot(d) >= 0.0f;
+}
+
 static class teapot_render_proxy
 {
 public:
@@ -84,10 +98,31 @@ public:
 		// Draw the triangles using triangle primitive type.
 		q = draw_prim_start(q, 0, &prim, &color);
 
-		for (int i = 0; i < points_count; i++)
+		Vector eye_pos = gs_state.view_world.transform_vector(Vector());
+
+		for (int i = 0; i < points_count / 3; ++i)
 		{
-			q->dw[0] = rgbaq[points[i]].rgbaq;
-			q->dw[1] = xyz[points[i]].xyz;
+			const Vector* v0 = (Vector*)&temp_vertices[points[(i * 3)]];
+			const Vector* v1 = (Vector*)&temp_vertices[points[(i * 3) + 1]];
+			const Vector* v2 = (Vector*)&temp_vertices[points[(i * 3) + 2]];
+
+			// if (cullBackFacingTriangle(&eye_pos, v0, v1, v2))
+			// {
+			// 	continue;
+			// }
+
+
+			q->dw[0] = rgbaq[points[(i * 3)]].rgbaq;
+			q->dw[1] = xyz[points[(i * 3)]].xyz;
+			q++;
+
+			q->dw[0] = rgbaq[points[(i * 3) + 1]].rgbaq;
+			q->dw[1] = xyz[points[(i * 3) + 1]].xyz;
+			q++;
+
+
+			q->dw[0] = rgbaq[points[(i * 3) + 2]].rgbaq;
+			q->dw[1] = xyz[points[(i * 3) + 2]].xyz;
 			q++;
 		}
 

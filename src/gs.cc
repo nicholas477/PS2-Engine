@@ -117,8 +117,8 @@ static gs_state _gs_state;
 
 static void init_renderer(framebuffer_t* frame, zbuffer_t* z)
 {
-	packets[0] = packet_init(80000, PACKET_NORMAL);
-	packets[1] = packet_init(80000, PACKET_NORMAL);
+	packets[0] = packet_init(160000, PACKET_NORMAL);
+	packets[1] = packet_init(160000, PACKET_NORMAL);
 
 	// Uncached accelerated
 	flip_pkt = packet_init(3, PACKET_UCAB);

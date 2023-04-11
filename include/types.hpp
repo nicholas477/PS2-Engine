@@ -83,6 +83,16 @@ struct Vector
 		return out;
 	}
 
+	Vector operator-(const Vector& Rhs) const
+	{
+		Vector out = *this;
+		out.x -= Rhs.x;
+		out.y -= Rhs.y;
+		out.z -= Rhs.z;
+		out.w -= Rhs.w;
+		return out;
+	}
+
 	Vector operator-() const
 	{
 		Vector out = *this;
@@ -94,6 +104,11 @@ struct Vector
 		Vector out;
 		vector_cross_product(out.vector, const_cast<float*>(vector), const_cast<float*>(Rhs.vector));
 		return out;
+	}
+
+	float dot(const Vector& Rhs) const
+	{
+		return vector_innerproduct(const_cast<float*>(vector), const_cast<float*>(Rhs.vector));
 	}
 
 	Vector normalize() const

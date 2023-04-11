@@ -8,6 +8,8 @@
 
 #include "input.h"
 
+#include "objects/teapot.hpp"
+
 /*
  * Global var's
  */
@@ -208,6 +210,8 @@ void init()
 	}
 }
 
+#include "timer.h"
+
 void read_inputs()
 {
 	// printf("Reading inputs...\n");
@@ -235,6 +239,14 @@ void read_inputs()
 
 		new_pad = paddata & ~old_pad;
 		old_pad = paddata;
+
+		if (new_pad & PAD_SQUARE)
+		{
+			static int i       = 23489;
+			teapot* new_teapot = new teapot();
+			srand(GetTimerSystemTime() + i++);
+			new_teapot->transform.add_location(Vector(((double)rand() / (double)RAND_MAX) * 256.f, 0.f, ((double)rand() / (double)RAND_MAX) * 256.f));
+		}
 
 		// Directions
 		// 	if (new_pad & PAD_LEFT)
