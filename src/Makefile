@@ -1,7 +1,6 @@
 EE_BIN = main.elf
 SRC_FILES = $(shell find $(PREFIX) -name "*.cc")
-#EE_OBJS = main.o input.o stats.o engine.o world.o gs.o objects/movement.o objects/camera.o objects/teapot.o objects/components/transform_component.o types.o
-#EE_OBJS :=$(addprefix $(PREFIX), $(EE_OBJS))
+EE_OBJS = $(patsubst %.cc, %.o, $(SRC_FILES))
 EE_INCS := -Iinclude $(EE_INCS)
 EE_LIBS = -ldraw -lgraph -lmath3d -lpacket -ldma -lpad -lc -lstdc++ -lgs -ldebug
 EE_CFLAGS = -O3 -g
@@ -27,23 +26,28 @@ PS2_VU_DVP = dvp-as
 PS2_VCL   = vcl
 PS2_VCLPP = vclpp
 
-EE_OBJS = $(patsubst %.cc, %.o, $(SRC_FILES))
-
 #
 # VCL/VU microprograms:
 #
 VCL_PATH  = $(PREFIX)vu1progs
 VCL_FILES = color_triangles_clip_tris.vcl
 
+EE_OBJS := $(EE_OBJS) $(VU_PROGS)
+
 all: $(EE_BIN) $(VU_PROGS)
 	$(EE_STRIP) --strip-all $(EE_BIN)
+
+# $(EE_BIN): $(VU_PROGS) $(EE_OBJS)
+# 	$(shell echo "hello")
+# $(QUIET) $(PS2_CC) $(PS2_LINKCMD) $(PS2_CFLAGS) -o \
+# 	$(EE_BIN) $(OBJ_FILES) \
+# 	$(VU_PROGS) $(PS2_LDFLAGS) $(PS2_LIBS)
 
 #
 # VU microprograms:
 #
 $(VU_PROGS): $(OUTPUT_DIR)/$(VU_OUTPUT_DIR)/%.o: $(OUTPUT_DIR)/$(VU_OUTPUT_DIR)/%.vsm
-	$(ECHO_ASSEMBLING_VU_PROGS)
-	$(QUIET) $(PS2_VU_DVP) $< -o $@
+	$(PS2_VU_DVP) $< -o $@
 
 $(OUTPUT_DIR)/$(VU_OUTPUT_DIR)/%.vsm:
 	$(MKDIR_CMD) $(dir $@)
