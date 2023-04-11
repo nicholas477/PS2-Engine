@@ -12,16 +12,9 @@ void clear_timer_stats();
 
 struct scoped_timer
 {
-	scoped_timer(const std::string& _name)
-	    : name(_name)
-	{
-		start_time = engine::get_realtime();
-	}
+	scoped_timer(const std::string& _name);
 
-	~scoped_timer()
-	{
-		add_timer_stat(name, engine::get_realtime() - start_time);
-	}
+	~scoped_timer();
 
 	std::string name;
 	double start_time;

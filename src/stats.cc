@@ -1,10 +1,10 @@
 #include "stats.hpp"
 
-#include <map>
+#include <unordered_map>
 
-static std::map<std::string, double>& get_timer_stats()
+static std::unordered_map<std::string, double>& get_timer_stats()
 {
-	static std::map<std::string, double> timer_stats;
+	static std::unordered_map<std::string, double> timer_stats;
 	return timer_stats;
 }
 
@@ -27,6 +27,17 @@ void print_timer_stats()
 
 void clear_timer_stats()
 {
-	//get_timer_stats().clear();
+	get_timer_stats().clear();
+}
+
+scoped_timer::scoped_timer(const std::string& _name)
+    : name(_name)
+{
+	start_time = engine::get_realtime();
+}
+
+scoped_timer::~scoped_timer()
+{
+	add_timer_stat(name, engine::get_realtime() - start_time);
 }
 } // namespace stats
