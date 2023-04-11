@@ -3,6 +3,18 @@
 #include "objects/camera.hpp"
 #include "objects/movement.hpp"
 
+#include "timer.h"
+
+#include <debug.h>
+
+static void make_teapot()
+{
+	static int i       = 0;
+	teapot* new_teapot = new teapot();
+	srand(GetTimerSystemTime() + i++);
+	new_teapot->transform.add_location(Vector(((double)rand() / (double)RAND_MAX) * 256.f, 0.f, ((double)rand() / (double)RAND_MAX) * 256.f));
+}
+
 namespace world
 {
 void init()
@@ -28,5 +40,9 @@ void init()
 	static third_person_movement movement;
 	movement.updated_rotation_component = &scene;
 	movement.updated_location_component = &teapot4.transform;
+
+	make_teapot();
+	make_teapot();
+	make_teapot();
 }
 } // namespace world

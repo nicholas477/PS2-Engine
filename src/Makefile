@@ -1,9 +1,10 @@
 EE_BIN = main.elf
 SRCS := $(wildcard *.cc)
-EE_OBJS = main.o input.o engine.o world.o gs.o objects/movement.o objects/camera.o objects/teapot.o objects/components/transform_component.o types.o
+EE_OBJS = main.o input.o stats.o engine.o world.o gs.o objects/movement.o objects/camera.o objects/teapot.o objects/components/transform_component.o types.o
 EE_OBJS :=$(addprefix $(PREFIX), $(EE_OBJS))
 EE_INCS := -Iinclude $(EE_INCS)
-EE_LIBS = -ldraw -lgraph -lmath3d -lpacket -ldma -lpad -lc -lstdc++ -lgs
+EE_LIBS = -ldraw -lgraph -lmath3d -lpacket -ldma -lpad -lc -lstdc++ -lgs -ldebug
+EE_CFLAGS = -Os -g
 
 all: $(EE_BIN)
 	$(EE_STRIP) --strip-all $(EE_BIN)

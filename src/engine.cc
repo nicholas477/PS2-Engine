@@ -4,10 +4,13 @@
 #include "world.hpp"
 #include "objects/camera.hpp"
 #include "objects/teapot.hpp"
+#include "stats.hpp"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <vector>
+#include <timer.h>
+#include <inttypes.h>
 
 #include "graph.h"
 
@@ -19,6 +22,7 @@ static std::vector<class tickable*>& get_tickables()
 
 namespace engine
 {
+static float game_time  = 0.f;
 static float tickrate   = 1.f / 59.93f; // ntsc
 static u32 frameCounter = 0;
 
@@ -55,28 +59,53 @@ void init()
 
 static void tick(float deltaTime)
 {
+	stats::scoped_timer tick_timer("tick");
+
 	for (tickable* _tickable : get_tickables())
 	{
 		_tickable->tick(deltaTime);
 	}
 	frameCounter++;
+	game_time += deltaTime;
 }
 
 void run()
 {
 	for (;;)
 	{
-		input::read_inputs();
-
-		if (input::get_paddata() & PAD_START)
 		{
-			printf("Returning...\n");
+			stats::scoped_timer frame_timer("frame");
+
+			input::read_inputs();
+
+			tick(tickrate);
+
+			gs::render();
+		}
+
+		if (input::get_paddata() & PAD_SELECT)
+		{
 			return;
 		}
 
-		tick(tickrate);
-		gs::render();
+		if (input::get_paddata() & PAD_START)
+		{
+			stats::print_timer_stats();
+			printf("Realtime: %lf\n", get_realtime());
+		}
+
+		stats::clear_timer_stats();
 	}
 }
 u32 get_frame_counter() { return frameCounter; }
+
+double get_game_time()
+{
+	return game_time;
+}
+
+double get_realtime()
+{
+	return (double)GetTimerSystemTime() / (double)kBUSCLK;
+}
 } // namespace engine

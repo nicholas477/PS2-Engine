@@ -6,6 +6,7 @@
 #include "gs.hpp"
 #include "input.hpp"
 #include "renderable.hpp"
+#include "stats.hpp"
 
 #include <libgs.h>
 #include <packet.h>
@@ -116,8 +117,8 @@ static gs_state _gs_state;
 
 static void init_renderer(framebuffer_t* frame, zbuffer_t* z)
 {
-	packets[0] = packet_init(40000, PACKET_NORMAL);
-	packets[1] = packet_init(40000, PACKET_NORMAL);
+	packets[0] = packet_init(80000, PACKET_NORMAL);
+	packets[1] = packet_init(80000, PACKET_NORMAL);
 
 	// Uncached accelerated
 	flip_pkt = packet_init(3, PACKET_UCAB);
@@ -126,9 +127,9 @@ static void init_renderer(framebuffer_t* frame, zbuffer_t* z)
 	create_view_screen(_gs_state.view_screen.matrix, graph_aspect_ratio(), -4.00f, 4.00f, -4.00f,
 	                   4.00f, 1.00f, 2000.00f);
 
-	_gs_state.lights.add_light(Vector {0.00f, 0.00f, 0.00f, 1.00f}, Vector {0.00f, 0.00f, 0.00f, 1.00f}, lightsT::type::ambient);
-	_gs_state.lights.add_light(Vector {1.00f, 0.00f, -1.00f, 1.00f}, Vector {1.00f, 0.00f, 0.00f, 1.00f}, lightsT::type::directional);
-	_gs_state.lights.add_light(Vector {0.00f, 1.00f, -1.00f, 1.00f}, Vector {0.30f, 0.30f, 0.30f, 1.00f}, lightsT::type::directional);
+	//_gs_state.lights.add_light(Vector {0.00f, 0.00f, 0.00f, 1.00f}, Vector {0.00f, 0.00f, 0.00f, 1.00f}, lightsT::type::ambient);
+	//_gs_state.lights.add_light(Vector {1.00f, 0.00f, -1.00f, 1.00f}, Vector {1.00f, 0.00f, 0.00f, 1.00f}, lightsT::type::directional);
+	//_gs_state.lights.add_light(Vector {0.00f, 1.00f, -1.00f, 1.00f}, Vector {0.30f, 0.30f, 0.30f, 1.00f}, lightsT::type::directional);
 	_gs_state.lights.add_light(Vector {-1.00f, -1.00f, -1.00f, 1.00f}, Vector {0.50f, 0.50f, 0.50f, 1.00f}, lightsT::type::directional);
 }
 
@@ -170,33 +171,39 @@ static qword_t* draw_objects(qword_t* q, const gs_state& gs_state)
 
 static int gs_render(framebuffer_t* frame, zbuffer_t* z)
 {
+	stats::scoped_timer render_timer("render");
+
 	current         = packets[context];
 	qword_t* q      = current->data;
 	qword_t* dmatag = q;
 	q++;
 
-	// Clear framebuffer without any pixel testing.
-	q = draw_disable_tests(q, 0, z);
-	q = draw_clear(q, 0, 2048.0f - 320.0f, 2048.0f - 256.0f, frame->width,
-	               frame->height, 0x80, 0x80, 0x80);
-	q = draw_enable_tests(q, 0, z);
+	{
+		stats::scoped_timer draw_timer("draw");
 
-	DMATAG_CNT(dmatag, q - dmatag - 1, 0, 0, 0);
+		// Clear framebuffer without any pixel testing.
+		q = draw_disable_tests(q, 0, z);
+		q = draw_clear(q, 0, 2048.0f - 320.0f, 2048.0f - 256.0f, frame->width,
+		               frame->height, 0x80, 0x80, 0x80);
+		q = draw_enable_tests(q, 0, z);
 
-	// Create the world_view matrix.
-	_gs_state.view_world = camera::get().transform.get_matrix().invert();
+		DMATAG_CNT(dmatag, q - dmatag - 1, 0, 0, 0);
 
-	_gs_state.frame   = frame;
-	_gs_state.zbuffer = z;
+		// Create the world_view matrix.
+		_gs_state.view_world = camera::get().transform.get_matrix().invert();
 
-	q = draw_objects(q, _gs_state);
+		_gs_state.frame   = frame;
+		_gs_state.zbuffer = z;
 
-	dmatag = q;
-	q++;
+		q = draw_objects(q, _gs_state);
 
-	q = draw_finish(q);
+		dmatag = q;
+		q++;
 
-	DMATAG_END(dmatag, q - dmatag - 1, 0, 0, 0);
+		q = draw_finish(q);
+
+		DMATAG_END(dmatag, q - dmatag - 1, 0, 0, 0);
+	}
 
 	// Now send our current dma chain.
 	dma_wait_fast();
