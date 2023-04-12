@@ -15,20 +15,30 @@
  */
 // pad_dma_buf is provided by the user, one buf for each pad
 // contains the pad's current state
-static char padBuf[256] __attribute__((aligned(64)));
+struct pad_data
+{
+	char padBuf[256] __attribute__((aligned(64)));
 
-static char actAlign[6];
-static int actuators;
+	char actAlign[6];
+	int actuators;
 
-static u32 old_pad = 0;
-static u32 new_pad;
-static struct padButtonStatus buttons;
-static u32 paddata;
+	u32 old_pad = 0;
+	u32 new_pad;
+	padButtonStatus buttons;
+	u32 paddata;
+};
+
+static pad_data& get_pad_data()
+{
+	static pad_data p;
+	return p;
+}
 
 /*
  * loadModules()
  */
-static void loadModules(void)
+static void
+loadModules(void)
 {
 	int ret;
 
@@ -150,20 +160,23 @@ static int initializePad(int port, int slot)
 	printf("enterPressMode: %d\n", padEnterPressMode(port, slot));
 
 	waitPadReady(port, slot);
-	actuators = padInfoAct(port, slot, -1, 0);
-	printf("# of actuators: %d\n", actuators);
 
-	if (actuators != 0)
+	auto& pad_data = get_pad_data();
+
+	pad_data.actuators = padInfoAct(port, slot, -1, 0);
+	printf("# of actuators: %d\n", pad_data.actuators);
+
+	if (pad_data.actuators != 0)
 	{
-		actAlign[0] = 0; // Enable small engine
-		actAlign[1] = 1; // Enable big engine
-		actAlign[2] = 0xff;
-		actAlign[3] = 0xff;
-		actAlign[4] = 0xff;
-		actAlign[5] = 0xff;
+		pad_data.actAlign[0] = 0; // Enable small engine
+		pad_data.actAlign[1] = 1; // Enable big engine
+		pad_data.actAlign[2] = 0xff;
+		pad_data.actAlign[3] = 0xff;
+		pad_data.actAlign[4] = 0xff;
+		pad_data.actAlign[5] = 0xff;
 
 		waitPadReady(port, slot);
-		printf("padSetActAlign: %d\n", padSetActAlign(port, slot, actAlign));
+		printf("padSetActAlign: %d\n", padSetActAlign(port, slot, pad_data.actAlign));
 	}
 	else
 	{
@@ -177,8 +190,8 @@ static int initializePad(int port, int slot)
 
 namespace input
 {
-const ::padButtonStatus& get_button_status() { return buttons; }
-const u32& get_paddata() { return paddata; };
+const ::padButtonStatus& get_button_status() { return get_pad_data().buttons; }
+const u32& get_paddata() { return get_pad_data().paddata; };
 
 void init()
 {
@@ -197,7 +210,7 @@ void init()
 	printf("PortMax: %d\n", padGetPortMax());
 	printf("SlotMax: %d\n", padGetSlotMax(port));
 
-	if ((ret = padPortOpen(port, slot, padBuf)) == 0)
+	if ((ret = padPortOpen(port, slot, get_pad_data().padBuf)) == 0)
 	{
 		printf("padOpenPort failed: %d\n", ret);
 		SleepThread();
@@ -231,16 +244,18 @@ void read_inputs()
 		ret = padGetState(port, slot);
 	}
 
-	ret = padRead(port, slot, &buttons); // port, slot, buttons
+	auto& pad_data = get_pad_data();
+
+	ret = padRead(port, slot, &pad_data.buttons); // port, slot, buttons
 
 	if (ret != 0)
 	{
-		paddata = 0xffff ^ buttons.btns;
+		pad_data.paddata = 0xffff ^ pad_data.buttons.btns;
 
-		new_pad = paddata & ~old_pad;
-		old_pad = paddata;
+		pad_data.new_pad = pad_data.paddata & ~pad_data.old_pad;
+		pad_data.old_pad = pad_data.paddata;
 
-		if (new_pad & PAD_SQUARE)
+		if (pad_data.new_pad & PAD_SQUARE)
 		{
 			static int i       = 23489;
 			teapot* new_teapot = new teapot();

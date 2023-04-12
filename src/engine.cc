@@ -33,6 +33,7 @@ void add_tickable(::tickable* tickable)
 
 void init()
 {
+	stats::init();
 	input::init();
 	gs::init();
 
@@ -59,7 +60,7 @@ void init()
 
 static void tick(float deltaTime)
 {
-	stats::scoped_timer tick_timer("tick");
+	stats::scoped_timer tick_timer(stats::scoped_timers::tick);
 
 	for (tickable* _tickable : get_tickables())
 	{
@@ -74,7 +75,7 @@ void run()
 	for (;;)
 	{
 		{
-			stats::scoped_timer frame_timer("frame");
+			stats::scoped_timer frame_timer(stats::scoped_timers::frame);
 
 			input::read_inputs();
 
@@ -88,13 +89,7 @@ void run()
 			return;
 		}
 
-		if (input::get_paddata() & PAD_START)
-		{
-			stats::print_timer_stats();
-			printf("Realtime: %lf\n", get_realtime());
-		}
-
-		stats::clear_timer_stats();
+		stats::check_stats_input();
 	}
 }
 u32 get_frame_counter() { return frameCounter; }

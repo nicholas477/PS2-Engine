@@ -19,11 +19,11 @@ namespace world
 {
 void init()
 {
-	static teapot teapot1;
-	teapot1.transform.set_location(Vector(30.f));
+	// static teapot teapot1;
+	// teapot1.transform.set_location(Vector(30.f));
 
-	static teapot teapot2;
-	teapot2.transform.set_location(Vector(-30.f));
+	// static teapot teapot2;
+	// teapot2.transform.set_location(Vector(-30.f));
 
 	static teapot teapot3;
 	teapot3.transform.set_location(Vector(0.f, 20.f));
@@ -41,8 +41,8 @@ void init()
 	movement.updated_rotation_component = &scene;
 	movement.updated_location_component = &teapot4.transform;
 
-	make_teapot();
-	make_teapot();
-	make_teapot();
+	// make_teapot();
+	// make_teapot();
+	// make_teapot();
 }
 } // namespace world

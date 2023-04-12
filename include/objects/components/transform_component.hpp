@@ -21,7 +21,7 @@ public:
 	void add_rotation(const Vector& offset)
 	{
 		rotation += offset;
-		rotation = rotation.normalize_euler_rotation();
+		rotation = rotation.clamp_euler_rotation();
 	}
 
 	void set_location(const Vector& new_location) { location = new_location; }

@@ -8,6 +8,8 @@
 #include "math3d.h"
 
 extern "C" void sincosf(float, float*, float*);
+static float clamp_axis(float);
+static float normalize_axis(float);
 
 struct Vector
 {
@@ -129,22 +131,25 @@ struct Vector
 
 	// Rotation members/functions
 
-	// Normalizes the axes of a rotation vector to [0, 2PI)
+	// clamps the axes of a rotation vector to [0, 2PI)
+	Vector clamp_euler_rotation() const
+	{
+		Vector out = *this;
+		for (int i = 0; i < 3; ++i)
+		{
+			out.vector[i] = clamp_axis(out.vector[i]);
+		}
+
+		return out;
+	}
+
+	// clamps the axes of a rotation vector to (-PI, PI]
 	Vector normalize_euler_rotation() const
 	{
 		Vector out = *this;
 		for (int i = 0; i < 3; ++i)
 		{
-			out.vector[i] = fmod(vector[i], 2 * M_PI);
-			if (out.vector[i] < 0.0)
-			{
-				out.vector[i] += 2 * M_PI;
-			}
-
-			// if (out.vector[i] > M_PI)
-			// {
-			// 	out.vector[i] -= 2 * M_PI;
-			// }
+			out.vector[i] = normalize_axis(out.vector[i]);
 		}
 
 		return out;
@@ -210,7 +215,7 @@ struct Vector
 		double cosy_cosp = 1 - 2 * (y * y + z * z);
 		angles.yaw       = std::atan2(siny_cosp, cosy_cosp);
 
-		return angles.normalize_euler_rotation();
+		return angles.clamp_euler_rotation();
 	}
 
 	// Generates a rotation matrix by applying pitch, yaw, roll (in that order)

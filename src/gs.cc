@@ -29,13 +29,13 @@ static framebuffer_t frame[2];
 static zbuffer_t z;
 
 static const int screen_width  = 640;
-static const int screen_height = 512;
+static const int screen_height = 480;
 
 static void init_gs(framebuffer_t* frame, zbuffer_t* z)
 {
 	// Define a 32-bit 640x512 framebuffer.
-	frame->width  = 640;
-	frame->height = 512;
+	frame->width  = screen_width;
+	frame->height = screen_height;
 	frame->mask   = 0;
 	frame->psm    = GS_PSM_32;
 
@@ -45,8 +45,8 @@ static void init_gs(framebuffer_t* frame, zbuffer_t* z)
 
 	frame++;
 
-	frame->width  = 640;
-	frame->height = 512;
+	frame->width  = screen_width;
+	frame->height = screen_height;
 	frame->mask   = 0;
 	frame->psm    = GS_PSM_32;
 
@@ -171,7 +171,7 @@ static qword_t* draw_objects(qword_t* q, const gs_state& gs_state)
 
 static int gs_render(framebuffer_t* frame, zbuffer_t* z)
 {
-	stats::scoped_timer render_timer("render");
+	stats::scoped_timer render_timer(stats::scoped_timers::render);
 
 	current         = packets[context];
 	qword_t* q      = current->data;
@@ -179,7 +179,7 @@ static int gs_render(framebuffer_t* frame, zbuffer_t* z)
 	q++;
 
 	{
-		stats::scoped_timer draw_timer("draw");
+		stats::scoped_timer draw_timer(stats::scoped_timers::draw);
 
 		// Clear framebuffer without any pixel testing.
 		q = draw_disable_tests(q, 0, z);

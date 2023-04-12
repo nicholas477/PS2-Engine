@@ -4,8 +4,15 @@
 #include "objects/components/transform_component.hpp"
 #include "generic_math.hpp"
 
+#include "stats.hpp"
+
+#include <algorithm>
+#include <cmath>
+
 void movement::tick(float delta_time)
 {
+	stats::scoped_timer movement_stat(stats::scoped_timers::movement);
+
 	Vector last_frame_position = updated_location_component->get_location();
 
 	perform_movement(delta_time);
@@ -99,7 +106,7 @@ void third_person_movement::calculate_rotation_input(float delta_time)
 		}
 
 		target_rotation += -input_vector * delta_time * rotation_speed;
-		target_rotation = target_rotation.normalize_euler_rotation();
+		target_rotation = target_rotation.clamp_euler_rotation();
 	}
 
 	const Vector desired_rot = qinterp_to(updated_rotation_component->get_rotation().euler_to_quat(), target_rotation.euler_to_quat(), delta_time, rotation_lag_speed).quat_to_euler();

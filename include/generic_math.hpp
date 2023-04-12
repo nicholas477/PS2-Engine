@@ -5,6 +5,53 @@
 #include <algorithm>
 #include <cmath>
 
+// clamps an angle to [0, 2PI]
+static float clamp_axis(float angle)
+{
+	angle = fmod(angle, 2 * M_PI);
+	if (angle < 0.f)
+	{
+		angle += 2 * M_PI;
+	}
+
+	return angle;
+}
+
+// clamps an angle to (-PI, PI]
+float normalize_axis(float angle)
+{
+	// returns Angle in the range [0,2PI)
+	angle = clamp_axis(angle);
+
+	if (angle > M_PI)
+	{
+		angle -= 2 * M_PI;
+	}
+
+	return angle;
+}
+
+// // Clamps an euler angle
+// static float clamp_angle(float angle, float min, float max)
+// {
+// 	const T MaxDelta        = UE::Math::TRotator<T>::ClampAxis(MaxAngleDegrees - MinAngleDegrees) * 0.5f; // 0..180
+// 	const T RangeCenter     = UE::Math::TRotator<T>::ClampAxis(MinAngleDegrees + MaxDelta);               // 0..360
+// 	const T DeltaFromCenter = UE::Math::TRotator<T>::NormalizeAxis(AngleDegrees - RangeCenter);           // -180..180
+
+// 	// maybe clamp to nearest edge
+// 	if (DeltaFromCenter > MaxDelta)
+// 	{
+// 		return UE::Math::TRotator<T>::NormalizeAxis(RangeCenter + MaxDelta);
+// 	}
+// 	else if (DeltaFromCenter < -MaxDelta)
+// 	{
+// 		return UE::Math::TRotator<T>::NormalizeAxis(RangeCenter - MaxDelta);
+// 	}
+
+// 	// already in range, just return it
+// 	return UE::Math::TRotator<T>::NormalizeAxis(AngleDegrees);
+// }
+
 static float lerpf(float x, float y, float a)
 {
 	return (1.0f - a) * x + a * y;

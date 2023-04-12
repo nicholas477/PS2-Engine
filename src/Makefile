@@ -5,7 +5,7 @@ EE_OBJS = $(patsubst %.cc, %.o, $(SRC_FILES))
 EE_OBJS := $(patsubst %.c, %.o, $(EE_OBJS))
 EE_OBJS := $(patsubst %.cpp, %.o, $(EE_OBJS))
 EE_INCS := -Iinclude $(EE_INCS)
-EE_LIBS = -ldraw -lgraph -lmath3d -lpacket -ldma -lpad -lc -lstdc++ -lgs -ldebug
+EE_LIBS = -ldraw -lgraph -lmath3d -lpacket -ldma -lpad -lc -lstdc++ -lgs -ldebug -leedebug
 EE_OPTFLAGS = -O3
 EE_WARNFLAGS = -Wall -Wno-unused-function -Wno-unused-variable
 
@@ -39,7 +39,7 @@ VCL_FILES = color_triangles_clip_tris.vcl
 EE_OBJS := $(EE_OBJS) $(VU_PROGS)
 
 all: $(EE_BIN) $(VU_PROGS)
-	$(EE_STRIP) --strip-all $(EE_BIN)
+#	$(EE_STRIP) --strip-all $(EE_BIN)
 
 # $(EE_BIN): $(VU_PROGS) $(EE_OBJS)
 # 	$(shell echo "hello")

@@ -18,7 +18,7 @@ protected:
 	// Input dead zone on the controller
 	float dead_zone = 0.2f;
 
-	float rotation_speed = M_PI * 0.75f;
+	float rotation_speed = M_PI * 0.8f;
 };
 
 class flying_movement: public movement
@@ -43,7 +43,7 @@ public:
 	float normal_acceleration  = 5.0f;
 	float braking_acceleration = 7.5f;
 
-	float rotation_lag_speed = 10.f;
+	float rotation_lag_speed = 17.5f;
 
 	Vector target_rotation;
 	// Previously desired rotation (quaternion)

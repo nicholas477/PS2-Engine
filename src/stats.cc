@@ -1,43 +1,67 @@
 #include "stats.hpp"
+#include "input.hpp"
 
 #include <unordered_map>
 
-static std::unordered_map<std::string, double>& get_timer_stats()
-{
-	static std::unordered_map<std::string, double> timer_stats;
-	return timer_stats;
-}
+template <typename T>
+using stats_array_t = std::array<T, static_cast<size_t>(stats::scoped_timers::MAX)>;
+
+static constexpr stats_array_t<const char*> timer_stats_names = {
+    "frame", "tick", "render", "draw", "movement"};
+
+static std::unordered_map<stats::scoped_timers, double> timer_stats;
 
 namespace stats
 {
-void add_timer_stat(const std::string& name, double elapsed_time)
+void init()
 {
-	get_timer_stats()[name] = elapsed_time;
+	clear_timer_stats();
+}
+
+static void add_timer_stat(scoped_timers timer, double elapsed_time)
+{
+	timer_stats[timer] = elapsed_time;
 }
 
 void print_timer_stats()
 {
 	printf("----- timer stats -----\n");
-	for (std::pair<std::string, double> timers : get_timer_stats())
+	for (size_t i = 0; i < static_cast<size_t>(stats::scoped_timers::MAX); ++i)
 	{
-		printf("%s (ms): %lf\n", timers.first.c_str(), timers.second * 1000.0);
+		if (timer_stats_names[i] != nullptr)
+		{
+			const char* name = timer_stats_names[i];
+			double timer     = timer_stats[static_cast<stats::scoped_timers>(i)];
+			printf("%s (ms): %f\n", name, (float)(timer * 1000.0));
+		}
 	}
 	printf("--- end timer stats ---\n");
 }
 
 void clear_timer_stats()
 {
-	get_timer_stats().clear();
+	// for (size_t i = 0; i < static_cast<size_t>(stats::scoped_timers::MAX); ++i)
+	// {
+	// 	get_timer_stats()[i] = 0.0;
+	// }
 }
 
-scoped_timer::scoped_timer(const std::string& _name)
-    : name(_name)
+void check_stats_input()
+{
+	if (input::get_paddata() & PAD_START)
+	{
+		stats::print_timer_stats();
+	}
+}
+
+scoped_timer::scoped_timer(scoped_timers _timer)
+    : timer(_timer)
 {
 	start_time = engine::get_realtime();
 }
 
 scoped_timer::~scoped_timer()
 {
-	add_timer_stat(name, engine::get_realtime() - start_time);
+	add_timer_stat(timer, engine::get_realtime() - start_time);
 }
 } // namespace stats
