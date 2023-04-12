@@ -106,7 +106,9 @@ void third_person_movement::calculate_rotation_input(float delta_time)
 		}
 
 		target_rotation += -input_vector * delta_time * rotation_speed;
-		target_rotation = target_rotation.clamp_euler_rotation();
+		target_rotation.pitch = normalize_axis(target_rotation.pitch);
+		target_rotation.pitch = std::clamp(target_rotation.pitch, degree_to_rad(-85), degree_to_rad(85));
+		target_rotation       = target_rotation.clamp_euler_rotation();
 	}
 
 	const Vector desired_rot = qinterp_to(updated_rotation_component->get_rotation().euler_to_quat(), target_rotation.euler_to_quat(), delta_time, rotation_lag_speed).quat_to_euler();
