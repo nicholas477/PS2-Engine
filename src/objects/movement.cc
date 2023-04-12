@@ -98,8 +98,12 @@ void third_person_movement::calculate_rotation_input(float delta_time)
 			input_vector = input_vector.normalize();
 		}
 
-		updated_rotation_component->add_rotation(-input_vector * delta_time * rotation_speed);
+		target_rotation += -input_vector * delta_time * rotation_speed;
+		target_rotation = target_rotation.normalize_euler_rotation();
 	}
+
+	const Vector desired_rot = qinterp_to(updated_rotation_component->get_rotation().euler_to_quat(), target_rotation.euler_to_quat(), delta_time, rotation_lag_speed).quat_to_euler();
+	updated_rotation_component->set_rotation(desired_rot);
 }
 
 bool third_person_movement::is_braking(const Vector& velocity, const Vector& velocity_target)
@@ -117,13 +121,27 @@ void third_person_movement::calculate_movement_input(float delta_time)
 	Vector input_vector    = Vector();
 	Vector movement_vector = Vector();
 
-	input_vector.x = (buttons.ljoy_h - 128.f) / 128.f;
-	input_vector.z = (buttons.ljoy_v - 128.f) / 128.f;
+	Vector right_movement_vector = updated_rotation_component->get_right_vector();
+	right_movement_vector.y      = 0.f;
+	right_movement_vector        = right_movement_vector.normalize();
+
+	Vector forward_movement_vector = updated_rotation_component->get_forward_vector();
+	forward_movement_vector.y      = 0.f;
+	forward_movement_vector        = forward_movement_vector.normalize();
+
+	input_vector += ((buttons.ljoy_h - 128.f) / 128.f) * right_movement_vector;
+	input_vector += ((buttons.ljoy_v - 128.f) / 128.f) * forward_movement_vector;
 
 	if (paddata & PAD_CROSS)
 	{
 		movement_vector.y += 1.f;
 	}
+
+	if (paddata & PAD_CIRCLE)
+	{
+		movement_vector.y += -1.f;
+	}
+
 
 	const float input_length = input_vector.length();
 	if (input_length > dead_zone)
@@ -133,8 +151,7 @@ void third_person_movement::calculate_movement_input(float delta_time)
 			input_vector = input_vector.normalize();
 		}
 
-		movement_vector += updated_rotation_component->get_rotation_matrix().transform_vector(input_vector);
-		movement_vector.y = 0;
+		movement_vector += input_vector;
 	}
 
 	Vector velocity_target = movement_vector * movement_speed;

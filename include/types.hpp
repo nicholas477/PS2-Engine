@@ -7,6 +7,8 @@
 
 #include "math3d.h"
 
+extern "C" void sincosf(float, float*, float*);
+
 struct Vector
 {
 	union
@@ -128,16 +130,87 @@ struct Vector
 	// Rotation members/functions
 
 	// Normalizes the axes of a rotation vector to [0, 2PI)
-	Vector normalize_rotation() const
+	Vector normalize_euler_rotation() const
 	{
 		Vector out = *this;
 		for (int i = 0; i < 3; ++i)
 		{
-			out.vector[i] += 2 * M_PI;
-			out.vector[i] = fmod(out.vector[i], 2 * M_PI);
+			out.vector[i] = fmod(vector[i], 2 * M_PI);
+			if (out.vector[i] < 0.0)
+			{
+				out.vector[i] += 2 * M_PI;
+			}
+
+			// if (out.vector[i] > M_PI)
+			// {
+			// 	out.vector[i] -= 2 * M_PI;
+			// }
 		}
 
 		return out;
+	}
+
+	Vector normalize_quat(float Tolerance = 1.e-8f) const
+	{
+		Vector out            = *this;
+		const float SquareSum = x * x + y * y + z * z + w * w;
+
+		if (SquareSum >= Tolerance)
+		{
+			const float Scale = 1.f / sqrt(SquareSum);
+
+			out.x *= Scale;
+			out.y *= Scale;
+			out.z *= Scale;
+			out.w *= Scale;
+
+			return out;
+		}
+		else
+		{
+			return quat_identity;
+		}
+	}
+
+	Vector euler_to_quat() const
+	{
+		double cr = cos(roll * 0.5);
+		double sr = sin(roll * 0.5);
+		double cp = cos(pitch * 0.5);
+		double sp = sin(pitch * 0.5);
+		double cy = cos(yaw * 0.5);
+		double sy = sin(yaw * 0.5);
+
+
+		Vector q;
+		q.w = cr * cp * cy + sr * sp * sy;
+		q.x = sr * cp * cy - cr * sp * sy;
+		q.y = cr * sp * cy + sr * cp * sy;
+		q.z = cr * cp * sy - sr * sp * cy;
+
+		return q;
+	}
+
+	Vector quat_to_euler() const
+	{
+		Vector angles;
+
+		// roll (x-axis rotation)
+		double sinr_cosp = 2 * (w * x + y * z);
+		double cosr_cosp = 1 - 2 * (x * x + y * y);
+		angles.roll      = std::atan2(sinr_cosp, cosr_cosp);
+
+		// pitch (y-axis rotation)
+		double sinp  = std::sqrt(1 + 2 * (w * y - x * z));
+		double cosp  = std::sqrt(1 - 2 * (w * y - x * z));
+		angles.pitch = 2 * std::atan2(sinp, cosp) - M_PI / 2;
+
+		// yaw (z-axis rotation)
+		double siny_cosp = 2 * (w * z + x * y);
+		double cosy_cosp = 1 - 2 * (y * y + z * z);
+		angles.yaw       = std::atan2(siny_cosp, cosy_cosp);
+
+		return angles.normalize_euler_rotation();
 	}
 
 	// Generates a rotation matrix by applying pitch, yaw, roll (in that order)
@@ -147,6 +220,8 @@ struct Vector
 	struct Matrix to_translation_matrix() const;
 
 	std::string to_string(bool print_rotation = false, bool print_w = true) const;
+
+	static const Vector quat_identity;
 } __attribute__((__aligned__(16)));
 
 static Vector operator*(float Lhs, const Vector& Rhs)

@@ -98,7 +98,7 @@ public:
 		// Draw the triangles using triangle primitive type.
 		q = draw_prim_start(q, 0, &prim, &color);
 
-		Vector eye_pos = gs_state.view_world.transform_vector(Vector());
+		//Vector eye_pos = gs_state.view_world.transform_vector(Vector());
 
 		for (int i = 0; i < points_count / 3; ++i)
 		{

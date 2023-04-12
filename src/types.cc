@@ -2,6 +2,8 @@
 
 #include <sstream>
 
+const Vector Vector::quat_identity(1.f, 0.f, 0.f, 0.f);
+
 Matrix Vector::to_rotation_matrix() const
 {
 	MATRIX out_matrix;

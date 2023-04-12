@@ -40,10 +40,14 @@ public:
 	static bool is_braking(const Vector& velocity, const Vector& velocity_target);
 
 	float movement_speed       = 150.f;
-	float normal_acceleration  = 2.5f;
-	float braking_acceleration = 5.0f;
+	float normal_acceleration  = 5.0f;
+	float braking_acceleration = 7.5f;
 
-	float rotation_acceleration = 1.0f;
+	float rotation_lag_speed = 10.f;
+
+	Vector target_rotation;
+	// Previously desired rotation (quaternion)
+	Vector previously_desired_rot;
 
 protected:
 	void calculate_rotation_input(float delta_time);

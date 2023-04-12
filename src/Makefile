@@ -6,8 +6,8 @@ EE_OBJS := $(patsubst %.c, %.o, $(EE_OBJS))
 EE_OBJS := $(patsubst %.cpp, %.o, $(EE_OBJS))
 EE_INCS := -Iinclude $(EE_INCS)
 EE_LIBS = -ldraw -lgraph -lmath3d -lpacket -ldma -lpad -lc -lstdc++ -lgs -ldebug
-EE_OPTFLAGS = -O1
-EE_WARNFLAGS = -Wall
+EE_OPTFLAGS = -O3
+EE_WARNFLAGS = -Wall -Wno-unused-function -Wno-unused-variable
 
 OUTPUT_DIR     = build
 # IOP_OUTPUT_DIR = irx
