@@ -5,6 +5,11 @@
 #include <algorithm>
 #include <cmath>
 
+static float degree_to_rad(float degree)
+{
+	return (degree / 180.f) * M_PI;
+}
+
 // clamps an angle to [0, 2PI]
 static float clamp_axis(float angle)
 {
@@ -31,26 +36,26 @@ float normalize_axis(float angle)
 	return angle;
 }
 
-// // Clamps an euler angle
-// static float clamp_angle(float angle, float min, float max)
-// {
-// 	const T MaxDelta        = UE::Math::TRotator<T>::ClampAxis(MaxAngleDegrees - MinAngleDegrees) * 0.5f; // 0..180
-// 	const T RangeCenter     = UE::Math::TRotator<T>::ClampAxis(MinAngleDegrees + MaxDelta);               // 0..360
-// 	const T DeltaFromCenter = UE::Math::TRotator<T>::NormalizeAxis(AngleDegrees - RangeCenter);           // -180..180
+// Clamps an euler angle
+static float clamp_angle(float angle, float min, float max)
+{
+	const float max_delta         = clamp_axis(min - max) * 0.5f;         // 0..180
+	const float range_center      = clamp_axis(max + max_delta);          // 0..360
+	const float delta_from_center = normalize_axis(angle - range_center); // -180..180
 
-// 	// maybe clamp to nearest edge
-// 	if (DeltaFromCenter > MaxDelta)
-// 	{
-// 		return UE::Math::TRotator<T>::NormalizeAxis(RangeCenter + MaxDelta);
-// 	}
-// 	else if (DeltaFromCenter < -MaxDelta)
-// 	{
-// 		return UE::Math::TRotator<T>::NormalizeAxis(RangeCenter - MaxDelta);
-// 	}
+	// maybe clamp to nearest edge
+	if (delta_from_center > max_delta)
+	{
+		return normalize_axis(range_center + max_delta);
+	}
+	else if (delta_from_center < -max_delta)
+	{
+		return normalize_axis(range_center - max_delta);
+	}
 
-// 	// already in range, just return it
-// 	return UE::Math::TRotator<T>::NormalizeAxis(AngleDegrees);
-// }
+	// already in range, just return it
+	return normalize_axis(angle);
+}
 
 static float lerpf(float x, float y, float a)
 {
