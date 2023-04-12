@@ -1,27 +1,49 @@
 #pragma once
 #include "tick.hpp"
+#include "types.hpp"
 
-class movement
+class movement: public tickable
 {
 public:
 	class transform_component* updated_location_component;
 	class transform_component* updated_rotation_component;
+
+	virtual void tick(float delta_seconds) override final;
+
+protected:
+	virtual void perform_movement(float delta_seconds) {};
+
+	Vector velocity;
+
+	// Input dead zone on the controller
+	float dead_zone = 0.2f;
+
+	float rotation_speed = M_PI * 0.75f;
 };
 
-class flying_movement: public movement, public tickable
+class flying_movement: public movement
 {
 public:
-	virtual void tick(float delta_seconds) override;
+	virtual void perform_movement(float delta_seconds) override;
+
+	float movement_speed = 150.f;
 
 protected:
 	void calculate_rotation_input(float delta_time);
 	void calculate_movement_input(float delta_time);
 };
 
-class third_person_movement: public movement, public tickable
+class third_person_movement: public movement
 {
 public:
-	virtual void tick(float delta_seconds) override;
+	virtual void perform_movement(float delta_seconds) override;
+	static bool is_braking(const Vector& velocity, const Vector& velocity_target);
+
+	float movement_speed       = 150.f;
+	float normal_acceleration  = 2.5f;
+	float braking_acceleration = 5.0f;
+
+	float rotation_acceleration = 1.0f;
 
 protected:
 	void calculate_rotation_input(float delta_time);

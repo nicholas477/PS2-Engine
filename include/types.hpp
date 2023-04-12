@@ -83,6 +83,12 @@ struct Vector
 		return out;
 	}
 
+	Vector& operator/=(float Rhs)
+	{
+		*this = *this / Rhs;
+		return *this;
+	}
+
 	Vector operator-(const Vector& Rhs) const
 	{
 		Vector out = *this;
@@ -108,7 +114,8 @@ struct Vector
 
 	float dot(const Vector& Rhs) const
 	{
-		return vector_innerproduct(const_cast<float*>(vector), const_cast<float*>(Rhs.vector));
+		//return vector_innerproduct(const_cast<float*>(vector), const_cast<float*>(Rhs.vector));
+		return (x * Rhs.x) + (y * Rhs.y) + (z * Rhs.z) + (w * Rhs.w);
 	}
 
 	Vector normalize() const
@@ -141,6 +148,11 @@ struct Vector
 
 	std::string to_string(bool print_rotation = false, bool print_w = true) const;
 } __attribute__((__aligned__(16)));
+
+static Vector operator*(float Lhs, const Vector& Rhs)
+{
+	return Rhs * Lhs;
+}
 
 struct Matrix
 {

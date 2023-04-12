@@ -1,9 +1,13 @@
 EE_BIN = main.elf
+#SRC_FILES = $(shell find $(PREFIX) -name "*.cc" -o -name "*.cpp" -o -name "*.c")
 SRC_FILES = $(shell find $(PREFIX) -name "*.cc")
 EE_OBJS = $(patsubst %.cc, %.o, $(SRC_FILES))
+EE_OBJS := $(patsubst %.c, %.o, $(EE_OBJS))
+EE_OBJS := $(patsubst %.cpp, %.o, $(EE_OBJS))
 EE_INCS := -Iinclude $(EE_INCS)
 EE_LIBS = -ldraw -lgraph -lmath3d -lpacket -ldma -lpad -lc -lstdc++ -lgs -ldebug
-EE_CFLAGS = -O3 -g
+EE_OPTFLAGS = -O1
+EE_WARNFLAGS = -Wall
 
 OUTPUT_DIR     = build
 # IOP_OUTPUT_DIR = irx

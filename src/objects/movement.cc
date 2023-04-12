@@ -2,12 +2,19 @@
 #include "input.hpp"
 #include "types.hpp"
 #include "objects/components/transform_component.hpp"
+#include "generic_math.hpp"
 
-static const float dead_zone      = 0.2f;
-static const float movement_speed = 150.f;
-static const float rotation_speed = M_PI * 0.75f;
+void movement::tick(float delta_time)
+{
+	Vector last_frame_position = updated_location_component->get_location();
 
-void flying_movement::tick(float delta_time)
+	perform_movement(delta_time);
+
+	velocity = updated_location_component->get_location() - last_frame_position;
+	velocity /= delta_time;
+}
+
+void flying_movement::perform_movement(float delta_time)
 {
 	calculate_rotation_input(delta_time);
 	calculate_movement_input(delta_time);
@@ -65,7 +72,9 @@ void flying_movement::calculate_movement_input(float delta_time)
 	updated_location_component->add_location(movement_vector * delta_time * movement_speed);
 }
 
-void third_person_movement::tick(float delta_time)
+
+
+void third_person_movement::perform_movement(float delta_time)
 {
 	calculate_rotation_input(delta_time);
 	calculate_movement_input(delta_time);
@@ -73,7 +82,7 @@ void third_person_movement::tick(float delta_time)
 
 void third_person_movement::calculate_rotation_input(float delta_time)
 {
-	const u32 paddata   = input::get_paddata();
+	//const u32 paddata   = input::get_paddata();
 	const auto& buttons = input::get_button_status();
 
 	Vector input_vector = Vector();
@@ -91,6 +100,13 @@ void third_person_movement::calculate_rotation_input(float delta_time)
 
 		updated_rotation_component->add_rotation(-input_vector * delta_time * rotation_speed);
 	}
+}
+
+bool third_person_movement::is_braking(const Vector& velocity, const Vector& velocity_target)
+{
+	Vector inbtwn_vector = velocity_target - velocity;
+
+	return inbtwn_vector.dot(velocity) < 0.f;
 }
 
 void third_person_movement::calculate_movement_input(float delta_time)
@@ -121,5 +137,17 @@ void third_person_movement::calculate_movement_input(float delta_time)
 		movement_vector.y = 0;
 	}
 
-	updated_location_component->add_location(movement_vector * delta_time * movement_speed);
+	Vector velocity_target = movement_vector * movement_speed;
+
+	bool isBraking               = is_braking(velocity, velocity_target);
+	static bool brakingLastFrame = false;
+
+	if (isBraking)
+	{
+		updated_location_component->add_location(damperv_exponential(velocity, velocity_target, braking_acceleration, delta_time) * delta_time);
+	}
+	else
+	{
+		updated_location_component->add_location(damperv_exponential(velocity, velocity_target, normal_acceleration, delta_time) * delta_time);
+	}
 }

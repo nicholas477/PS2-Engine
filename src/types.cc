@@ -61,11 +61,11 @@ std::string Vector::to_string(bool print_rotation, bool print_w) const
 	}
 	else
 	{
-		out_stream << "x: " << x << "\n";
-		out_stream << "y: " << y << "\n";
-		out_stream << "z: " << z << "\n";
+		out_stream << "x: " << x;
+		out_stream << "\ny: " << y;
+		out_stream << "\nz: " << z;
 		if (print_w)
-			out_stream << "w: " << w << "\n";
+			out_stream << "\nw: " << w;
 	}
 	return out_stream.str();
 }
