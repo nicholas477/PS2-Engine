@@ -10,5 +10,8 @@ void init();
 void run();
 u32 get_frame_counter();
 double get_game_time();
-double get_realtime();
-}; // namespace engine
+float get_realtime();
+
+u64 get_cpu_ticks();
+u64 get_cpu_tickrate(); // cpu ticks/second
+};                      // namespace engine

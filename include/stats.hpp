@@ -21,7 +21,7 @@ struct scoped_timer
 	scoped_timer(scoped_timers _timer);
 	~scoped_timer();
 
-	double start_time;
+	u64 start_time;
 	scoped_timers timer;
 };
 

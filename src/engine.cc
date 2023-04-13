@@ -89,7 +89,10 @@ void run()
 			return;
 		}
 
-		stats::check_stats_input();
+		if (input::get_paddata() & PAD_START)
+		{
+			stats::print_timer_stats();
+		}
 	}
 }
 u32 get_frame_counter() { return frameCounter; }
@@ -99,8 +102,17 @@ double get_game_time()
 	return game_time;
 }
 
-double get_realtime()
+float get_realtime()
 {
-	return (double)GetTimerSystemTime() / (double)kBUSCLK;
+	return (float)GetTimerSystemTime() / (float)kBUSCLK;
+}
+
+u64 get_cpu_ticks()
+{
+	return GetTimerSystemTime();
+}
+u64 get_cpu_tickrate()
+{
+	return kBUSCLK;
 }
 } // namespace engine
