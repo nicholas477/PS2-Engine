@@ -4,16 +4,10 @@
 #include <iostream>
 #include <unordered_map>
 
-template <typename T>
-using stats_array_t = std::array<T, static_cast<size_t>(stats::scoped_timers::MAX)>;
-
-static constexpr stats_array_t<const char*> timer_stats_names = {
-    "frame", "tick", "render", "draw", "movement"};
-
-static stats_array_t<u64> timer_stats;
-
 namespace stats
 {
+static stats_array_t<u64> timer_stats;
+
 void init()
 {
 	clear_timer_stats();
@@ -27,10 +21,10 @@ static void add_timer_stat(scoped_timers timer, u64 elapsed_time)
 void print_timer_stats()
 {
 	printf("----- timer stats (ms) -----\n");
-	printf("%-15s %7d\n", "frame number", engine::get_frame_counter());
+	printf("%-30s %7d\n", "frame number", engine::get_frame_counter());
 	for (size_t i = 0; i < static_cast<size_t>(stats::scoped_timers::MAX); ++i)
 	{
-		if (timer_stats_names[i] != nullptr)
+		if (lookup_stat_timer_name(i) != nullptr)
 		{
 			u64 timer             = timer_stats[i];
 			u64 elapsed_time      = (timer * 1000 * 1000) / engine::get_cpu_tickrate();
@@ -38,7 +32,7 @@ void print_timer_stats()
 			u32 elapsed_time_ms_f = elapsed_time % 1000;
 
 
-			printf("%-15s %3d.%.3d\n", timer_stats_names[i], elapsed_time_ms_i, elapsed_time_ms_f);
+			printf("%-30s %3d.%.3d\n", lookup_stat_timer_name(i), elapsed_time_ms_i, elapsed_time_ms_f);
 		}
 	}
 	printf("----- end timer stats ------\n");

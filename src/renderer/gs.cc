@@ -223,7 +223,10 @@ static int gs_render(framebuffer_t* frame, zbuffer_t* z)
 
 	// Either block until a vsync, or keep rendering until there's one
 	// available.
-	graph_wait_vsync();
+	{
+		stats::scoped_timer draw_timer(stats::scoped_timers::render_vsync_wait);
+		graph_wait_vsync();
+	}
 
 	draw_wait_finish();
 	graph_set_framebuffer_filtered(frame[context].address, frame[context].width,

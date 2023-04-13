@@ -18,7 +18,7 @@
 #define kStartColor   6
 #define kStartVert    7
 
-#vuprog VU1Prog_Color_Triangles
+#vuprog VU1Prog_Color_Triangles_Clip_Tris
 
     ; Clear the clip flag so we can use the CLIP instruction:
     fcset 0

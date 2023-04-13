@@ -33,7 +33,7 @@ PS2_VCLPP = vclpp
 # VCL/VU microprograms:
 #
 VCL_PATH  = $(PREFIX)vu1progs
-VCL_FILES = color_triangles_clip_tris.vcl draw_finish.vcl
+VCL_FILES = color_triangles_clip_tris.vcl color_triangles_clip_verts.vcl draw_finish.vcl
 
 EE_OBJS := $(VU_PROGS) $(EE_OBJS)
 
