@@ -1,5 +1,5 @@
 #include "engine.hpp"
-#include "gs.hpp"
+#include "renderer/gs.hpp"
 #include "input.hpp"
 #include "world.hpp"
 #include "objects/camera.hpp"

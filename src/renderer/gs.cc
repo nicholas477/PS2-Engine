@@ -3,9 +3,9 @@
 #include <vector>
 
 #include "objects/camera.hpp"
-#include "gs.hpp"
+#include "renderer/gs.hpp"
 #include "input.hpp"
-#include "renderable.hpp"
+#include "renderer/renderable.hpp"
 #include "stats.hpp"
 
 #include <libgs.h>

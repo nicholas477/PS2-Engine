@@ -9,6 +9,9 @@ using stats_array_t = std::array<T, static_cast<size_t>(stats::scoped_timers::MA
 static constexpr stats_array_t<const char*> timer_stats_names = {
     "frame", "tick", "render", "draw", "movement"};
 
+// I would prefer to statically allocate this as a normal array of doubles,
+// but doing so crashes the PS2 when you call stats::print() from engine.cc and
+// I have literally no idea why
 static std::unordered_map<stats::scoped_timers, double> timer_stats;
 
 namespace stats
@@ -40,10 +43,10 @@ void print_timer_stats()
 
 void clear_timer_stats()
 {
-	// for (size_t i = 0; i < static_cast<size_t>(stats::scoped_timers::MAX); ++i)
-	// {
-	// 	get_timer_stats()[i] = 0.0;
-	// }
+	for (size_t i = 0; i < static_cast<size_t>(stats::scoped_timers::MAX); ++i)
+	{
+		timer_stats[static_cast<stats::scoped_timers>(i)] = 0.0;
+	}
 }
 
 void check_stats_input()

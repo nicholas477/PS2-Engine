@@ -1,6 +1,6 @@
 #pragma once
 #include "tamtypes.h"
-#include "gs.hpp"
+#include "renderer/gs.hpp"
 
 class renderable
 {
