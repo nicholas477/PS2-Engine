@@ -1,5 +1,5 @@
 // Taken from Tyra game engine
-// https://github.com/h4570/tyra/blob/master/engine/inc/renderer/core/paths/path1/vu1_program.hpp
+// https://github.com/h4570/tyra/blob/master/engine/src/renderer/core/paths/path1/vu1_program.cpp
 
 #include "renderer/vu1_program.hpp"
 

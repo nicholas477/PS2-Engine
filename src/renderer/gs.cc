@@ -22,6 +22,8 @@
 #include <draw.h>
 #include <draw3d.h>
 
+#include "renderer/path1.hpp"
+
 namespace gs
 {
 // The buffers to be used.
@@ -30,6 +32,13 @@ static zbuffer_t z;
 
 static const int screen_width  = 640;
 static const int screen_height = 480;
+
+
+static Path1& get_path1()
+{
+	static Path1 path1;
+	return path1;
+}
 
 static void init_gs(framebuffer_t* frame, zbuffer_t* z)
 {
@@ -65,6 +74,8 @@ static void init_gs(framebuffer_t* frame, zbuffer_t* z)
 	// Initialize the screen and tie the first framebuffer to the read circuits.
 	graph_initialize(frame->address, frame->width, frame->height, frame->psm, 0,
 	                 0);
+
+	get_path1();
 }
 
 static void init_drawing_environment(framebuffer_t* frame, zbuffer_t* z)

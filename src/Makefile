@@ -1,16 +1,15 @@
 EE_BIN = main.elf
-#SRC_FILES = $(shell find $(PREFIX) -name "*.cc" -o -name "*.cpp" -o -name "*.c")
-SRC_FILES = $(shell find $(PREFIX) -name "*.cc")
+SRC_FILES = $(shell find $(PREFIX) -name "*.cc" -o -name "*.cpp" -o -name "*.c")
 EE_OBJS = $(patsubst %.cc, %.o, $(SRC_FILES))
 EE_OBJS := $(patsubst %.c, %.o, $(EE_OBJS))
 EE_OBJS := $(patsubst %.cpp, %.o, $(EE_OBJS))
 EE_INCS := -Iinclude $(EE_INCS)
-EE_LIBS = -ldraw -lgraph -lmath3d -lpacket -ldma -lpad -lc -lstdc++ -lgs -ldebug -leedebug
+EE_LIBS = -ldraw -lgraph -lmath3d -lpacket -ldma -lpad -lc -lstdc++ -lgs -ldebug -leedebug -lpacket2
 EE_OPTFLAGS = -O3 -g
 EE_WARNFLAGS = -Wall -Wno-unused-function -Wno-unused-variable
+LINKFLAGS	= -O3 -Wl,-zmax-page-size=128
 
 OUTPUT_DIR     = build
-# IOP_OUTPUT_DIR = irx
 VU_OUTPUT_DIR  = vu
 VU_PROGS = $(addprefix $(OUTPUT_DIR)/$(VU_OUTPUT_DIR)/, $(patsubst %.vcl, %.o, $(VCL_FILES)))
 
@@ -34,11 +33,11 @@ PS2_VCLPP = vclpp
 # VCL/VU microprograms:
 #
 VCL_PATH  = $(PREFIX)vu1progs
-VCL_FILES = color_triangles_clip_tris.vcl
+VCL_FILES = color_triangles_clip_tris.vcl draw_finish.vcl
 
-EE_OBJS := $(EE_OBJS) $(VU_PROGS)
+EE_OBJS := $(VU_PROGS) $(EE_OBJS)
 
-all: $(EE_BIN) $(VU_PROGS)
+all: $(EE_BIN)
 #	$(EE_STRIP) --strip-all $(EE_BIN)
 
 # $(EE_BIN): $(VU_PROGS) $(EE_OBJS)
