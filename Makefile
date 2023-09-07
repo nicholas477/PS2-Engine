@@ -13,4 +13,4 @@ PREFIX=src/
 include src/Makefile
 
 include $(PS2SDK)/samples/Makefile.pref
-include $(PS2SDK)/samples/Makefile.eeglobal
+include $(PS2SDK)/samples/Makefile.eeglobal_cpp

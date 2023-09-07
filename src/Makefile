@@ -5,7 +5,7 @@ EE_OBJS := $(patsubst %.c, %.o, $(EE_OBJS))
 EE_OBJS := $(patsubst %.cpp, %.o, $(EE_OBJS))
 EE_INCS := -Iinclude $(EE_INCS)
 EE_LIBS = -ldraw -lgraph -lmath3d -lpacket -ldma -lpad -lc -lstdc++ -lgs -ldebug -leedebug -lpacket2
-EE_OPTFLAGS = -O3 -g
+EE_OPTFLAGS = -O3 -g -std=gnu++17
 EE_WARNFLAGS = -Wall -Wno-unused-function -Wno-unused-variable
 LINKFLAGS	= -O3 -Wl,-zmax-page-size=128
 

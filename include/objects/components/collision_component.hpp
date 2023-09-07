@@ -38,7 +38,7 @@ public:
 		return collideable::TConstIterator(head);
 	}
 
-	static hit_result sweep_collision(const collideable& collideable, Matrix sweep_start, Matrix sweep_end);
+	static hit_result sweep_collision(const collideable& collideable, const Matrix& sweep_start, const Matrix& sweep_end);
 
 protected:
 	collideable()

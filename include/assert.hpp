@@ -2,6 +2,7 @@
 
 #include <stdexcept>
 #include <cstdio>
+#include <stdio.h>
 #include "input.hpp"
 #include "debug/debug.hpp"
 
@@ -9,13 +10,11 @@
 	{                                                                                                                           \
 		if (!(expr))                                                                                                            \
 		{                                                                                                                       \
-			fprintf(stdout, "ERROR! Check failed! file: %s, function: %s, line: %d\n", __FILE__, __func__, __LINE__);           \
-			fprintf(stdout, "Stack trace: ---------\n");                                                                        \
+			printf("ERROR! Check failed! file: %s, function: %s, line: %d\n", __FILE__, __func__, __LINE__);                    \
+			printf("Stack trace: ---------\n");                                                                                 \
 			print_stack_trace();                                                                                                \
-			fprintf(stdout, "----------------------\n");                                                                        \
-			fprintf(stdout, "Press start to continue or press select to throw an exception...\n");                              \
-			std::fflush(stdout);                                                                                                \
-			std::fflush(stderr);                                                                                                \
+			printf("----------------------\n");                                                                                 \
+			printf("Press start to continue or press select to throw an exception...\n");                                       \
 			if (!check_continue())                                                                                              \
 			{                                                                                                                   \
 				char buffer[256];                                                                                               \

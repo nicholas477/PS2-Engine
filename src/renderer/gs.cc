@@ -144,10 +144,18 @@ static void init_renderer(framebuffer_t* frame, zbuffer_t* z)
 	_gs_state.lights.add_light(Vector {-1.00f, -1.00f, -1.00f, 1.00f}, Vector {0.50f, 0.50f, 0.50f, 1.00f}, lightsT::type::directional);
 }
 
+struct gs_rendering_statics
+{
+	std::vector<renderable*> renderables;
+	std::vector<renderable*> transient_renderables;
+	std::vector<std::function<qword_t*(qword_t*, const gs::gs_state&)>> transient_renderable_funcs;
+};
+
+static gs_rendering_statics* rendering_statics;
+
 std::vector<renderable*>& get_renderables()
 {
-	static std::vector<renderable*> renderables;
-	return renderables;
+	return rendering_statics->renderables;
 }
 void add_renderable(renderable* renderable)
 {
@@ -157,27 +165,27 @@ void add_renderable(renderable* renderable)
 
 std::vector<renderable*>& get_transient_renderables()
 {
-	static std::vector<renderable*> transient_renderables;
-	return transient_renderables;
+	return rendering_statics->transient_renderables;
 }
 void add_renderable_one_frame(renderable* renderable)
 {
 	get_transient_renderables().push_back(renderable);
 }
 
-std::vector<std::function<qword_t*(qword_t*, const gs::gs_state&)>>& get_renderable_lambdas()
+std::vector<std::function<qword_t*(qword_t*, const gs::gs_state&)>>& get_renderable_funcs()
 {
-	static std::vector<std::function<qword_t*(qword_t*, const gs::gs_state&)>> transient_renderable_funcs;
-	return transient_renderable_funcs;
+	return rendering_statics->transient_renderable_funcs;
 }
-void add_renderable_lambda_one_frame(std::function<qword_t*(qword_t*, const gs::gs_state&)>&& func)
+void add_renderable_one_frame(std::function<qword_t*(qword_t*, const gs::gs_state&)>&& func)
 {
-	get_renderable_lambdas().emplace_back(func);
+	get_renderable_funcs().push_back(func);
 }
 
 void init()
 {
 	printf("Initializing graphics synthesizer\n");
+
+	rendering_statics = new gs_rendering_statics();
 
 	// Init GIF dma channel.
 	dma_channel_initialize(DMA_CHANNEL_GIF, NULL, 0);
@@ -203,15 +211,19 @@ static qword_t* draw_objects(qword_t* q, const gs_state& gs_state)
 	{
 		q = _renderable->render(q, gs_state);
 	}
-	get_transient_renderables().clear();
 
-	for (std::function<qword_t*(qword_t*, const gs::gs_state&)>& lambda : get_renderable_lambdas())
+	for (std::function<qword_t*(qword_t*, const gs::gs_state&)>& func : get_renderable_funcs())
 	{
-		q = lambda(q, gs_state);
+		q = func(q, gs_state);
 	}
-	get_renderable_lambdas().clear();
 
 	return q;
+}
+
+static void clear_drawables()
+{
+	get_transient_renderables().clear();
+	get_renderable_funcs().clear();
 }
 
 static int gs_render(framebuffer_t* frame, zbuffer_t* z)
@@ -272,6 +284,8 @@ static int gs_render(framebuffer_t* frame, zbuffer_t* z)
 	// We need to flip buffers outside of the chain, for some reason,
 	// so we use a separate small packet.
 	flip_buffers(flip_pkt, &frame[context]);
+
+	clear_drawables();
 
 	return 0;
 }

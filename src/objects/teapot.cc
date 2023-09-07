@@ -57,17 +57,15 @@ public:
 		color.q = 1.0f;
 	}
 
-	qword_t* render(qword_t* q, const gs::gs_state& gs_state, const transform_component& transform)
+	[[nodiscard]] qword_t* render(qword_t* q, const gs::gs_state& gs_state, const transform_component& transform)
 	{
-		qword_t* dmatag;
-
 		Matrix local_world = Matrix::from_location_and_rotation(transform.get_location(), transform.get_rotation());
 		Matrix local_light = transform.get_rotation().to_rotation_matrix();
 
 		MATRIX local_screen;
 
 		// Now grab our qword pointer and increment past the dmatag.
-		dmatag = q;
+		qword_t* dmatag = q;
 		q++;
 
 		// Create the local_screen matrix.

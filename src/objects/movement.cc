@@ -23,6 +23,18 @@ void movement::tick(float delta_time)
 	velocity /= delta_time;
 }
 
+static void draw_rejected_hit(const collision_component* collision_component, const Matrix& end_location)
+{
+	color_t color;
+	color.r         = 255;
+	color.g         = 0;
+	color.b         = 0;
+	color.a         = 255.f;
+	const AABB aabb = collision_component->get_local_bounds().transform(end_location);
+
+	draw_aabb_one_frame(aabb, color);
+}
+
 bool movement::try_move(const Vector& location)
 {
 	if (collision_component == nullptr)
@@ -34,42 +46,11 @@ bool movement::try_move(const Vector& location)
 	const Matrix start_location = updated_location_component->get_matrix();
 	const Matrix end_location   = Matrix::from_location_and_rotation(location, updated_location_component->get_rotation());
 
-	// {
-	// 	const AABB aabb = collision_component->get_world_bounds(); //collision_component->get_local_bounds().transform(end_location);
-	// 	gs::add_renderable_lambda_one_frame([](qword_t* q, const gs::gs_state& state) -> qword_t* {
-	// 		printf("??????????????????????????????????????????????????????????????\n");
-
-	// 		// color_t hit_color;
-	// 		// hit_color.r = 255;
-	// 		// hit_color.g = 0;
-	// 		// hit_color.b = 0;
-	// 		// hit_color.a = 255.f;
-	// 		//q           = draw_aabb(q, state, aabb, hit_color);
-	// 		return q;
-	// 	});
-	// }
-
 	hit_result hit = collideable::sweep_collision(*collision_component, start_location, end_location);
 	if (hit.hit)
 	{
 		printf("Sweep move rejected, hit something\n");
-		//const AABB aabb       = collision_component->get_local_bounds().transform(end_location);
-		//const AABB other_aabb = hit.hit_collideable->get_world_bounds();
-
-		// gs::add_renderable_lambda_one_frame([aabb, other_aabb](qword_t* q, const gs::gs_state& state) -> qword_t* {
-		// 	color_t hit_color;
-		// 	hit_color.r = 255;
-		// 	hit_color.g = 0;
-		// 	hit_color.b = 0;
-		// 	hit_color.a = 255.f;
-		// 	draw_aabb(q, state, aabb, hit_color);
-
-		// 	color_t other_color;
-		// 	other_color.r = other_color.g = other_color.b = 0;
-		// 	other_color.a                                 = 255.f;
-		// 	draw_aabb(q, state, other_aabb, other_color);
-		// 	return q;
-		// });
+		//draw_rejected_hit(collision_component, end_location);
 		return false;
 	}
 	return true;

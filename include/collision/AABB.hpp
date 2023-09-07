@@ -81,6 +81,30 @@ struct AABB
 		return transformed_AABB;
 	}
 
+	void get_center_and_half_extents(Vector& center, Vector& half_extents) const
+	{
+		center       = (Min + Max) / 2.f;
+		half_extents = (Max - Min) / 2.f;
+	}
+
+	static AABB from_center_and_half_extents(const Vector& center, const Vector& half_extents)
+	{
+		return AABB(center - half_extents, center + half_extents);
+	}
+
+	AABB minkowski_sum(const AABB& Other) const
+	{
+		Vector out_center;
+		Vector out_extents;
+		get_center_and_half_extents(out_center, out_extents);
+
+		Vector other_center;
+		Vector other_extents;
+		get_center_and_half_extents(other_center, other_extents);
+
+		return from_center_and_half_extents(out_center, out_extents + other_extents);
+	}
+
 public:
 	Vector Min, Max;
 };
