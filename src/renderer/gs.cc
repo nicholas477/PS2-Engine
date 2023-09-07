@@ -42,7 +42,7 @@ static Path1& get_path1()
 
 static void init_gs(framebuffer_t* frame, zbuffer_t* z)
 {
-	// Define a 32-bit 640x512 framebuffer.
+	// Define a 32-bit framebuffer.
 	frame->width  = screen_width;
 	frame->height = screen_height;
 	frame->mask   = 0;
@@ -154,6 +154,27 @@ void add_renderable(renderable* renderable)
 	get_renderables().push_back(renderable);
 }
 
+
+std::vector<renderable*>& get_transient_renderables()
+{
+	static std::vector<renderable*> transient_renderables;
+	return transient_renderables;
+}
+void add_renderable_one_frame(renderable* renderable)
+{
+	get_transient_renderables().push_back(renderable);
+}
+
+std::vector<std::function<qword_t*(qword_t*, const gs::gs_state&)>>& get_renderable_lambdas()
+{
+	static std::vector<std::function<qword_t*(qword_t*, const gs::gs_state&)>> transient_renderable_funcs;
+	return transient_renderable_funcs;
+}
+void add_renderable_lambda_one_frame(std::function<qword_t*(qword_t*, const gs::gs_state&)>&& func)
+{
+	get_renderable_lambdas().emplace_back(func);
+}
+
 void init()
 {
 	printf("Initializing graphics synthesizer\n");
@@ -177,6 +198,19 @@ static qword_t* draw_objects(qword_t* q, const gs_state& gs_state)
 	{
 		q = _renderable->render(q, gs_state);
 	}
+
+	for (renderable* _renderable : get_transient_renderables())
+	{
+		q = _renderable->render(q, gs_state);
+	}
+	get_transient_renderables().clear();
+
+	for (std::function<qword_t*(qword_t*, const gs::gs_state&)>& lambda : get_renderable_lambdas())
+	{
+		q = lambda(q, gs_state);
+	}
+	get_renderable_lambdas().clear();
+
 	return q;
 }
 

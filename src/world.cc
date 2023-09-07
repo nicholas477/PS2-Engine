@@ -40,6 +40,7 @@ void init()
 	static third_person_movement movement;
 	movement.updated_rotation_component = &scene;
 	movement.updated_location_component = &teapot4.transform;
+	movement.collision_component        = &teapot4.collision;
 
 	// make_teapot();
 	// make_teapot();

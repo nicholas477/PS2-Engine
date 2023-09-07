@@ -2,7 +2,9 @@
 #include "input.hpp"
 #include "types.hpp"
 #include "objects/components/transform_component.hpp"
+#include "objects/components/collision_component.hpp"
 #include "generic_math.hpp"
+#include "utils/rendering.hpp"
 
 #include "stats.hpp"
 
@@ -19,6 +21,58 @@ void movement::tick(float delta_time)
 
 	velocity = updated_location_component->get_location() - last_frame_position;
 	velocity /= delta_time;
+}
+
+bool movement::try_move(const Vector& location)
+{
+	if (collision_component == nullptr)
+	{
+		// No collision component, don't need to sweep
+		return true;
+	}
+
+	const Matrix start_location = updated_location_component->get_matrix();
+	const Matrix end_location   = Matrix::from_location_and_rotation(location, updated_location_component->get_rotation());
+
+	// {
+	// 	const AABB aabb = collision_component->get_world_bounds(); //collision_component->get_local_bounds().transform(end_location);
+	// 	gs::add_renderable_lambda_one_frame([](qword_t* q, const gs::gs_state& state) -> qword_t* {
+	// 		printf("??????????????????????????????????????????????????????????????\n");
+
+	// 		// color_t hit_color;
+	// 		// hit_color.r = 255;
+	// 		// hit_color.g = 0;
+	// 		// hit_color.b = 0;
+	// 		// hit_color.a = 255.f;
+	// 		//q           = draw_aabb(q, state, aabb, hit_color);
+	// 		return q;
+	// 	});
+	// }
+
+	hit_result hit = collideable::sweep_collision(*collision_component, start_location, end_location);
+	if (hit.hit)
+	{
+		printf("Sweep move rejected, hit something\n");
+		//const AABB aabb       = collision_component->get_local_bounds().transform(end_location);
+		//const AABB other_aabb = hit.hit_collideable->get_world_bounds();
+
+		// gs::add_renderable_lambda_one_frame([aabb, other_aabb](qword_t* q, const gs::gs_state& state) -> qword_t* {
+		// 	color_t hit_color;
+		// 	hit_color.r = 255;
+		// 	hit_color.g = 0;
+		// 	hit_color.b = 0;
+		// 	hit_color.a = 255.f;
+		// 	draw_aabb(q, state, aabb, hit_color);
+
+		// 	color_t other_color;
+		// 	other_color.r = other_color.g = other_color.b = 0;
+		// 	other_color.a                                 = 255.f;
+		// 	draw_aabb(q, state, other_aabb, other_color);
+		// 	return q;
+		// });
+		return false;
+	}
+	return true;
 }
 
 void flying_movement::perform_movement(float delta_time)
@@ -76,10 +130,13 @@ void flying_movement::calculate_movement_input(float delta_time)
 		movement_vector += updated_rotation_component->get_rotation_matrix().transform_vector(input_vector);
 	}
 
-	updated_location_component->add_location(movement_vector * delta_time * movement_speed);
+	const Vector new_location = updated_location_component->get_location() + movement_vector * delta_time * movement_speed;
+	if (try_move(new_location))
+	{
+		const Matrix end_location = updated_location_component->get_matrix() + new_location;
+		updated_location_component->set_location(end_location.get_location());
+	}
 }
-
-
 
 void third_person_movement::perform_movement(float delta_time)
 {
@@ -168,12 +225,23 @@ void third_person_movement::calculate_movement_input(float delta_time)
 	bool isBraking               = is_braking(velocity, velocity_target);
 	static bool brakingLastFrame = false;
 
+	Vector location_delta;
+	Vector new_location;
 	if (isBraking)
 	{
-		updated_location_component->add_location(damperv_exponential(velocity, velocity_target, braking_acceleration, delta_time) * delta_time);
+		new_location = updated_location_component->get_location() + damperv_exponential(velocity, velocity_target, braking_acceleration, delta_time) * delta_time;
 	}
 	else
 	{
-		updated_location_component->add_location(damperv_exponential(velocity, velocity_target, normal_acceleration, delta_time) * delta_time);
+		new_location = updated_location_component->get_location() + damperv_exponential(velocity, velocity_target, normal_acceleration, delta_time) * delta_time;
+	}
+
+	if (try_move(new_location))
+	{
+		updated_location_component->set_location(new_location);
+	}
+	else
+	{
+		velocity = Vector::zero;
 	}
 }

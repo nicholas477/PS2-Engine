@@ -5,10 +5,14 @@
 class movement: public tickable
 {
 public:
+	class collision_component* collision_component;
 	class transform_component* updated_location_component;
 	class transform_component* updated_rotation_component;
 
 	virtual void tick(float delta_seconds) override final;
+
+	// Sweeps movement to the new location, returning false if it hit something.
+	virtual bool try_move(const Vector& location);
 
 protected:
 	virtual void perform_movement(float delta_seconds) {};

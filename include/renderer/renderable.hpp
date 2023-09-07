@@ -5,9 +5,12 @@
 class renderable
 {
 public:
-	renderable()
+	renderable(bool bAddToRenderList = true)
 	{
-		gs::add_renderable(this);
+		if (bAddToRenderList)
+		{
+			gs::add_renderable(this);
+		}
 	};
-	virtual qword_t* render(qword_t* q, const gs::gs_state& gs_state) { return q; };
+	[[nodiscard]] virtual qword_t* render(qword_t* q, const gs::gs_state& gs_state) { return q; };
 };

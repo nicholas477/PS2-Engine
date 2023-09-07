@@ -36,12 +36,12 @@ struct Vector
 		memcpy(vector, _vector, sizeof(VECTOR));
 	}
 
-	Vector(float _x = 0.f, float _y = 0.f, float _z = 0.f, float _w = 0.f)
+	constexpr Vector(float _x = 0.f, float _y = 0.f, float _z = 0.f, float _w = 0.f)
+	    : x(_x)
+	    , y(_y)
+	    , z(_z)
+	    , w(_w)
 	{
-		x = _x;
-		y = _y;
-		z = _z;
-		w = _w;
 	}
 
 	float& operator[](size_t n)
@@ -227,7 +227,11 @@ struct Vector
 	std::string to_string(bool print_rotation = false, bool print_w = true) const;
 
 	static const Vector quat_identity;
+	static const Vector zero;
 } __attribute__((__aligned__(16)));
+
+constexpr Vector Vector::quat_identity = Vector(1.f, 0.f, 0.f, 0.f);
+constexpr Vector Vector::zero          = Vector(0.f, 0.f, 0.f, 0.f);
 
 static Vector operator*(float Lhs, const Vector& Rhs)
 {
@@ -244,11 +248,22 @@ struct Matrix
 
 	Matrix() = default;
 
+	static const Matrix& UnitMatrix();
+
 	Vector transform_vector(const Vector& input) const
 	{
 		Vector output;
 		vector_apply(output.vector, const_cast<float*>(input.vector), const_cast<float*>(matrix));
 		return output;
+	}
+
+	Vector get_location() const
+	{
+		Vector vector;
+		vector[0] = matrix[0x0C];
+		vector[1] = matrix[0x0D];
+		vector[2] = matrix[0x0E];
+		return vector;
 	}
 
 	static Matrix from_location_and_rotation(const Vector& location, const Vector& rotation);
@@ -257,6 +272,17 @@ struct Matrix
 	{
 		Matrix out_matrix;
 		matrix_multiply(out_matrix.matrix, const_cast<float*>(matrix), const_cast<float*>(Rhs.matrix));
+		return out_matrix;
+	}
+
+	// Adds a location offset to this matrix
+	Matrix operator+(const Vector& Rhs) const
+	{
+		Matrix out_matrix = *this;
+		matrix_translate(out_matrix.matrix, const_cast<float*>(matrix), const_cast<float*>(Rhs.vector));
+		// out_matrix.matrix[0x0C] += Rhs.vector[0];
+		// out_matrix.matrix[0x0D] += Rhs.vector[1];
+		// out_matrix.matrix[0x0E] += Rhs.vector[2];
 		return out_matrix;
 	}
 

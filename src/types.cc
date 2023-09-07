@@ -76,3 +76,16 @@ Matrix Matrix::from_location_and_rotation(const Vector& location, const Vector& 
 {
 	return rotation.to_rotation_matrix() * location.to_translation_matrix();
 }
+
+static Matrix MakeUnitMatrix()
+{
+	Matrix m;
+	matrix_unit(m.matrix);
+	return m;
+}
+
+const Matrix& Matrix::UnitMatrix()
+{
+	static Matrix m = MakeUnitMatrix();
+	return m;
+}

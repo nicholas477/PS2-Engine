@@ -23,7 +23,7 @@ static std::vector<class tickable*>& get_tickables()
 namespace engine
 {
 static float game_time  = 0.f;
-static float tickrate   = 1.f / 59.93f; // ntsc
+static float tickrate   = 1.f / 59.93f; // ntsc default
 static u32 frameCounter = 0;
 
 void add_tickable(::tickable* tickable)

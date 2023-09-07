@@ -134,6 +134,25 @@ public:
 		return q;
 	}
 
+	AABB get_bounds() const
+	{
+		AABB out;
+		out.Min = vertices[0];
+		out.Max = vertices[0];
+		for (int i = 0; i < vertex_count; ++i)
+		{
+			out.Min.x = std::min(out.Min.x, vertices[i][0]);
+			out.Min.y = std::min(out.Min.y, vertices[i][1]);
+			out.Min.z = std::min(out.Min.z, vertices[i][2]);
+
+			out.Max.x = std::max(out.Max.x, vertices[i][0]);
+			out.Max.y = std::max(out.Max.y, vertices[i][1]);
+			out.Max.z = std::max(out.Max.z, vertices[i][2]);
+		}
+
+		return out;
+	}
+
 private:
 	xyz_t* xyz;
 	color_t* rgbaq;
@@ -147,12 +166,25 @@ private:
 } _teapot_render_proxy;
 
 teapot::teapot()
+    : collision(&transform)
 {
 	render_proxy = &_teapot_render_proxy;
+
+	collision.set_local_bounds(_teapot_render_proxy.get_bounds());
 }
 
 qword_t*
 teapot::render(qword_t* q, const gs::gs_state& gs_state)
 {
-	return render_proxy->render(q, gs_state, transform);
+	q = render_proxy->render(q, gs_state, transform);
+
+	color_t color;
+	color.r = 32;
+	color.g = 32;
+	color.b = 32;
+	color.a = 128.f;
+	color.q = 1.f;
+
+	q = collision.render(q, gs_state, color);
+	return q;
 }
