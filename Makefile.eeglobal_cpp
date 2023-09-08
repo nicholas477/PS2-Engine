@@ -9,6 +9,8 @@
 # Helpers to make easy the use of newlib-nano
 NODEFAULTLIBS = 0
 
+MKDIR_CMD = mkdir -p
+
 LIBC = -lc
 LIBM = -lm
 ifeq ($(NEWLIB_NANO), 1)
@@ -55,19 +57,24 @@ EE_C_COMPILE = $(EE_CC) $(EE_CFLAGS) $(EE_INCS)
 EE_CXX_COMPILE = $(EE_CXX) $(EE_CXXFLAGS) $(EE_INCS)
 
 build/%.o: %.c
-	$(EE_CC) $(EE_CFLAGS) $(EE_INCS) -c $< -o build/$@
+	$(MKDIR_CMD) $(dir $@)
+	$(EE_CC) $(EE_CFLAGS) $(EE_INCS) -c $< -o $@
 
 build/%.o: %.cc
-	$(EE_CXX) $(EE_CXXFLAGS) $(EE_INCS) -c $< -o build/$@
+	$(MKDIR_CMD) $(dir $@)
+	$(EE_CXX) $(EE_CXXFLAGS) $(EE_INCS) -c $< -o $@
 
 build/%.o: %.cpp
-	$(EE_CXX) $(EE_CXXFLAGS) $(EE_INCS) -c $< -o build/$@
+	$(MKDIR_CMD) $(dir $@)
+	$(EE_CXX) $(EE_CXXFLAGS) $(EE_INCS) -c $< -o $@
 
 build/%.o: %.S
-	$(EE_CC) $(EE_CFLAGS) $(EE_INCS) -c $< -o build/$@
+	$(MKDIR_CMD) $(dir $@)
+	$(EE_CC) $(EE_CFLAGS) $(EE_INCS) -c $< -o $@
 
 build/%.o: %.s
-	$(EE_AS) $(EE_ASFLAGS) $< -o build/$@
+	$(MKDIR_CMD) $(dir $@)
+	$(EE_AS) $(EE_ASFLAGS) $< -o $@
 
 $(EE_BIN): $(EE_OBJS)
 	$(EE_CXX) -T$(EE_LINKFILE) $(EE_OPTFLAGS) -o $(EE_BIN) $(EE_OBJS) $(EE_LDFLAGS) $(EE_LIBS) $(EXTRA_LDFLAGS)
