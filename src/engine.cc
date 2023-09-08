@@ -11,25 +11,15 @@
 #include <vector>
 #include <timer.h>
 #include <inttypes.h>
+#include <algorithm>
 
 #include "graph.h"
-
-static std::vector<class tickable*>& get_tickables()
-{
-	static std::vector<class tickable*> tickables;
-	return tickables;
-}
 
 namespace engine
 {
 static float game_time  = 0.f;
 static float tickrate   = 1.f / 59.93f; // ntsc default
 static u32 frameCounter = 0;
-
-void add_tickable(::tickable* tickable)
-{
-	get_tickables().push_back(tickable);
-}
 
 void init()
 {
@@ -62,9 +52,9 @@ static void tick(float deltaTime)
 {
 	stats::scoped_timer tick_timer(stats::scoped_timers::tick);
 
-	for (tickable* _tickable : get_tickables())
+	for (auto itr = tickable::Itr(); itr; ++itr)
 	{
-		_tickable->tick(deltaTime);
+		(*itr).tick(deltaTime);
 	}
 	frameCounter++;
 	game_time += deltaTime;
@@ -97,7 +87,7 @@ void run()
 }
 u32 get_frame_counter() { return frameCounter; }
 
-double get_game_time()
+float get_game_time()
 {
 	return game_time;
 }

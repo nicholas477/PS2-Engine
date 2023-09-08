@@ -21,6 +21,10 @@ void draw_point_one_frame(const Vector& point, float size, color_t color, bool o
 [[nodiscard]] qword_t* draw_aabb(qword_t* q, const gs::gs_state& gs_state, const AABB& aabb, color_t color, bool on_top = false);
 void draw_aabb_one_frame(const AABB& aabb, color_t color, bool on_top = false);
 
+// Draws a gizmo where red = x, green = y, blue = z
+[[nodiscard]] qword_t* draw_orientation_gizmo(qword_t* q, const gs::gs_state& gs_state, const Vector& pos, float size, bool on_top = false);
+void draw_orientation_gizmo_one_frame(const Vector& pos, float size, bool on_top = false);
+
 
 namespace colors
 {
@@ -63,12 +67,12 @@ constexpr color_t red()
 	return color(255, 0, 0).get_color();
 };
 
-constexpr color_t blue()
+constexpr color_t green()
 {
 	return color(0, 255, 0).get_color();
 };
 
-constexpr color_t green()
+constexpr color_t blue()
 {
 	return color(0, 0, 255).get_color();
 };

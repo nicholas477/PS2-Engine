@@ -13,6 +13,7 @@ public:
 
 	Vector get_forward_vector() const;
 	Vector get_right_vector() const;
+	Vector get_up_vector() const;
 
 	const Vector& get_location() const { return location; }
 	const Vector& get_rotation() const { return rotation; }

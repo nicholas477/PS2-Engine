@@ -248,7 +248,25 @@ void draw_line_one_frame(const Vector& line_start, const Vector& line_end, color
 
 qword_t* draw_plane(qword_t* q, const gs::gs_state& gs_state, const Plane& plane, float size, color_t color, bool on_top)
 {
-	return draw_line(q, gs_state, plane.get_origin(), plane.get_origin() + (plane.get_normal() * size), color, on_top);
+	// Arrow pointing out
+	q = draw_line(q, gs_state, plane.get_origin(), plane.get_origin() + (plane.get_normal() * size), color, on_top);
+
+	Vector U, V;
+	plane.find_best_axis_vectors(U, V);
+	U *= size;
+	V *= size;
+	Vector plane_rects[4] = {
+	    plane.get_origin() + U + V,
+	    plane.get_origin() - U + V,
+	    plane.get_origin() + U - V,
+	    plane.get_origin() - U - V};
+
+	for (int i = 0; i < 4; ++i)
+	{
+		q = draw_line(q, gs_state, plane_rects[i], plane_rects[(i + 1) % 4], color, on_top);
+	}
+
+	return q;
 }
 
 void draw_plane_one_frame(const Plane& plane, float size, color_t color, bool on_top)
@@ -271,5 +289,21 @@ void draw_point_one_frame(const Vector& point, float size, color_t color, bool o
 {
 	gs::add_renderable_one_frame([=](qword_t* q, const gs::gs_state& state) -> qword_t* {
 		return draw_point(q, state, point, size, color, on_top);
+	});
+}
+
+qword_t* draw_orientation_gizmo(qword_t* q, const gs::gs_state& gs_state, const Vector& pos, float size, bool on_top)
+{
+	q = draw_line(q, gs_state, pos, pos + Vector(size, 0, 0), colors::red(), on_top);   // x
+	q = draw_line(q, gs_state, pos, pos + Vector(0, size, 0), colors::green(), on_top); // y
+	q = draw_line(q, gs_state, pos, pos + Vector(0, 0, size), colors::blue(), on_top);  // z
+
+	return q;
+}
+
+void draw_orientation_gizmo_one_frame(const Vector& pos, float size, bool on_top)
+{
+	gs::add_renderable_one_frame([=](qword_t* q, const gs::gs_state& state) -> qword_t* {
+		return draw_orientation_gizmo(q, state, pos, size, on_top);
 	});
 }

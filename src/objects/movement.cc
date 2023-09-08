@@ -35,7 +35,7 @@ static void draw_rejected_hit(const collision_component* collision_component, co
 	draw_aabb_one_frame(aabb, color);
 }
 
-bool movement::try_move(const Vector& location)
+bool movement::try_move(const Vector& location, Vector& out_sweep_stop)
 {
 	if (collision_component == nullptr)
 	{
@@ -49,7 +49,8 @@ bool movement::try_move(const Vector& location)
 	hit_result hit = collideable::sweep_collision(*collision_component, start_location, end_location);
 	if (hit.hit)
 	{
-		printf("Sweep move rejected, hit something\n");
+		out_sweep_stop = hit.sweep_location;
+		printf("Sweep move hit something\n");
 		//draw_rejected_hit(collision_component, end_location);
 		return false;
 	}
@@ -112,10 +113,16 @@ void flying_movement::calculate_movement_input(float delta_time)
 	}
 
 	const Vector new_location = updated_location_component->get_location() + movement_vector * delta_time * movement_speed;
-	if (try_move(new_location))
+	Vector sweep_stop;
+	if (try_move(new_location, sweep_stop))
 	{
 		const Matrix end_location = updated_location_component->get_matrix() + new_location;
 		updated_location_component->set_location(end_location.get_location());
+	}
+	else
+	{
+		// Hit something
+		updated_location_component->set_location(sweep_stop);
 	}
 }
 
@@ -217,12 +224,14 @@ void third_person_movement::calculate_movement_input(float delta_time)
 		new_location = updated_location_component->get_location() + damperv_exponential(velocity, velocity_target, normal_acceleration, delta_time) * delta_time;
 	}
 
-	if (try_move(new_location))
+	Vector sweep_stop;
+	if (try_move(new_location, sweep_stop))
 	{
 		updated_location_component->set_location(new_location);
 	}
 	else
 	{
 		velocity = Vector::zero;
+		updated_location_component->set_location(sweep_stop);
 	}
 }

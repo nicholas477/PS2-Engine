@@ -12,7 +12,7 @@ public:
 	virtual void tick(float delta_seconds) override final;
 
 	// Sweeps movement to the new location, returning false if it hit something.
-	virtual bool try_move(const Vector& location);
+	virtual bool try_move(const Vector& location, Vector& out_sweep_stop);
 
 protected:
 	virtual void perform_movement(float delta_seconds) {};

@@ -5,7 +5,12 @@
 
 struct AABB
 {
-	AABB() = default;
+	AABB()
+	    : Min(Vector::zero)
+	    , Max(Vector::zero)
+	{
+	}
+
 	AABB(const Vector& InMin, const Vector& InMax)
 	    : Min(InMin)
 	    , Max(InMax)
@@ -24,9 +29,9 @@ struct AABB
 		return AABB(Position, Position + Dimensions);
 	}
 
-	bool is_point_inside(const Vector& Point) const
+	constexpr bool is_point_inside(const Vector& Point) const
 	{
-		return Point.x >= Min.x && Point.y >= Min.y && Point.z >= Min.z && Point.x <= Max.x && Point.y <= Max.y && Point.z <= Max.z;
+		return (Point.x >= Min.x && Point.y >= Min.y && Point.z >= Min.z) && (Point.x <= Max.x && Point.y <= Max.y && Point.z <= Max.z);
 	}
 
 	// Returns true if this bounding box intersects another bounding box
@@ -92,6 +97,7 @@ struct AABB
 		return AABB(center - half_extents, center + half_extents);
 	}
 
+	// Creates an AABB centered on this AABB, but extended by the extents of the other AABB
 	AABB minkowski_sum(const AABB& Other) const
 	{
 		Vector out_center;
@@ -105,6 +111,131 @@ struct AABB
 		return from_center_and_half_extents(out_center, out_extents + other_extents);
 	}
 
+	enum class AABB_face : u8 {
+		x_neg = 0,
+		x_pos = 1,
+		y_neg = 2,
+		y_pos = 3,
+		z_neg = 4,
+		z_pos = 5
+	};
+
+	static Vector AABB_face_to_orientation_vec(AABB_face face)
+	{
+		switch (face)
+		{
+			case AABB_face::x_neg:
+				return Vector(-1, 0, 0);
+			case AABB_face::x_pos:
+				return Vector(1, 0, 0);
+			case AABB_face::y_neg:
+				return Vector(0, -1, 0);
+			case AABB_face::y_pos:
+				return Vector(0, 1, 0);
+			case AABB_face::z_neg:
+				return Vector(0, 0 - 1);
+			case AABB_face::z_pos:
+				return Vector(0, 0, 1);
+		}
+
+		check(false);
+		return Vector::zero;
+	}
+
+	// Get an AABB representing one of the faces of this AABB.
+	// Use this for testing if a point is on the surface of an AABB
+	AABB get_face_aabb(AABB_face face) const
+	{
+		switch (face)
+		{
+			case AABB_face::x_neg:
+				return AABB(Min, Vector(Min.x, Max.y, Max.z));
+			case AABB_face::x_pos:
+				return AABB(Vector(Max.x, Min.y, Min.z), Max);
+
+			case AABB_face::y_neg:
+				return AABB(Min, Vector(Max.x, Min.y, Max.z));
+			case AABB_face::y_pos:
+				return AABB(Vector(Min.x, Max.y, Min.z), Max);
+
+			case AABB_face::z_neg:
+				return AABB(Min, Vector(Max.x, Max.y, Min.z));
+			case AABB_face::z_pos:
+				return AABB(Vector(Min.x, Min.y, Max.z), Max);
+		}
+
+		check(false);
+		return AABB();
+	}
+
+	bool point_on_face(const Vector& point, AABB_face face) const
+	{
+		const AABB face_aabb = get_face_aabb(face);
+
+		switch (face)
+		{
+			case AABB_face::x_neg:
+				if (!is_nearly_equal(point.x, face_aabb.Min.x, 0.01f))
+				{
+					return false;
+				}
+				return point.y >= face_aabb.Min.y && point.z >= face_aabb.Min.z && point.y <= face_aabb.Max.y && point.z <= face_aabb.Max.z;
+				break;
+			case AABB_face::x_pos:
+				if (!is_nearly_equal(point.x, face_aabb.Max.x, 0.01f))
+				{
+					return false;
+				}
+				return point.y >= face_aabb.Min.y && point.z >= face_aabb.Min.z && point.y <= face_aabb.Max.y && point.z <= face_aabb.Max.z;
+				break;
+
+			case AABB_face::y_neg:
+				if (!is_nearly_equal(point.y, face_aabb.Min.y, 0.01f))
+				{
+					return false;
+				}
+				return point.x >= face_aabb.Min.x && point.z >= face_aabb.Min.z && point.x <= face_aabb.Max.x && point.z <= face_aabb.Max.z;
+			case AABB_face::y_pos:
+				if (!is_nearly_equal(point.y, face_aabb.Max.y, 0.01f))
+				{
+					return false;
+				}
+				return point.x >= face_aabb.Min.x && point.z >= face_aabb.Min.z && point.x <= face_aabb.Max.x && point.z <= face_aabb.Max.z;
+
+			case AABB_face::z_neg:
+				if (!is_nearly_equal(point.z, face_aabb.Max.z, 0.01f))
+				{
+					return false;
+				}
+				return point.x >= face_aabb.Min.x && point.y >= face_aabb.Min.y && point.x <= face_aabb.Max.x && point.y <= face_aabb.Max.y;
+			case AABB_face::z_pos:
+				if (!is_nearly_equal(point.z, face_aabb.Min.z, 0.01f))
+				{
+					return false;
+				}
+				return point.x >= face_aabb.Min.x && point.y >= face_aabb.Min.y && point.x <= face_aabb.Max.x && point.y <= face_aabb.Max.y;
+		}
+
+		check(false);
+		return false;
+	}
+
+	// Is a point on any of the faces on the AABB
+	bool point_on_any_face(const Vector& point, AABB_face& out_face) const
+	{
+		for (u8 i = 0; i < 6; ++i)
+		{
+			out_face = static_cast<AABB_face>(i);
+
+			if (get_face_aabb(out_face).is_point_inside(point))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
 public:
-	Vector Min, Max;
+	alignas(16) Vector Min;
+	alignas(16) Vector Max;
 };

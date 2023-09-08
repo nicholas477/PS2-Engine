@@ -1,12 +1,14 @@
 #include <malloc.h>
 #include <stdio.h>
 #include <vector>
+#include <forward_list>
 
 #include "objects/camera.hpp"
 #include "renderer/gs.hpp"
 #include "input.hpp"
 #include "renderer/renderable.hpp"
 #include "stats.hpp"
+#include "assert.hpp"
 
 #include <libgs.h>
 #include <packet.h>
@@ -144,48 +146,51 @@ static void init_renderer(framebuffer_t* frame, zbuffer_t* z)
 	_gs_state.lights.add_light(Vector {-1.00f, -1.00f, -1.00f, 1.00f}, Vector {0.50f, 0.50f, 0.50f, 1.00f}, lightsT::type::directional);
 }
 
-struct gs_rendering_statics
-{
-	std::vector<renderable*> renderables;
-	std::vector<renderable*> transient_renderables;
-	std::vector<std::function<qword_t*(qword_t*, const gs::gs_state&)>> transient_renderable_funcs;
-};
-
-static gs_rendering_statics* rendering_statics;
-
 std::vector<renderable*>& get_renderables()
 {
-	return rendering_statics->renderables;
+	static std::vector<renderable*> renderables;
+	return renderables;
 }
+
 void add_renderable(renderable* renderable)
 {
 	get_renderables().push_back(renderable);
 }
 
-
 std::vector<renderable*>& get_transient_renderables()
 {
-	return rendering_statics->transient_renderables;
+	static std::vector<renderable*> transient_renderables;
+	return transient_renderables;
 }
+
 void add_renderable_one_frame(renderable* renderable)
 {
 	get_transient_renderables().push_back(renderable);
 }
 
+static std::vector<std::function<qword_t*(qword_t*, const gs::gs_state&)>> make_renderable_funcs()
+{
+	std::vector<std::function<qword_t*(qword_t*, const gs::gs_state&)>> renderable_funcs;
+	renderable_funcs.reserve(1024);
+	return renderable_funcs;
+}
+
 std::vector<std::function<qword_t*(qword_t*, const gs::gs_state&)>>& get_renderable_funcs()
 {
-	return rendering_statics->transient_renderable_funcs;
+	static std::vector<std::function<qword_t*(qword_t*, const gs::gs_state&)>> renderable_funcs = make_renderable_funcs();
+	return renderable_funcs;
 }
-void add_renderable_one_frame(std::function<qword_t*(qword_t*, const gs::gs_state&)>&& func)
+
+void add_renderable_one_frame(std::function<qword_t*(qword_t*, const gs::gs_state&)> func)
 {
+	check(get_renderable_funcs().size() < 1024);
+
 	get_renderable_funcs().push_back(func);
 }
 
 void init()
 {
 	printf("Initializing graphics synthesizer\n");
-
-	rendering_statics = new gs_rendering_statics();
 
 	// Init GIF dma channel.
 	dma_channel_initialize(DMA_CHANNEL_GIF, NULL, 0);

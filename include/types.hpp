@@ -7,11 +7,17 @@
 
 #include "math3d.h"
 
+template <typename T>
+static bool is_nearly_equal(T A, T B, T ErrorTolerance)
+{
+	return std::abs(A - B) <= ErrorTolerance;
+}
+
 extern "C" void sincosf(float, float*, float*);
 static float clamp_axis(float);
 static float normalize_axis(float);
 
-struct Vector
+struct alignas(16) Vector
 {
 	union
 	{
@@ -36,6 +42,14 @@ struct Vector
 		memcpy(vector, _vector, sizeof(VECTOR));
 	}
 
+	Vector(const Vector& other)
+	{
+		x = other.x;
+		y = other.y;
+		z = other.z;
+		w = other.w;
+	}
+
 	constexpr Vector(float _x = 0.f, float _y = 0.f, float _z = 0.f, float _w = 0.f)
 	    : x(_x)
 	    , y(_y)
@@ -52,6 +66,11 @@ struct Vector
 	float length() const
 	{
 		return sqrt(x * x + y * y + z * z + w * w);
+	}
+
+	float distance(const Vector& other) const
+	{
+		return (*this - other).length();
 	}
 
 	Vector operator+(const Vector& Rhs) const
@@ -75,6 +94,12 @@ struct Vector
 			out[i] *= Rhs;
 		}
 		return out;
+	}
+
+	Vector& operator*=(const Vector& Rhs)
+	{
+		vector_multiply(vector, vector, const_cast<float*>(Rhs.vector));
+		return *this;
 	}
 
 	Vector operator/(float Rhs) const
@@ -101,6 +126,15 @@ struct Vector
 		out.z -= Rhs.z;
 		out.w -= Rhs.w;
 		return out;
+	}
+
+	Vector& operator-=(const Vector& Rhs)
+	{
+		x -= Rhs.x;
+		y -= Rhs.y;
+		z -= Rhs.z;
+		w -= Rhs.w;
+		return *this;
 	}
 
 	Vector operator-() const
@@ -228,7 +262,10 @@ struct Vector
 
 	static const Vector quat_identity;
 	static const Vector zero;
-} __attribute__((__aligned__(16)));
+};
+
+static_assert(sizeof(Vector) == sizeof(VECTOR));
+static_assert(alignof(Vector) == alignof(VECTOR));
 
 constexpr Vector Vector::quat_identity = Vector(1.f, 0.f, 0.f, 0.f);
 constexpr Vector Vector::zero          = Vector(0.f, 0.f, 0.f, 0.f);
@@ -238,7 +275,7 @@ static Vector operator*(float Lhs, const Vector& Rhs)
 	return Rhs * Lhs;
 }
 
-struct Matrix
+struct alignas(16) Matrix
 {
 	MATRIX matrix;
 	Matrix(MATRIX _matrix)
@@ -280,9 +317,6 @@ struct Matrix
 	{
 		Matrix out_matrix = *this;
 		matrix_translate(out_matrix.matrix, const_cast<float*>(matrix), const_cast<float*>(Rhs.vector));
-		// out_matrix.matrix[0x0C] += Rhs.vector[0];
-		// out_matrix.matrix[0x0D] += Rhs.vector[1];
-		// out_matrix.matrix[0x0E] += Rhs.vector[2];
 		return out_matrix;
 	}
 
@@ -292,4 +326,7 @@ struct Matrix
 		matrix_inverse(out_matrix.matrix, const_cast<float*>(matrix));
 		return out_matrix;
 	}
-} __attribute__((__aligned__(16)));
+};
+
+static_assert(sizeof(Matrix) == sizeof(MATRIX));
+static_assert(alignof(Matrix) == alignof(MATRIX));

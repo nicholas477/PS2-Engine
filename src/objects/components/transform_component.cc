@@ -35,3 +35,9 @@ Vector transform_component::get_right_vector() const
 	Vector out_vector = Vector(1.f, 0.f, 0.f);
 	return get_rotation_matrix().transform_vector(out_vector);
 }
+
+Vector transform_component::get_up_vector() const
+{
+	Vector out_vector = Vector(0.f, 1.f, 0.f);
+	return get_rotation_matrix().transform_vector(out_vector);
+}

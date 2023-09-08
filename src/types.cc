@@ -57,17 +57,21 @@ std::string Vector::to_string(bool print_rotation, bool print_w) const
 	std::stringstream out_stream;
 	if (print_rotation)
 	{
-		out_stream << "pitch: " << pitch << "\n";
-		out_stream << "yaw:   " << yaw << "\n";
-		out_stream << "roll:  " << roll << "\n";
+		out_stream << "(";
+		out_stream << "pitch: " << pitch;
+		out_stream << ", yaw:   " << yaw;
+		out_stream << ", roll:  " << roll;
+		out_stream << ")";
 	}
 	else
 	{
+		out_stream << "(";
 		out_stream << "x: " << x;
-		out_stream << "\ny: " << y;
-		out_stream << "\nz: " << z;
+		out_stream << ", y: " << y;
+		out_stream << ", z: " << z;
 		if (print_w)
-			out_stream << "\nw: " << w;
+			out_stream << ", w: " << w;
+		out_stream << ")";
 	}
 	return out_stream.str();
 }

@@ -3,6 +3,7 @@
 #include "objects/components/transform_component.hpp"
 #include "utils/rendering.hpp"
 #include "collision/plane.hpp"
+#include "objects/timer.hpp"
 
 collideable* collideable::head = nullptr;
 
@@ -28,7 +29,22 @@ hit_result collideable::sweep_collision(const collideable& collideable, const Ma
 {
 	hit_result out_result;
 
-	const AABB sweep_end_aabb = collideable.get_local_bounds().transform(sweep_end);
+	// Check plane intersection
+	Vector center, extents;
+	collideable.get_local_bounds().get_center_and_half_extents(center, extents);
+	//center.w = center.x = center.z = 0;
+	center.w = 0;
+
+	// printf("center: %s\n", center.to_string().c_str());
+
+	const Vector start = center + sweep_start.get_location();
+	const Vector end   = center + sweep_end.get_location();
+
+	// printf("start: %s\n", start.to_string().c_str());
+	// printf("end: %s\n", end.to_string().c_str());
+
+	draw_point_one_frame(start, 10, colors::white(), true);
+	draw_point_one_frame(end, 10, colors::black(), true);
 
 	for (auto Itr = collideable::Itr(); Itr; ++Itr)
 	{
@@ -38,41 +54,73 @@ hit_result collideable::sweep_collision(const collideable& collideable, const Ma
 			continue;
 		}
 		const AABB other_aabb    = (*Itr).get_world_bounds();
-		const AABB minkowski_sum = other_aabb.minkowski_sum(sweep_end_aabb);
+		const AABB minkowski_sum = other_aabb.minkowski_sum(collideable.get_local_bounds());
+		draw_aabb_one_frame(minkowski_sum, colors::white(), false);
 
 		std::array<Plane, 6> planes;
 
 		// X min
-		planes[0] = Plane(minkowski_sum.Min, Vector(-1, 0, 0));
+		planes[static_cast<u8>(AABB::AABB_face::x_neg)] = Plane(minkowski_sum.Min, Vector(-1, 0, 0));
 		// X max
-		planes[1] = Plane(minkowski_sum.Max, Vector(1, 0, 0));
+		planes[static_cast<u8>(AABB::AABB_face::x_pos)] = Plane(minkowski_sum.Max, Vector(1, 0, 0));
 
 		// Y min
-		planes[2] = Plane(minkowski_sum.Min, Vector(0, -1, 0));
+		planes[static_cast<u8>(AABB::AABB_face::y_neg)] = Plane(minkowski_sum.Min, Vector(0, -1, 0));
 		// Y max
-		planes[3] = Plane(minkowski_sum.Max, Vector(0, 1, 0));
+		planes[static_cast<u8>(AABB::AABB_face::y_pos)] = Plane(minkowski_sum.Max, Vector(0, 1, 0));
 
 		// Z min
-		planes[4] = Plane(minkowski_sum.Min, Vector(0, 0, -1));
+		planes[static_cast<u8>(AABB::AABB_face::z_neg)] = Plane(minkowski_sum.Min, Vector(0, 0, -1));
 		// Z max
-		planes[5] = Plane(minkowski_sum.Max, Vector(0, 0, 1));
+		planes[static_cast<u8>(AABB::AABB_face::z_pos)] = Plane(minkowski_sum.Max, Vector(0, 0, 1));
 
-		for (const Plane& plane : planes)
+
+		bool found_intersection = false;
+		Vector intersect_vector = Vector::zero;
+		for (u8 i = 0; i < 6; ++i)
 		{
-			//draw_plane_one_frame(plane, 50, colors::blue());
-			draw_point_one_frame(plane.get_origin(), 5, colors::blue());
+			AABB::AABB_face face = static_cast<AABB::AABB_face>(i);
+			const Plane& plane   = planes[i];
+
+			// Make sure the line formed by the edge actually crosses the plane before checking for the intersection point.
+			if (plane.line_crosses_plane(start, end))
+			{
+				create_managed_timer_lambda(5.f, [=](timer*, float) {
+					draw_plane_one_frame(plane, 100, colors::green(), true);
+					draw_line_one_frame(start, end, colors::green(), true);
+					draw_aabb_one_frame(minkowski_sum.get_face_aabb(face), colors::green(), true);
+					draw_point_one_frame(start, 10, colors::blue(), true);
+					draw_point_one_frame(end, 10, colors::blue(), true);
+				});
+
+				Vector intersect = line_plane_intersection(start, end, plane);
+				if (minkowski_sum.point_on_face(intersect, face))
+				{
+
+					if (!found_intersection)
+					{
+						found_intersection = true;
+						intersect_vector   = intersect;
+					}
+					else
+					{
+						// If we already hit a plane face, then check if we've found a closer intersection
+						float old_intersection_distance = start.distance(intersect_vector);
+						float new_intersection_distance = start.distance(intersect);
+
+						if (new_intersection_distance < old_intersection_distance)
+						{
+							intersect_vector = intersect;
+						}
+					}
+				}
+			}
 		}
 
-
-		draw_aabb_one_frame(minkowski_sum, colors::red());
-		draw_line_one_frame(sweep_start.get_location(), sweep_end.get_location(), colors::green());
-
-		// Right now just check for intersection, nothing else
-		if (sweep_end_aabb.intersect(other_aabb))
+		out_result.hit = found_intersection;
+		if (out_result.hit)
 		{
-			out_result.hit_collideable = &*Itr;
-			out_result.hit             = true;
-			return out_result;
+			out_result.sweep_location = intersect_vector - center;
 		}
 	}
 

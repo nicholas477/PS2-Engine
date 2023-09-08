@@ -8,7 +8,10 @@
 
 struct hit_result
 {
-	bool hit                           = false;
+	bool hit = false;
+
+	// Where the sweep stopped
+	Vector sweep_location              = Vector::zero;
 	class collideable* hit_collideable = nullptr;
 };
 

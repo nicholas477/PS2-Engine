@@ -26,14 +26,32 @@ void init()
 	// teapot2.transform.set_location(Vector(-30.f));
 
 	static teapot teapot3;
-	teapot3.transform.set_location(Vector(0.f, 20.f));
+	teapot3.transform.set_location(Vector(100.f, 20.f));
 
+	// Player teapot
 	static teapot teapot4;
 	teapot4.transform.set_location(Vector(0.f, -20.f));
 
-	static transform_component scene;
+
+	// Camera parent component
+	static struct camera_transform_component: public transform_component, public tickable
+	{
+		virtual void tick(float deltatime) override
+		{
+			const u32 paddata   = input::get_paddata();
+			const auto& buttons = input::get_button_status();
+
+			Vector input_vector = Vector::zero;
+
+			input_vector.y -= (buttons.l2_p - 128.f) / 128.f;
+			input_vector.y += (buttons.r2_p - 128.f) / 128.f;
+
+			add_location(input_vector * 20 * deltatime);
+		}
+	} scene;
+
 	scene.set_parent(teapot4.transform);
-	scene.set_location(Vector(0.f, 50.f));
+	scene.set_location(Vector(0.f, 0.f));
 
 	camera::get().transform.set_parent(scene);
 
