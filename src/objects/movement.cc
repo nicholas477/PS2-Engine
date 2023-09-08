@@ -44,14 +44,12 @@ bool movement::try_move(const Vector& location, Vector& out_sweep_stop)
 	}
 
 	const Matrix start_location = updated_location_component->get_matrix();
-	const Matrix end_location   = Matrix::from_location_and_rotation(location, updated_location_component->get_rotation());
+	const Matrix end_location   = Matrix::from_location_and_rotation(location, Vector::quat_identity);
 
 	hit_result hit = collideable::sweep_collision(*collision_component, start_location, end_location);
 	if (hit.hit)
 	{
 		out_sweep_stop = hit.sweep_location;
-		printf("Sweep move hit something\n");
-		//draw_rejected_hit(collision_component, end_location);
 		return false;
 	}
 	return true;

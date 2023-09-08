@@ -261,10 +261,10 @@ qword_t* draw_plane(qword_t* q, const gs::gs_state& gs_state, const Plane& plane
 	    plane.get_origin() + U - V,
 	    plane.get_origin() - U - V};
 
-	for (int i = 0; i < 4; ++i)
-	{
-		q = draw_line(q, gs_state, plane_rects[i], plane_rects[(i + 1) % 4], color, on_top);
-	}
+	q = draw_line(q, gs_state, plane_rects[0], plane_rects[1], color, on_top);
+	q = draw_line(q, gs_state, plane_rects[1], plane_rects[2], color, on_top);
+	q = draw_line(q, gs_state, plane_rects[2], plane_rects[3], color, on_top);
+	q = draw_line(q, gs_state, plane_rects[3], plane_rects[0], color, on_top);
 
 	return q;
 }

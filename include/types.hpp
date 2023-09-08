@@ -146,14 +146,25 @@ struct alignas(16) Vector
 	Vector cross(const Vector& Rhs) const
 	{
 		Vector out;
-		vector_cross_product(out.vector, const_cast<float*>(vector), const_cast<float*>(Rhs.vector));
+		out[0] = vector[1] * Rhs.vector[2] - vector[2] * Rhs.vector[1];
+		out[1] = -(vector[0] * Rhs.vector[2] - vector[2] * Rhs.vector[0]);
+		out[2] = vector[0] * Rhs.vector[1] - vector[1] * Rhs.vector[0];
+		//vector_cross_product(out.vector, const_cast<float*>(vector), const_cast<float*>(Rhs.vector));
 		return out;
 	}
 
+	template <bool with_w = false>
 	float dot(const Vector& Rhs) const
 	{
 		//return vector_innerproduct(const_cast<float*>(vector), const_cast<float*>(Rhs.vector));
-		return (x * Rhs.x) + (y * Rhs.y) + (z * Rhs.z) + (w * Rhs.w);
+		if constexpr (with_w)
+		{
+			return (x * Rhs.x) + (y * Rhs.y) + (z * Rhs.z) + (w * Rhs.w);
+		}
+		else
+		{
+			return (x * Rhs.x) + (y * Rhs.y) + (z * Rhs.z);
+		}
 	}
 
 	Vector normalize() const
@@ -161,6 +172,23 @@ struct alignas(16) Vector
 		Vector out;
 		vector_normalize(out.vector, const_cast<float*>(vector));
 		return out;
+	}
+
+	Vector safe_normalize(float Tolerance = 0.0001, const Vector& ResultIfZero = Vector::zero) const
+	{
+		const float SquareSum = x * x + y * y + z * z;
+
+		// Not sure if it's safe to add tolerance in there. Might introduce too many errors
+		if (SquareSum == 1.f)
+		{
+			return *this;
+		}
+		else if (SquareSum < Tolerance)
+		{
+			return ResultIfZero;
+		}
+		const float Scale = (float)(1.f / sqrt(SquareSum));
+		return Vector(x * Scale, y * Scale, z * Scale);
 	}
 
 	// Rotation members/functions

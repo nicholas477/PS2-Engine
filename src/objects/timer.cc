@@ -92,5 +92,6 @@ void create_managed_timer_lambda(float timer_length,
                                  std::function<void(timer*, float)> on_timer_finish)
 {
 	check(get_managed_timers().size() < 128);
+	printf("timers size: %d\n", get_managed_timers().size());
 	get_managed_timers().emplace_back(std::make_unique<timer_lambda>(timer_length, std::move(on_timer_tick), std::move(on_timer_finish)));
 }

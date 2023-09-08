@@ -3,7 +3,7 @@
 #include "assert.hpp"
 #include "types.hpp"
 
-// Represents an infinite plane that bisects space.
+// Represents an infinite plane that bisects 3d space.
 struct Plane: public Vector
 {
 	Plane() = default;
@@ -17,6 +17,11 @@ struct Plane: public Vector
 		check(is_valid());
 	}
 
+	explicit Plane(float x, float y, float z, float w)
+	    : Vector(x, y, z, w)
+	{
+	}
+
 	bool is_valid() const
 	{
 		return !(x == 0.f && y == 0.f && z == 0.f && w == 0.f);
@@ -27,15 +32,21 @@ struct Plane: public Vector
 		return Vector(x, y, z);
 	}
 
-	// This probably wont be where you think it is
+	// This probably wont be where you think it is, since the position on the surface of the plane doesn't matter
 	Vector get_origin() const
 	{
 		return get_normal() * w;
 	}
 
+	/**
+	 * Calculates distance between plane and a point.
+	 *
+	 * @param P The other point.
+	 * @return The distance from the plane to the point. 0: Point is on the plane. >0: Point is in front of the plane. <0: Point is behind the plane.
+	 */
 	float plane_dot(const Vector& P) const
 	{
-		return x * P.x + y * P.y + z * P.z - w;
+		return (x * P.x + y * P.y + z * P.z) - w;
 	}
 
 	bool line_crosses_plane(const Vector& start, const Vector& end) const
@@ -56,8 +67,13 @@ struct Plane: public Vector
 			Axis1 = Vector(0, 0, 1);
 
 		Vector Tmp = Axis1 - *this * (Axis1.dot(*this));
-		Axis1      = Tmp.normalize();
+		Axis1      = Tmp.safe_normalize();
 		Axis2      = Axis1.cross(*this);
+	}
+
+	Plane flip() const
+	{
+		return Plane(-x, -y, -z, -w);
 	}
 };
 

@@ -2,6 +2,50 @@
 
 #include "assert.hpp"
 #include "types.hpp"
+#include "collision/plane.hpp"
+
+#include <array>
+
+enum class AABB_face : u8 {
+	x_neg = 0,
+	x_pos = 1,
+	y_neg = 2,
+	y_pos = 3,
+	z_neg = 4,
+	z_pos = 5
+};
+
+static u8 aabb_face_to_int(AABB_face face)
+{
+	return static_cast<u8>(face);
+}
+
+static AABB_face int_to_aabb_face(u8 num)
+{
+	return static_cast<AABB_face>(num);
+}
+
+static Vector AABB_face_to_orientation_vec(AABB_face face)
+{
+	switch (face)
+	{
+		case AABB_face::x_neg:
+			return Vector(-1, 0, 0);
+		case AABB_face::x_pos:
+			return Vector(1, 0, 0);
+		case AABB_face::y_neg:
+			return Vector(0, -1, 0);
+		case AABB_face::y_pos:
+			return Vector(0, 1, 0);
+		case AABB_face::z_neg:
+			return Vector(0, 0, -1);
+		case AABB_face::z_pos:
+			return Vector(0, 0, 1);
+	}
+
+	check(false);
+	return Vector::zero;
+}
 
 struct AABB
 {
@@ -15,6 +59,9 @@ struct AABB
 	    : Min(InMin)
 	    , Max(InMax)
 	{
+		Min.w = 0;
+		Max.w = 0;
+
 		check(InMin.x <= InMax.x);
 		check(InMin.y <= InMax.y);
 		check(InMin.z <= InMax.z);
@@ -111,35 +158,23 @@ struct AABB
 		return from_center_and_half_extents(out_center, out_extents + other_extents);
 	}
 
-	enum class AABB_face : u8 {
-		x_neg = 0,
-		x_pos = 1,
-		y_neg = 2,
-		y_pos = 3,
-		z_neg = 4,
-		z_pos = 5
-	};
-
-	static Vector AABB_face_to_orientation_vec(AABB_face face)
+	Plane get_face_plane(AABB_face face) const
 	{
 		switch (face)
 		{
 			case AABB_face::x_neg:
-				return Vector(-1, 0, 0);
-			case AABB_face::x_pos:
-				return Vector(1, 0, 0);
 			case AABB_face::y_neg:
-				return Vector(0, -1, 0);
-			case AABB_face::y_pos:
-				return Vector(0, 1, 0);
 			case AABB_face::z_neg:
-				return Vector(0, 0 - 1);
+				return Plane(Min, AABB_face_to_orientation_vec(face));
+
+			case AABB_face::x_pos:
+			case AABB_face::y_pos:
 			case AABB_face::z_pos:
-				return Vector(0, 0, 1);
+				return Plane(Max, AABB_face_to_orientation_vec(face));
 		}
 
 		check(false);
-		return Vector::zero;
+		return Plane();
 	}
 
 	// Get an AABB representing one of the faces of this AABB.
@@ -233,6 +268,21 @@ struct AABB
 			}
 		}
 		return false;
+	}
+
+	// Makes an array of planes, each plane representing an AABB face
+	// The index of the plane corresponds to the AABB_face enum
+	std::array<Plane, 6> get_face_planes() const
+	{
+		std::array<Plane, 6> planes;
+
+		for (u8 i = 0; i < 6; ++i)
+		{
+			AABB_face face = int_to_aabb_face(i);
+			planes[i]      = get_face_plane(face);
+		}
+
+		return planes;
 	}
 
 public:

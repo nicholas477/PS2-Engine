@@ -64,6 +64,7 @@ template <class T, class... Args>
 void create_managed_timer(Args&&... args)
 {
 	check(get_managed_timers().size() < 128);
+	printf("timers size: %d\n", get_managed_timers().size());
 
 	static_assert(std::is_base_of<timer, T>::value);
 	get_managed_timers().emplace_back(std::make_unique<T>(std::forward<Args>(args)...));

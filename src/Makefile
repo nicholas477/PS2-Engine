@@ -44,7 +44,7 @@ $(VU_PROGS): $(OUTPUT_DIR)/$(VU_OUTPUT_DIR)/%.o: $(OUTPUT_DIR)/$(VU_OUTPUT_DIR)/
 	$(PS2_VU_DVP) $< -o $@
 
 $(OUTPUT_DIR)/$(VU_OUTPUT_DIR)/%.vsm:
-	$(MKDIR_CMD) $(dir $@)
+	$(MKDIR) -p $(dir $@)
 	$(PS2_VCLPP) $(VCL_PATH)/$*.vcl $(dir $@)$*.pp.vcl -j
 	$(PS2_VCL) -o$@ $(dir $@)$*.pp.vcl
 
