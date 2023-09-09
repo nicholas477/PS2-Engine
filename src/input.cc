@@ -8,7 +8,7 @@
 
 #include "input.h"
 
-#include "objects/teapot.hpp"
+static bool input_modules_loaded = false;
 
 /*
  * Global var's
@@ -55,6 +55,8 @@ loadModules(void)
 		printf("sifLoadModule pad failed: %d\n", ret);
 		SleepThread();
 	}
+
+	input_modules_loaded = true;
 }
 
 /*
@@ -62,6 +64,9 @@ loadModules(void)
  */
 static int waitPadReady(int port, int slot)
 {
+	if (!input_modules_loaded)
+		return -1;
+
 	int state;
 	int lastState;
 	char stateString[16];
@@ -92,6 +97,8 @@ static int waitPadReady(int port, int slot)
  */
 static int initializePad(int port, int slot)
 {
+	if (!input_modules_loaded)
+		return -1;
 
 	int ret;
 	int modes;
@@ -199,11 +206,12 @@ void init()
 	int port = 0;
 	int slot = 0;
 
-	SifInitRpc(0);
-
 	printf("Initializing input");
 
 	loadModules();
+
+	if (!input_modules_loaded)
+		return;
 
 	padInit(0);
 
@@ -227,6 +235,8 @@ void init()
 
 void read_inputs()
 {
+	if (!input_modules_loaded)
+		return;
 	// printf("Reading inputs...\n");
 
 	int ret;
@@ -254,14 +264,6 @@ void read_inputs()
 
 		pad_data.new_pad = pad_data.paddata & ~pad_data.old_pad;
 		pad_data.old_pad = pad_data.paddata;
-
-		if (pad_data.new_pad & PAD_SQUARE)
-		{
-			static int i       = 23489;
-			teapot* new_teapot = new teapot();
-			srand(GetTimerSystemTime() + i++);
-			new_teapot->transform.add_location(Vector(((double)rand() / (double)RAND_MAX) * 256.f, 0.f, ((double)rand() / (double)RAND_MAX) * 256.f));
-		}
 
 		// Directions
 		// 	if (new_pad & PAD_LEFT)

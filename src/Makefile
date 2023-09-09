@@ -1,15 +1,17 @@
 EE_BIN = main.elf
+ISO_TGT = $(OUTPUT_DIR)/test.iso
 SRC_FILES = $(shell find $(PREFIX) -name "*.cc" -o -name "*.cpp" -o -name "*.c")
 EE_OBJS = $(patsubst %.cc, build/%.o, $(SRC_FILES))
 EE_OBJS := $(patsubst %.c, build/%.o, $(EE_OBJS))
 EE_OBJS := $(patsubst %.cpp, build/%.o, $(EE_OBJS))
 EE_INCS := -Iinclude $(EE_INCS)
-EE_LIBS = -ldraw -lgraph -lmath3d -lpacket -ldma -lpad -lc -lstdc++ -lgs -ldebug -leedebug -lpacket2
+EE_LIBS = -ldraw -lgraph -lmath3d -lpacket -ldma -lpad -lc -lstdc++ -lgs -ldebug -leedebug -lpacket2 -laudsrv -lcdvd -lxcdvd
 EE_OPTFLAGS = -O3 -g -std=gnu++17
 EE_WARNFLAGS = -Wall -Wno-unused-function -Wno-unused-variable
 LINKFLAGS	= -O3 -Wl,-zmax-page-size=128
 
 OUTPUT_DIR     = build
+ISO_FOLDER_DIR = build/iso
 VU_OUTPUT_DIR  = vu
 VU_PROGS = $(addprefix $(OUTPUT_DIR)/$(VU_OUTPUT_DIR)/, $(patsubst %.vcl, %.o, $(VCL_FILES)))
 
@@ -35,7 +37,15 @@ VCL_FILES = color_triangles_clip_tris.vcl color_triangles_clip_verts.vcl draw_fi
 
 EE_OBJS := $(VU_PROGS) $(EE_OBJS)
 
-all: $(EE_BIN)
+ISO_ASSETS = assets/
+
+$(ISO_TGT): $(EE_BIN) $(ISO_ASSETS)
+	$(MKDIR) -p $(ISO_FOLDER_DIR)
+	cp $(EE_BIN) $(ISO_FOLDER_DIR)/$(EE_BIN)
+	mkisofs -l -o $(ISO_TGT) $(ISO_FOLDER_DIR)/$(EE_BIN) SYSTEM.CNF $(ISO_ASSETS) $(PS2SDK)/iop/irx/audsrv.irx $(PS2SDK)/iop/irx/libsd.irx $(PS2SDK)/iop/irx/ps2snd.irx
+
+
+all: $(ISO_TGT)
 
 #
 # VU microprograms:
@@ -51,6 +61,7 @@ $(OUTPUT_DIR)/$(VU_OUTPUT_DIR)/%.vsm:
 clean:
 	rm -f $(EE_BIN)
 	rm -rf $(OUTPUT_DIR)
+	rm -rf $(ISO_TGT)
 
 run: $(EE_BIN)
 	ps2client -h $(PS2HOST) execee host:$(EE_BIN)

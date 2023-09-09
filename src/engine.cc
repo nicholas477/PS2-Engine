@@ -4,6 +4,7 @@
 #include "world.hpp"
 #include "objects/camera.hpp"
 #include "objects/teapot.hpp"
+#include "sound/sound.hpp"
 #include "stats.hpp"
 
 #include <stdio.h>
@@ -12,6 +13,14 @@
 #include <timer.h>
 #include <inttypes.h>
 #include <algorithm>
+
+#include <kernel.h>
+#include <sifcmd.h>
+#include <sifrpc.h>
+#include <iopheap.h>
+#include <iopcontrol.h>
+#include <loadfile.h>
+#include <libcdvd-common.h>
 
 #include "graph.h"
 
@@ -23,8 +32,30 @@ static u32 frameCounter = 0;
 
 void init()
 {
+	// SifExitIopHeap();
+	// SifLoadFileExit();
+	// SifExitRpc();
+
+	// SifInitRpc(0);
+	// while (!SifIopReset("", 0))
+	// 	;
+	// while (!SifIopSync())
+	// 	;
+	SifInitRpc(0);
+	SifLoadFileInit();
+	SifInitIopHeap();
+
+	check(SifLoadModule("rom0:LIBSD", 0, NULL) > 0);
+	check(SifLoadModule("rom0:CDVDMAN", 0, NULL) > 0);
+	check(SifLoadModule("rom0:CDVDFSV", 0, NULL) > 0);
+	// check(SifLoadModule("rom0:CDVDSTM", 0, NULL) > 0);
+
+	sceCdInit(SCECdINIT);
+	sceCdMmode(SCECdPS2DVD);
+
 	stats::init();
 	input::init();
+	sound::init();
 	gs::init();
 
 	printf("Graph mode: ");
