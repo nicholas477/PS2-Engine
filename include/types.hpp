@@ -386,6 +386,9 @@ struct alignas(16) Matrix
 	{
 		return matrix[col + (row * 4)];
 	}
+
+	operator const float*() const { return matrix; }
+	operator float*() { return matrix; }
 };
 
 static_assert(sizeof(Matrix) == sizeof(MATRIX));

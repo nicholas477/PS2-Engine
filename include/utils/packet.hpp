@@ -65,6 +65,16 @@ public:
 		packet2_add_u64(*this, val);
 	}
 
+	void add(s32 val)
+	{
+		packet2_add_s32(*this, val);
+	}
+
+	void add(s64 val)
+	{
+		packet2_add_s64(*this, val);
+	}
+
 	void send(int channel, bool flush_cache)
 	{
 		dma_channel_send_packet2(*this, channel, flush_cache);
@@ -73,6 +83,11 @@ public:
 	void add_end_tag()
 	{
 		packet2_utils_vu_add_end_tag(*this);
+	}
+
+	u32 get_qw_count() const
+	{
+		return packet2_get_qw_count(const_cast<packet2_t*>(get()));
 	}
 
 	operator const packet2_t*() const { return get(); }

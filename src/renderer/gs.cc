@@ -142,6 +142,12 @@ void gs_state::flip_context()
 	context ^= 1;
 }
 
+std::vector<renderable*>& get_renderables()
+{
+	static std::vector<renderable*> renderables;
+	return renderables;
+}
+
 static void init_renderer(framebuffer_t* frame, zbuffer_t* z)
 {
 	packets[0] = packet2(1600, P2_TYPE_NORMAL, P2_MODE_CHAIN, true);
@@ -158,12 +164,11 @@ static void init_renderer(framebuffer_t* frame, zbuffer_t* z)
 	//_gs_state.lights.add_light(Vector {1.00f, 0.00f, -1.00f, 1.00f}, Vector {1.00f, 0.00f, 0.00f, 1.00f}, lightsT::type::directional);
 	//_gs_state.lights.add_light(Vector {0.00f, 1.00f, -1.00f, 1.00f}, Vector {0.30f, 0.30f, 0.30f, 1.00f}, lightsT::type::directional);
 	_gs_state.lights.add_light(Vector {-1.00f, -1.00f, -1.00f, 1.00f}, Vector {0.50f, 0.50f, 0.50f, 1.00f}, lightsT::type::directional);
-}
 
-std::vector<renderable*>& get_renderables()
-{
-	static std::vector<renderable*> renderables;
-	return renderables;
+	for (renderable* renderable : get_renderables())
+	{
+		renderable->on_gs_init();
+	}
 }
 
 void add_renderable(renderable* renderable)

@@ -12,5 +12,6 @@ public:
 			gs::add_renderable(this);
 		}
 	};
+	virtual void on_gs_init() {};
 	virtual void render(const gs::gs_state& gs_state) {};
 };

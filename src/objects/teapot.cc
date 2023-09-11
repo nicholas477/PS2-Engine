@@ -11,11 +11,15 @@
 #include <draw.h>
 #include <draw3d.h>
 
+#include <graph.h>
 #include <dma_tags.h>
 #include <gif_tags.h>
 #include <gs_psm.h>
 
 #include <dma.h>
+
+/** Data of our texture (24bit, RGB8) */
+extern unsigned char zbyszek[];
 
 static inline bool cullBackFacingTriangle(const Vector* eye, const Vector* v0,
                                           const Vector* v1, const Vector* v2)
@@ -62,6 +66,24 @@ public:
 		color.q = 1.0f;
 	}
 
+	void on_gs_init()
+	{
+		// Upload the texture
+		texbuff.width           = 128;
+		texbuff.psm             = GS_PSM_24;
+		texbuff.address         = graph_vram_allocate(128, 128, GS_PSM_24, GRAPH_ALIGN_BLOCK);
+		texbuff.info.width      = draw_log2(128);
+		texbuff.info.height     = draw_log2(128);
+		texbuff.info.components = TEXTURE_COMPONENTS_RGB;
+		texbuff.info.function   = TEXTURE_FUNCTION_DECAL;
+
+		packet2 packet = packet2(50, P2_TYPE_NORMAL, P2_MODE_CHAIN, false);
+		packet.update(draw_texture_transfer, zbyszek, 128, 128, GS_PSM_24, texbuff.address, texbuff.width);
+		packet.update(draw_texture_flush);
+		dma_channel_send_packet2(packet, DMA_CHANNEL_GIF, 1);
+		dma_wait_fast();
+	}
+
 	void render(const gs::gs_state& gs_state, const transform_component& transform)
 	{
 		Matrix local_world = Matrix::from_location_and_rotation(transform.get_location(), transform.get_rotation());
@@ -73,87 +95,86 @@ public:
 		// qword_t* dmatag = q;
 		// q++;
 
-		//texbuffer_t texbuff;
-
 		// Texture lod
-		// lod_t lod;
-		// lod.calculation = LOD_USE_K;
-		// lod.max_level   = 0;
-		// lod.mag_filter  = LOD_MAG_NEAREST;
-		// lod.min_filter  = LOD_MIN_NEAREST;
-		// lod.l           = 0;
-		// lod.k           = 0;
+		lod_t lod;
+		lod.calculation = LOD_USE_K;
+		lod.max_level   = 0;
+		lod.mag_filter  = LOD_MAG_NEAREST;
+		lod.min_filter  = LOD_MIN_NEAREST;
+		lod.l           = 0;
+		lod.k           = 0;
 
 		/** 
 		 * Color look up table. 
 		 * Needed for texture. 
 		 */
-		// clutbuffer_t clut;
-		// clut.storage_mode = CLUT_STORAGE_MODE1;
-		// clut.start        = 0;
-		// clut.psm          = 0;
-		// clut.load_method  = CLUT_NO_LOAD;
-		// clut.address      = 0;
+		clutbuffer_t clut;
+		clut.storage_mode = CLUT_STORAGE_MODE1;
+		clut.start        = 0;
+		clut.psm          = 0;
+		clut.load_method  = CLUT_NO_LOAD;
+		clut.address      = 0;
 
 		// Create the local world-to-screen matrix.
 		create_local_screen(local_screen, local_world.matrix, const_cast<float*>(gs_state.world_view.matrix), const_cast<float*>(gs_state.view_screen.matrix));
 
 		{
-			// printf("making new packet...........!!!!!!!!!!!!!!!!!\n");
-			// packet2 teapot_draw_packet = packet2(10, P2_TYPE_NORMAL, P2_MODE_CHAIN, true);
-			// printf("making new packet...........!!!!!!!!!!!!!!!!! 1\n");
-			// packet2_add_float(teapot_draw_packet, 2048.0F); // scale
-			// printf("making new packet...........!!!!!!!!!!!!!!!!! 2\n");
-			// packet2_add_float(teapot_draw_packet, 2048.0F); // scale
-			// printf("making new packet...........!!!!!!!!!!!!!!!!! 3\n");
-			// packet2_add_float(teapot_draw_packet, ((float)0xFFFFFF) / 32.0F); // scale
-			// printf("making new packet...........!!!!!!!!!!!!!!!!! 4\n");
-			// packet2_add_s32(teapot_draw_packet, vertex_count); // vertex count
-			// printf("making new packet...........!!!!!!!!!!!!!!!!! 5\n");
-			// packet2_utils_gif_add_set(teapot_draw_packet, 1);
-			// printf("making new packet...........!!!!!!!!!!!!!!!!! 6\n");
-			// packet2_utils_gs_add_lod(teapot_draw_packet, &lod);
-			// printf("making new packet...........!!!!!!!!!!!!!!!!! 7\n");
-			// packet2_utils_gs_add_texbuff_clut(teapot_draw_packet, &texbuff, &clut);
-			// printf("making new packet...........!!!!!!!!!!!!!!!!! 8\n");
-			// packet2_utils_gs_add_prim_giftag(teapot_draw_packet, &prim, vertex_count, DRAW_STQ2_REGLIST, 3, 0);
-			// printf("making new packet...........!!!!!!!!!!!!!!!!! 9\n");
-			// u8 j = 0; // RGBA
-			// for (j = 0; j < 4; j++)
-			// 	packet2_add_u32(teapot_draw_packet, 128);
+			printf("making new packet...........!!!!!!!!!!!!!!!!!\n");
+			packet2 teapot_draw_packet = packet2(1000, P2_TYPE_NORMAL, P2_MODE_CHAIN, true);
+			printf("making new packet...........!!!!!!!!!!!!!!!!! 1\n");
+			teapot_draw_packet.add(2048.0F); // scale
+			printf("making new packet...........!!!!!!!!!!!!!!!!! 2\n");
+			teapot_draw_packet.add(2048.0F); // scale
+			printf("making new packet...........!!!!!!!!!!!!!!!!! 3\n");
+			teapot_draw_packet.add(((float)0xFFFFFF) / 32.0F); // scale
+			printf("making new packet...........!!!!!!!!!!!!!!!!! 4\n");
+			teapot_draw_packet.add((u32)vertex_count / 10); // vertex count
+			printf("making new packet...........!!!!!!!!!!!!!!!!! 5\n");
+			packet2_utils_gif_add_set(teapot_draw_packet, 1);
+			printf("making new packet...........!!!!!!!!!!!!!!!!! 6\n");
+			packet2_utils_gs_add_lod(teapot_draw_packet, &lod);
+			printf("making new packet...........!!!!!!!!!!!!!!!!! 7\n");
+			packet2_utils_gs_add_texbuff_clut(teapot_draw_packet, &texbuff, &clut);
+			printf("making new packet...........!!!!!!!!!!!!!!!!! 8\n");
+			packet2_utils_gs_add_prim_giftag(teapot_draw_packet, &prim, vertex_count / 10, DRAW_STQ2_REGLIST, 3, 0);
+			printf("making new packet...........!!!!!!!!!!!!!!!!! 9\n");
+			u8 j = 0; // RGBA
+			for (j = 0; j < 4; j++)
+				packet2_add_u32(teapot_draw_packet, 128);
 
-			// printf("making new packet...........!!!!!!!!!!!!!!!!! 10\n");
-			// packet2_reset(teapot_draw_packet, 0);
-			// printf("making new packet...........!!!!!!!!!!!!!!!!! 11\n");
+			printf("making new packet...........!!!!!!!!!!!!!!!!! 10\n");
+			auto& curr_vif_packet = gs_state.get_current_packet();
+			packet2_reset(curr_vif_packet, 0);
+			printf("making new packet...........!!!!!!!!!!!!!!!!! 11\n");
 
-			// // Add matrix at the beggining of VU mem (skip TOP)
-			// packet2_utils_vu_add_unpack_data(teapot_draw_packet, 0, &local_screen, 8, 0);
-			// printf("making new packet...........!!!!!!!!!!!!!!!!! 12\n");
+			// Add matrix at the beggining of VU mem (skip TOP)
+			packet2_utils_vu_add_unpack_data(curr_vif_packet, 0, &local_screen, 8, 0);
+			printf("making new packet...........!!!!!!!!!!!!!!!!! 12\n");
 
-			// u32 vif_added_bytes = 0; // zero because now we will use TOP register (double buffer)
-			//                          // we don't wan't to unpack at 8 + beggining of buffer, but at
-			//                          // the beggining of the buffer
+			u32 vif_added_bytes = 0; // zero because now we will use TOP register (double buffer)
+			                         // we don't wan't to unpack at 8 + beggining of buffer, but at
+			                         // the beggining of the buffer
 
-			// // Merge packets
-			// packet2_utils_vu_add_unpack_data(curr_vif_packet, vif_added_bytes, teapot_draw_packet->base, packet2_get_qw_count(teapot_draw_packet), 1);
-			// //vif_added_bytes += packet2_get_qw_count(zbyszek_packet);
+			// Merge packets
+			packet2_utils_vu_add_unpack_data(curr_vif_packet, vif_added_bytes, teapot_draw_packet->base, teapot_draw_packet.get_qw_count(), 1);
+			vif_added_bytes += teapot_draw_packet.get_qw_count();
 
-			// printf("making new packet...........!!!!!!!!!!!!!!!!! 13\n");
-			// // // Add vertices
-			// packet2_utils_vu_add_unpack_data(teapot_draw_packet, vif_added_bytes, temp_vertices, vertex_count, 1);
-			// vif_added_bytes += vertex_count; // one VECTOR is size of qword
+			printf("making new packet...........!!!!!!!!!!!!!!!!! 13\n");
+			// Add vertices
+			packet2_utils_vu_add_unpack_data(curr_vif_packet, vif_added_bytes, temp_vertices, vertex_count / 10, 1);
+			vif_added_bytes += vertex_count; // one VECTOR is size of qword
 
-			// printf("making new packet...........!!!!!!!!!!!!!!!!! 14\n");
-			// // // Add sts
-			// packet2_utils_vu_add_unpack_data(teapot_draw_packet, vif_added_bytes, temp_vertices, vertex_count, 1);
-			// vif_added_bytes += vertex_count;
+			printf("making new packet...........!!!!!!!!!!!!!!!!! 14\n");
+			// Add sts
+			packet2_utils_vu_add_unpack_data(curr_vif_packet, vif_added_bytes, temp_vertices, vertex_count / 10, 1);
+			vif_added_bytes += vertex_count;
 
 			// printf("making new packet...........!!!!!!!!!!!!!!!!! 15\n");
-			// packet2_utils_vu_add_start_program(teapot_draw_packet, draw_3D::get().getDestinationAddress());
-			// packet2_utils_vu_add_end_tag(teapot_draw_packet);
-			// printf("sending packet...........!!!!!!!!!!!!!!!!!\n");
-			// dma_channel_wait(DMA_CHANNEL_VIF1, 0);
-			// dma_channel_send_packet2(teapot_draw_packet, DMA_CHANNEL_VIF1, 1);
+			packet2_utils_vu_add_start_program(curr_vif_packet, draw_3D::get().getDestinationAddress());
+			packet2_utils_vu_add_end_tag(curr_vif_packet);
+			printf("sending packet...........!!!!!!!!!!!!!!!!!\n");
+			dma_channel_wait(DMA_CHANNEL_VIF1, 0);
+			dma_channel_send_packet2(curr_vif_packet, DMA_CHANNEL_VIF1, 1);
 		}
 
 		// Calculate the normal values.
@@ -251,7 +272,24 @@ private:
 	VECTOR* temp_lights;
 	VECTOR* temp_colours;
 	VECTOR* temp_vertices;
+
+	texbuffer_t texbuff;
 } _teapot_render_proxy;
+
+static class teapot_render_proxy_initializer: public renderable
+{
+public:
+	teapot_render_proxy_initializer()
+	    : renderable(true)
+	{
+	}
+
+	virtual void on_gs_init() override
+	{
+		_teapot_render_proxy.on_gs_init();
+	}
+
+} _teapot_render_proxy_initializer;
 
 teapot::teapot()
     : collision(&transform)

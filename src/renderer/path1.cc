@@ -21,7 +21,7 @@ Path1::Path1()
 	prepareDrawFinishPacket();
 
 	uploadProgram(draw_3D::get());
-	uploadProgram(color_triangles_clip_tris::get());
+	//uploadProgram(color_triangles_clip_tris::get());
 
 	setDoubleBuffer(8, 496); // No idea how these numbers are picked.
 }
