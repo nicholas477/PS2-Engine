@@ -61,7 +61,7 @@ public:
 		draw_convert_xyz(xyz, 2048, 2048, 32, vertex_count,
 		                 (vertex_f_t*)temp_vertices);
 
-		packet2 packet = packet2(16, Packet2Type::P2_TYPE_NORMAL, Packet2Mode::P2_MODE_NORMAL, false);
+		packet2_inline<16> packet(Packet2Type::P2_TYPE_NORMAL, Packet2Mode::P2_MODE_NORMAL, false);
 		// Draw the triangles using triangle primitive type.
 		packet.update(draw_prim_start, 0, &prim, &color);
 
@@ -184,7 +184,8 @@ public:
 		draw_convert_xyz(xyz, 2048, 2048, 32, vertex_count,
 		                 (vertex_f_t*)temp_vertices);
 
-		packet2 packet = packet2(8, Packet2Type::P2_TYPE_NORMAL, Packet2Mode::P2_MODE_NORMAL, false);
+		packet2_inline<8> packet(Packet2Type::P2_TYPE_NORMAL, Packet2Mode::P2_MODE_NORMAL, false);
+		//packet2 packet(8, Packet2Type::P2_TYPE_NORMAL, Packet2Mode::P2_MODE_NORMAL, false);
 		// Draw the triangles using triangle primitive type.
 		packet.update(draw_prim_start, 0, &prim, &color);
 

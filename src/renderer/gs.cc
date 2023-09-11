@@ -88,6 +88,7 @@ static void init_gs(framebuffer_t* frame, zbuffer_t* z)
 
 static void init_drawing_environment(framebuffer_t* frame, zbuffer_t* z)
 {
+	//packet2_inline<20> packet(P2_TYPE_NORMAL, P2_MODE_NORMAL, false);
 	packet2 packet = packet2_create(20, P2_TYPE_NORMAL, P2_MODE_NORMAL, false);
 
 	// This will setup a default drawing environment.
@@ -292,7 +293,7 @@ static int gs_render(framebuffer_t* frame, zbuffer_t* z)
 void clear_screen()
 {
 	{
-		packet2 clear_packet = packet2(35, P2_TYPE_NORMAL, P2_MODE_NORMAL, 0);
+		packet2_inline<50> clear_packet(P2_TYPE_NORMAL, P2_MODE_NORMAL, 0);
 
 		// Clear framebuffer but don't update zbuffer.
 		clear_packet.update(draw_disable_tests, 0, &z);

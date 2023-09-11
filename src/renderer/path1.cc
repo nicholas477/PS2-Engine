@@ -12,10 +12,10 @@
 #include <dma.h>
 
 Path1::Path1()
+    : doubleBufferPacket(P2_TYPE_NORMAL, P2_MODE_CHAIN, true)
+    , drawFinishPacket(P2_TYPE_NORMAL, P2_MODE_CHAIN, true)
 {
 	currentProgramAddress = 0;
-	doubleBufferPacket    = packet2_create(2, P2_TYPE_NORMAL, P2_MODE_CHAIN, true);
-	drawFinishPacket      = packet2_create(10, P2_TYPE_NORMAL, P2_MODE_CHAIN, true);
 
 	uploadProgram(draw_finish::get());
 	prepareDrawFinishPacket();
@@ -23,7 +23,9 @@ Path1::Path1()
 	uploadProgram(draw_3D::get());
 	//uploadProgram(color_triangles_clip_tris::get());
 
+	printf("setting double buffer...\n");
 	setDoubleBuffer(8, 496); // No idea how these numbers are picked.
+	printf("done setting double buffer!\n");
 }
 
 void Path1::uploadProgram(VU1Program& program)
@@ -86,11 +88,15 @@ void Path1::prepareDrawFinishPacket()
 /** Set double buffer settings */
 void Path1::setDoubleBuffer(const u16& startingAddress, const u16& bufferSize)
 {
+	printf("setting double buffer packet...\n");
 	packet2_reset(doubleBufferPacket, false);
+	printf("adding double buffer packet...\n");
 	packet2_utils_vu_add_double_buffer(doubleBufferPacket, startingAddress,
 	                                   bufferSize);
 
 
+	printf("adding double buffer packet end tag\n");
 	doubleBufferPacket.add_end_tag();
+	printf("sending double buffer packet!\n");
 	doubleBufferPacket.send(DMA_CHANNEL_VIF1, true);
 }

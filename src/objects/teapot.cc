@@ -77,7 +77,7 @@ public:
 		texbuff.info.components = TEXTURE_COMPONENTS_RGB;
 		texbuff.info.function   = TEXTURE_FUNCTION_DECAL;
 
-		packet2 packet = packet2(50, P2_TYPE_NORMAL, P2_MODE_CHAIN, false);
+		packet2_inline<50> packet(P2_TYPE_NORMAL, P2_MODE_CHAIN, false);
 		packet.update(draw_texture_transfer, zbyszek, 128, 128, GS_PSM_24, texbuff.address, texbuff.width);
 		packet.update(draw_texture_flush);
 		dma_channel_send_packet2(packet, DMA_CHANNEL_GIF, 1);
@@ -88,8 +88,6 @@ public:
 	{
 		Matrix local_world = Matrix::from_location_and_rotation(transform.get_location(), transform.get_rotation());
 		//Matrix local_light = transform.get_rotation().to_rotation_matrix();
-
-		MATRIX local_screen;
 
 		// Now grab our qword pointer and increment past the dmatag.
 		// qword_t* dmatag = q;
@@ -116,11 +114,13 @@ public:
 		clut.address      = 0;
 
 		// Create the local world-to-screen matrix.
+		Matrix local_screen;
 		create_local_screen(local_screen, local_world.matrix, const_cast<float*>(gs_state.world_view.matrix), const_cast<float*>(gs_state.view_screen.matrix));
 
 		{
 			printf("making new packet...........!!!!!!!!!!!!!!!!!\n");
-			packet2 teapot_draw_packet = packet2(1000, P2_TYPE_NORMAL, P2_MODE_CHAIN, true);
+			packet2_inline<128> teapot_draw_packet(P2_TYPE_NORMAL, P2_MODE_CHAIN, true);
+			//packet2 teapot_draw_packet(128, P2_TYPE_NORMAL, P2_MODE_CHAIN, true);
 			printf("making new packet...........!!!!!!!!!!!!!!!!! 1\n");
 			teapot_draw_packet.add(2048.0F); // scale
 			printf("making new packet...........!!!!!!!!!!!!!!!!! 2\n");
