@@ -3,13 +3,9 @@
 #include <packet2.h>
 #include <packet2_utils.h>
 
-#include "assert.hpp"
-
 #include <memory>
 #include <stdio.h>
 #include <dma.h>
-#include <kernel.h>
-#include <string.h>
 
 /// @brief Static interface for packets. Meant to be a drop-in replacement for packet2_t*.
 /// @tparam T Put your derived class here.
@@ -116,6 +112,8 @@ public:
 	operator packet2_t*() { return get(); }
 };
 
+void initialize_packet2_inline(packet2_t& packet, qword_t* data, u16 qwords, enum Packet2Type type, enum Packet2Mode mode, bool tte);
+
 /// @brief wrapper type for packet2_t* that allocates memory inline
 template <u16 qwords>
 class packet2_inline: public packet2_interface<packet2_inline<qwords>>
@@ -133,25 +131,7 @@ public:
 	/// add_dma_tag() (so also every open_tag()) will move buffer by DWORD
 	packet2_inline(enum Packet2Type type, enum Packet2Mode mode, bool tte)
 	{
-		memset(&packet, 0, sizeof(packet));
-		packet.max_qwords_count   = qwords;
-		packet.type               = type;
-		packet.mode               = mode;
-		packet.tte                = tte;
-		packet.tag_opened_at      = NULL;
-		packet.vif_code_opened_at = NULL;
-
-		// Dma buffer size should be a whole number of cache lines (64 bytes = 4 quads)
-		assert(!((packet.type == P2_TYPE_UNCACHED || packet.type == P2_TYPE_UNCACHED_ACCL) && packet.max_qwords_count & (4 - 1)));
-
-		packet.base = (qword_t*)data.data();
-		packet.base = packet.next = (qword_t*)((u32)packet.base | packet.type);
-
-		memset(packet.base, 0, byte_size);
-
-		// "I hate to do this, but I've wasted FAR too much time hunting down cache incoherency"
-		if (packet.type == P2_TYPE_UNCACHED || packet.type == P2_TYPE_UNCACHED_ACCL)
-			FlushCache(0);
+		initialize_packet2_inline(packet, (qword_t*)data.data(), qwords, type, mode, tte);
 	}
 
 	static constexpr std::size_t byte_size = qwords << 4;
@@ -167,5 +147,5 @@ public:
 	packet2_inline(const packet2_inline&) = delete;
 	packet2_inline& operator=(const packet2_inline&) = delete;
 
-	//packet2_inline& operator=(packet2_inline&&) = default;
+	packet2_inline& operator=(packet2_inline&&) = default;
 };
