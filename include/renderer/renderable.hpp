@@ -12,5 +12,5 @@ public:
 			gs::add_renderable(this);
 		}
 	};
-	[[nodiscard]] virtual qword_t* render(qword_t* q, const gs::gs_state& gs_state) { return q; };
+	virtual void render(const gs::gs_state& gs_state) {};
 };

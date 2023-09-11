@@ -2,6 +2,7 @@
 #include "objects/teapot.hpp"
 #include "objects/camera.hpp"
 #include "objects/movement.hpp"
+#include "objects/components/collision_component.hpp"
 
 #include "timer.h"
 
@@ -51,7 +52,7 @@ void init()
 	} scene;
 
 	scene.set_parent(teapot4.transform);
-	scene.set_location(Vector(0.f, 0.f));
+	scene.set_location(Vector(0.f, teapot4.collision.get_local_bounds().get_half_extents().y));
 
 	camera::get().transform.set_parent(scene);
 

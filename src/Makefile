@@ -33,17 +33,11 @@ PS2_VCLPP = vclpp
 # VCL/VU microprograms:
 #
 VCL_PATH  = $(PREFIX)vu1progs
-VCL_FILES = color_triangles_clip_tris.vcl color_triangles_clip_verts.vcl draw_finish.vcl
+VCL_FILES = color_triangles_clip_tris.vcl color_triangles_clip_verts.vcl draw_finish.vcl draw_3D.vcl
 
 EE_OBJS := $(VU_PROGS) $(EE_OBJS)
 
-ISO_ASSETS = assets/
-
-$(ISO_TGT): $(EE_BIN) $(ISO_ASSETS)
-	$(MKDIR) -p $(ISO_FOLDER_DIR)
-	cp $(EE_BIN) $(ISO_FOLDER_DIR)/$(EE_BIN)
-	mkisofs -l -o $(ISO_TGT) $(ISO_FOLDER_DIR)/$(EE_BIN) SYSTEM.CNF $(ISO_ASSETS) $(PS2SDK)/iop/irx/audsrv.irx $(PS2SDK)/iop/irx/libsd.irx $(PS2SDK)/iop/irx/ps2snd.irx
-
+include src/Makefile.iso
 
 all: $(ISO_TGT)
 
@@ -64,7 +58,7 @@ clean:
 	rm -rf $(ISO_TGT)
 
 run: $(EE_BIN)
-	ps2client -h $(PS2HOST) execee host:$(EE_BIN)
+	ps2client -h $(PS2HOST) execee host:$(ISO_FOLDER_DIR)/$(EE_BIN)
 
 reset:
 	ps2client -h $(PS2HOST) reset

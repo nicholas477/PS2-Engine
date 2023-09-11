@@ -10,11 +10,10 @@ class VU1Program
 {
 public:
 	VU1Program(u32* start, u32* end);
-	~VU1Program();
 
-	const u32& getPacketSize() const;
-	const u32& getProgramSize() const;
-	const u32& getDestinationAddress() const;
+	u32 getPacketSize() const;
+	u32 getProgramSize() const;
+	u32 getDestinationAddress() const;
 
 	u32* getStart() const;
 	u32* getEnd() const;

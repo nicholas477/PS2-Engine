@@ -1,8 +1,6 @@
 #include "utils/rendering.hpp"
 
 #include "draw.h"
-#include "draw2d.h"
-#include "draw3d.h"
 
 #include <dma_tags.h>
 #include <gif_tags.h>
@@ -10,6 +8,9 @@
 
 #include <malloc.h>
 #include <stdio.h>
+
+#include <font.h>
+#include <dma.h>
 
 static class aabb_render_proxy
 {
@@ -30,7 +31,7 @@ public:
 		prim.colorfix     = PRIM_UNFIXED;
 	}
 
-	qword_t* render(qword_t* q, const gs::gs_state& gs_state, const AABB& aabb, color_t color, bool on_top)
+	void render(const gs::gs_state& gs_state, const AABB& aabb, color_t color, bool on_top)
 	{
 		VECTOR vertices[8] = {
 		    {aabb.Min.x, aabb.Min.y, aabb.Min.z, 1.000f}, // 0 {-x, -y, -z}
@@ -49,12 +50,8 @@ public:
 
 		MATRIX local_screen;
 
-		// Now grab our qword pointer and increment past the dmatag.
-		qword_t* dmatag = q;
-		q++;
-
 		// Create the local_screen matrix.
-		create_local_screen(local_screen, local_world.matrix, const_cast<float*>(gs_state.view_world.matrix), const_cast<float*>(gs_state.view_screen.matrix));
+		create_local_screen(local_screen, local_world.matrix, const_cast<float*>(gs_state.world_view.matrix), const_cast<float*>(gs_state.view_screen.matrix));
 
 		// Calculate the vertex values.
 		calculate_vertices(temp_vertices, vertex_count, vertices, local_screen);
@@ -64,8 +61,9 @@ public:
 		draw_convert_xyz(xyz, 2048, 2048, 32, vertex_count,
 		                 (vertex_f_t*)temp_vertices);
 
-		// // Draw the triangles using triangle primitive type.
-		q = draw_prim_start(q, 0, &prim, &color);
+		packet2 packet = packet2(16, Packet2Type::P2_TYPE_NORMAL, Packet2Mode::P2_MODE_NORMAL, false);
+		// Draw the triangles using triangle primitive type.
+		packet.update(draw_prim_start, 0, &prim, &color);
 
 		if (on_top)
 		{
@@ -77,67 +75,52 @@ public:
 
 		// Bottom rectangle (-y)
 		{
-			q->dw[0] = xyz[0].xyz;
-			q->dw[1] = xyz[1].xyz;
-			q++;
+			packet.add(xyz[0].xyz);
+			packet.add(xyz[1].xyz);
 
-			q->dw[0] = xyz[0].xyz;
-			q->dw[1] = xyz[5].xyz;
-			q++;
+			packet.add(xyz[0].xyz);
+			packet.add(xyz[5].xyz);
 
-			q->dw[0] = xyz[7].xyz;
-			q->dw[1] = xyz[1].xyz;
-			q++;
+			packet.add(xyz[7].xyz);
+			packet.add(xyz[1].xyz);
 
-			q->dw[0] = xyz[5].xyz;
-			q->dw[1] = xyz[7].xyz;
-			q++;
+			packet.add(xyz[5].xyz);
+			packet.add(xyz[7].xyz);
 		}
 
 		// Top rectangle (+y)
 		{
-			q->dw[0] = xyz[6].xyz;
-			q->dw[1] = xyz[2].xyz;
-			q++;
+			packet.add(xyz[6].xyz);
+			packet.add(xyz[2].xyz);
 
-			q->dw[0] = xyz[6].xyz;
-			q->dw[1] = xyz[4].xyz;
-			q++;
+			packet.add(xyz[6].xyz);
+			packet.add(xyz[4].xyz);
 
-			q->dw[0] = xyz[3].xyz;
-			q->dw[1] = xyz[2].xyz;
-			q++;
+			packet.add(xyz[3].xyz);
+			packet.add(xyz[2].xyz);
 
-			q->dw[0] = xyz[4].xyz;
-			q->dw[1] = xyz[3].xyz;
-			q++;
+			packet.add(xyz[4].xyz);
+			packet.add(xyz[3].xyz);
 		}
 
 		// Top/bottom edges
 		{
-			q->dw[0] = xyz[0].xyz;
-			q->dw[1] = xyz[6].xyz;
-			q++;
+			packet.add(xyz[0].xyz);
+			packet.add(xyz[6].xyz);
 
-			q->dw[0] = xyz[4].xyz;
-			q->dw[1] = xyz[5].xyz;
-			q++;
+			packet.add(xyz[4].xyz);
+			packet.add(xyz[5].xyz);
 
-			q->dw[0] = xyz[7].xyz;
-			q->dw[1] = xyz[3].xyz;
-			q++;
+			packet.add(xyz[7].xyz);
+			packet.add(xyz[3].xyz);
 
-			q->dw[0] = xyz[1].xyz;
-			q->dw[1] = xyz[2].xyz;
-			q++;
+			packet.add(xyz[1].xyz);
+			packet.add(xyz[2].xyz);
 		}
 
-		q = draw_prim_end(q, 2, DRAW_XYZ_REGLIST);
-
-		// Define our dmatag for the dma chain.
-		DMATAG_CNT(dmatag, q - dmatag - 1, 0, 0, 0);
-
-		return q;
+		packet.update(draw_prim_end, 2, DRAW_XYZ_REGLIST);
+		dma_channel_wait(DMA_CHANNEL_GIF, 0);
+		dma_channel_send_packet2(packet, DMA_CHANNEL_GIF, 1);
 	}
 
 private:
@@ -148,15 +131,15 @@ private:
 	prim_t prim;
 } _aabb_render_proxy;
 
-qword_t* draw_aabb(qword_t* q, const gs::gs_state& gs_state, const AABB& aabb, color_t color, bool on_top)
+void draw_aabb(const gs::gs_state& gs_state, const AABB& aabb, color_t color, bool on_top)
 {
-	return _aabb_render_proxy.render(q, gs_state, aabb, color, on_top);
+	_aabb_render_proxy.render(gs_state, aabb, color, on_top);
 }
 
 void draw_aabb_one_frame(const AABB& aabb, color_t color, bool on_top)
 {
-	gs::add_renderable_one_frame([=](qword_t* q, const gs::gs_state& state) -> qword_t* {
-		return draw_aabb(q, state, aabb, color, on_top);
+	gs::add_renderable_one_frame([=](const gs::gs_state& state) {
+		draw_aabb(state, aabb, color, on_top);
 	});
 }
 
@@ -179,7 +162,7 @@ public:
 		prim.colorfix     = PRIM_UNFIXED;
 	}
 
-	qword_t* render(qword_t* q, const gs::gs_state& gs_state, const Vector& line_start, const Vector& line_end, color_t color, bool on_top)
+	void render(const gs::gs_state& gs_state, const Vector& line_start, const Vector& line_end, color_t color, bool on_top)
 	{
 		VECTOR vertices[2] = {
 		    {line_start.x, line_start.y, line_start.z, 1.000f},
@@ -190,12 +173,8 @@ public:
 
 		MATRIX local_screen;
 
-		// Now grab our qword pointer and increment past the dmatag.
-		qword_t* dmatag = q;
-		q++;
-
 		// Create the local_screen matrix.
-		create_local_screen(local_screen, local_world.matrix, const_cast<float*>(gs_state.view_world.matrix), const_cast<float*>(gs_state.view_screen.matrix));
+		create_local_screen(local_screen, local_world.matrix, const_cast<float*>(gs_state.world_view.matrix), const_cast<float*>(gs_state.view_screen.matrix));
 
 		// Calculate the vertex values.
 		calculate_vertices(temp_vertices, vertex_count, vertices, local_screen);
@@ -205,8 +184,9 @@ public:
 		draw_convert_xyz(xyz, 2048, 2048, 32, vertex_count,
 		                 (vertex_f_t*)temp_vertices);
 
-		// // Draw the triangles using triangle primitive type.
-		q = draw_prim_start(q, 0, &prim, &color);
+		packet2 packet = packet2(8, Packet2Type::P2_TYPE_NORMAL, Packet2Mode::P2_MODE_NORMAL, false);
+		// Draw the triangles using triangle primitive type.
+		packet.update(draw_prim_start, 0, &prim, &color);
 
 		if (on_top)
 		{
@@ -214,16 +194,12 @@ public:
 			xyz[1].z = 0xffffffff;
 		}
 
-		q->dw[0] = xyz[0].xyz;
-		q->dw[1] = xyz[1].xyz;
-		q++;
+		packet.add(xyz[0].xyz);
+		packet.add(xyz[1].xyz);
 
-		q = draw_prim_end(q, 2, DRAW_XYZ_REGLIST);
-
-		// Define our dmatag for the dma chain.
-		DMATAG_CNT(dmatag, q - dmatag - 1, 0, 0, 0);
-
-		return q;
+		packet.update(draw_prim_end, 2, DRAW_XYZ_REGLIST);
+		dma_channel_wait(DMA_CHANNEL_GIF, 0);
+		dma_channel_send_packet2(packet, DMA_CHANNEL_GIF, 1);
 	}
 
 private:
@@ -234,22 +210,22 @@ private:
 	prim_t prim;
 } _line_render_proxy;
 
-qword_t* draw_line(qword_t* q, const gs::gs_state& gs_state, const Vector& line_start, const Vector& line_end, color_t color, bool on_top)
+void draw_line(const gs::gs_state& gs_state, const Vector& line_start, const Vector& line_end, color_t color, bool on_top)
 {
-	return _line_render_proxy.render(q, gs_state, line_start, line_end, color, on_top);
+	_line_render_proxy.render(gs_state, line_start, line_end, color, on_top);
 }
 
 void draw_line_one_frame(const Vector& line_start, const Vector& line_end, color_t color, bool on_top)
 {
-	gs::add_renderable_one_frame([=](qword_t* q, const gs::gs_state& state) -> qword_t* {
-		return draw_line(q, state, line_start, line_end, color, on_top);
+	gs::add_renderable_one_frame([=](const gs::gs_state& state) {
+		draw_line(state, line_start, line_end, color, on_top);
 	});
 }
 
-qword_t* draw_plane(qword_t* q, const gs::gs_state& gs_state, const Plane& plane, float size, color_t color, bool on_top)
+void draw_plane(const gs::gs_state& gs_state, const Plane& plane, float size, color_t color, bool on_top)
 {
 	// Arrow pointing out
-	q = draw_line(q, gs_state, plane.get_origin(), plane.get_origin() + (plane.get_normal() * size), color, on_top);
+	draw_line(gs_state, plane.get_origin(), plane.get_origin() + (plane.get_normal() * size), color, on_top);
 
 	Vector U, V;
 	plane.find_best_axis_vectors(U, V);
@@ -261,49 +237,48 @@ qword_t* draw_plane(qword_t* q, const gs::gs_state& gs_state, const Plane& plane
 	    plane.get_origin() + U - V,
 	    plane.get_origin() - U - V};
 
-	q = draw_line(q, gs_state, plane_rects[0], plane_rects[1], color, on_top);
-	q = draw_line(q, gs_state, plane_rects[1], plane_rects[2], color, on_top);
-	q = draw_line(q, gs_state, plane_rects[2], plane_rects[3], color, on_top);
-	q = draw_line(q, gs_state, plane_rects[3], plane_rects[0], color, on_top);
-
-	return q;
+	draw_line(gs_state, plane_rects[0], plane_rects[1], color, on_top);
+	draw_line(gs_state, plane_rects[1], plane_rects[2], color, on_top);
+	draw_line(gs_state, plane_rects[2], plane_rects[3], color, on_top);
+	draw_line(gs_state, plane_rects[3], plane_rects[0], color, on_top);
 }
 
 void draw_plane_one_frame(const Plane& plane, float size, color_t color, bool on_top)
 {
-	gs::add_renderable_one_frame([=](qword_t* q, const gs::gs_state& state) -> qword_t* {
-		return draw_plane(q, state, plane, size, color, on_top);
+	gs::add_renderable_one_frame([=](const gs::gs_state& state) {
+		return draw_plane(state, plane, size, color, on_top);
 	});
 }
 
-qword_t* draw_point(qword_t* q, const gs::gs_state& gs_state, const Vector& point, float size, color_t color, bool on_top)
+void draw_point(const gs::gs_state& gs_state, const Vector& point, float size, color_t color, bool on_top)
 {
-	q = draw_line(q, gs_state, point - Vector(size, 0, 0), point + Vector(size, 0, 0), color, on_top);
-	q = draw_line(q, gs_state, point - Vector(0, size, 0), point + Vector(0, size, 0), color, on_top);
-	q = draw_line(q, gs_state, point - Vector(0, 0, size), point + Vector(0, 0, size), color, on_top);
-
-	return q;
+	draw_line(gs_state, point - Vector(size, 0, 0), point + Vector(size, 0, 0), color, on_top);
+	draw_line(gs_state, point - Vector(0, size, 0), point + Vector(0, size, 0), color, on_top);
+	draw_line(gs_state, point - Vector(0, 0, size), point + Vector(0, 0, size), color, on_top);
 }
 
 void draw_point_one_frame(const Vector& point, float size, color_t color, bool on_top)
 {
-	gs::add_renderable_one_frame([=](qword_t* q, const gs::gs_state& state) -> qword_t* {
-		return draw_point(q, state, point, size, color, on_top);
+	gs::add_renderable_one_frame([=](const gs::gs_state& state) {
+		draw_point(state, point, size, color, on_top);
 	});
 }
 
-qword_t* draw_orientation_gizmo(qword_t* q, const gs::gs_state& gs_state, const Vector& pos, float size, bool on_top)
+void draw_orientation_gizmo(const gs::gs_state& gs_state, const Vector& pos, float size, bool on_top)
 {
-	q = draw_line(q, gs_state, pos, pos + Vector(size, 0, 0), colors::red(), on_top);   // x
-	q = draw_line(q, gs_state, pos, pos + Vector(0, size, 0), colors::green(), on_top); // y
-	q = draw_line(q, gs_state, pos, pos + Vector(0, 0, size), colors::blue(), on_top);  // z
-
-	return q;
+	draw_line(gs_state, pos, pos + Vector(size, 0, 0), colors::red(), on_top);   // x
+	draw_line(gs_state, pos, pos + Vector(0, size, 0), colors::green(), on_top); // y
+	draw_line(gs_state, pos, pos + Vector(0, 0, size), colors::blue(), on_top);  // z
 }
 
 void draw_orientation_gizmo_one_frame(const Vector& pos, float size, bool on_top)
 {
-	gs::add_renderable_one_frame([=](qword_t* q, const gs::gs_state& state) -> qword_t* {
-		return draw_orientation_gizmo(q, state, pos, size, on_top);
+	gs::add_renderable_one_frame([=](const gs::gs_state& state) {
+		draw_orientation_gizmo(state, pos, size, on_top);
 	});
+}
+
+void draw_text(const gs::gs_state& gs_state, const Vector& pos, float size, const std::string& text)
+{
+	// implement this shit
 }

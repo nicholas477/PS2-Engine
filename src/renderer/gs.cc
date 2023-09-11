@@ -10,7 +10,7 @@
 #include "stats.hpp"
 #include "assert.hpp"
 
-#include <libgs.h>
+//#include <libgs.h>
 #include <packet.h>
 
 #include <dma_tags.h>
@@ -74,34 +74,34 @@ static void init_gs(framebuffer_t* frame, zbuffer_t* z)
 	                                 GRAPH_ALIGN_PAGE);
 
 	// Initialize the screen and tie the first framebuffer to the read circuits.
-	graph_initialize(frame->address, frame->width, frame->height, frame->psm, 0,
-	                 0);
+	//graph_initialize(frame->address, frame->width, frame->height, frame->psm, 0,
+	//                 0);
+
+	graph_set_mode(GRAPH_MODE_NONINTERLACED, GRAPH_MODE_VGA_640_60, GRAPH_MODE_FRAME, GRAPH_DISABLE);
+	graph_set_screen(0, 0, screen_width, screen_height);
+	graph_set_bgcolor(0, 0, 0);
+	graph_set_framebuffer_filtered(frame->address, frame->width, frame->psm, 0, 0);
+	graph_enable_output();
 
 	get_path1();
 }
 
 static void init_drawing_environment(framebuffer_t* frame, zbuffer_t* z)
 {
-	packet_t* packet = packet_init(20, PACKET_NORMAL);
-
-	// This is our generic qword pointer.
-	qword_t* q = packet->data;
+	packet2 packet = packet2_create(20, P2_TYPE_NORMAL, P2_MODE_NORMAL, false);
 
 	// This will setup a default drawing environment.
-	q = draw_setup_environment(q, 0, frame, z);
+	packet.update(draw_setup_environment, 0, frame, z);
 
 	// Now reset the primitive origin to 2048-width/2,2048-height/2.
-	q = draw_primitive_xyoffset(q, 0, (2048 - 320), (2048 - 256));
+	packet.update(draw_primitive_xyoffset, 0, (2048 - (screen_width / 2)), (2048 - (screen_height / 2)));
 
 	// Finish setting up the environment.
-	q = draw_finish(q);
+	packet.update(draw_finish);
 
 	// Now send the packet, no need to wait since it's the first.
-	dma_channel_send_normal(DMA_CHANNEL_GIF, packet->data, q - packet->data, 0,
-	                        0);
+	packet.send(DMA_CHANNEL_GIF, 1);
 	dma_wait_fast();
-
-	free(packet);
 }
 
 static void flip_buffers(packet_t* flip, framebuffer_t* frame)
@@ -120,18 +120,32 @@ static void flip_buffers(packet_t* flip, framebuffer_t* frame)
 static int context = 0;
 
 // Packets for doublebuffering dma sends
-static packet_t* packets[2];
-static packet_t* current;
+static std::array<packet2, 2> packets;
 
 // This packet is special for framebuffer switching
 static packet_t* flip_pkt;
 
 static gs_state _gs_state;
 
+std::array<packet2, 2>& gs_state::get_packets()
+{
+	return packets;
+}
+
+packet2& gs_state::get_current_packet()
+{
+	return packets[context];
+}
+
+void gs_state::flip_context()
+{
+	context ^= 1;
+}
+
 static void init_renderer(framebuffer_t* frame, zbuffer_t* z)
 {
-	packets[0] = packet_init(160000, PACKET_NORMAL);
-	packets[1] = packet_init(160000, PACKET_NORMAL);
+	packets[0] = packet2(1600, P2_TYPE_NORMAL, P2_MODE_CHAIN, true);
+	packets[1] = packet2(1600, P2_TYPE_NORMAL, P2_MODE_CHAIN, true);
 
 	// Uncached accelerated
 	flip_pkt = packet_init(3, PACKET_UCAB);
@@ -168,22 +182,22 @@ void add_renderable_one_frame(renderable* renderable)
 	get_transient_renderables().push_back(renderable);
 }
 
-static std::vector<std::function<qword_t*(qword_t*, const gs::gs_state&)>> make_renderable_funcs()
+static std::vector<std::function<void(const gs::gs_state&)>> make_renderable_funcs()
 {
-	std::vector<std::function<qword_t*(qword_t*, const gs::gs_state&)>> renderable_funcs;
-	renderable_funcs.reserve(1024);
+	std::vector<std::function<void(const gs::gs_state&)>> renderable_funcs;
+	renderable_funcs.reserve(256);
 	return renderable_funcs;
 }
 
-std::vector<std::function<qword_t*(qword_t*, const gs::gs_state&)>>& get_renderable_funcs()
+std::vector<std::function<void(const gs::gs_state&)>>& get_renderable_funcs()
 {
-	static std::vector<std::function<qword_t*(qword_t*, const gs::gs_state&)>> renderable_funcs = make_renderable_funcs();
+	static std::vector<std::function<void(const gs::gs_state&)>> renderable_funcs = make_renderable_funcs();
 	return renderable_funcs;
 }
 
-void add_renderable_one_frame(std::function<qword_t*(qword_t*, const gs::gs_state&)> func)
+void add_renderable_one_frame(std::function<void(const gs::gs_state&)> func)
 {
-	check(get_renderable_funcs().size() < 1024);
+	check(get_renderable_funcs().size() < 256);
 
 	get_renderable_funcs().push_back(func);
 }
@@ -194,7 +208,9 @@ void init()
 
 	// Init GIF dma channel.
 	dma_channel_initialize(DMA_CHANNEL_GIF, NULL, 0);
+	dma_channel_initialize(DMA_CHANNEL_VIF1, NULL, 0);
 	dma_channel_fast_waits(DMA_CHANNEL_GIF);
+	dma_channel_fast_waits(DMA_CHANNEL_VIF1);
 
 	// Init the GS, framebuffer, and zbuffer.
 	init_gs(frame, &z);
@@ -205,24 +221,22 @@ void init()
 	init_renderer(frame, &z);
 }
 
-static qword_t* draw_objects(qword_t* q, const gs_state& gs_state)
+static void draw_objects(const gs_state& gs_state)
 {
 	for (renderable* _renderable : get_renderables())
 	{
-		q = _renderable->render(q, gs_state);
+		_renderable->render(gs_state);
 	}
 
 	for (renderable* _renderable : get_transient_renderables())
 	{
-		q = _renderable->render(q, gs_state);
+		_renderable->render(gs_state);
 	}
 
-	for (std::function<qword_t*(qword_t*, const gs::gs_state&)>& func : get_renderable_funcs())
+	for (std::function<void(const gs::gs_state&)>& func : get_renderable_funcs())
 	{
-		q = func(q, gs_state);
+		func(gs_state);
 	}
-
-	return q;
 }
 
 static void clear_drawables()
@@ -235,56 +249,31 @@ static int gs_render(framebuffer_t* frame, zbuffer_t* z)
 {
 	stats::scoped_timer render_timer(stats::scoped_timers::render);
 
-	current         = packets[context];
-	qword_t* q      = current->data;
-	qword_t* dmatag = q;
-	q++;
-
 	{
 		stats::scoped_timer draw_timer(stats::scoped_timers::draw);
 
-		// Clear framebuffer without any pixel testing.
-		q = draw_disable_tests(q, 0, z);
-		q = draw_clear(q, 0, 2048.0f - 320.0f, 2048.0f - 256.0f, frame->width,
-		               frame->height, 0x80, 0x80, 0x80);
-		q = draw_enable_tests(q, 0, z);
+		clear_screen();
 
-		DMATAG_CNT(dmatag, q - dmatag - 1, 0, 0, 0);
-
-		// Create the world_view matrix.
-		_gs_state.view_world = camera::get().transform.get_matrix().invert();
+		// Create the world-to-view matrix.
+		_gs_state.world_view = camera::get().transform.get_matrix().invert();
 
 		_gs_state.frame   = frame;
 		_gs_state.zbuffer = z;
 
-		q = draw_objects(q, _gs_state);
-
-		dmatag = q;
-		q++;
-
-		q = draw_finish(q);
-
-		DMATAG_END(dmatag, q - dmatag - 1, 0, 0, 0);
+		draw_objects(_gs_state);
 	}
-
-	// Now send our current dma chain.
-	dma_wait_fast();
-	dma_channel_send_chain(DMA_CHANNEL_GIF, current->data, q - current->data, 0,
-	                       0);
 
 	// Either block until a vsync, or keep rendering until there's one
 	// available.
 	{
-		stats::scoped_timer draw_timer(stats::scoped_timers::render_vsync_wait);
+		stats::scoped_timer vsync_timer(stats::scoped_timers::render_vsync_wait);
 		graph_wait_vsync();
 	}
 
-	draw_wait_finish();
 	graph_set_framebuffer_filtered(frame[context].address, frame[context].width,
 	                               frame[context].psm, 0, 0);
 
-	// Switch context.
-	context ^= 1;
+	gs_state::flip_context();
 
 	// We need to flip buffers outside of the chain, for some reason,
 	// so we use a separate small packet.
@@ -295,5 +284,31 @@ static int gs_render(framebuffer_t* frame, zbuffer_t* z)
 	return 0;
 }
 
+void clear_screen()
+{
+	{
+		packet2 clear_packet = packet2(35, P2_TYPE_NORMAL, P2_MODE_NORMAL, 0);
+
+		// Clear framebuffer but don't update zbuffer.
+		clear_packet.update(draw_disable_tests, 0, &z);
+		clear_packet.update(draw_clear, 0, 2048.0f - 320.0f, 2048.0f - 256.0f, frame->width, frame->height, 0x80, 0x80, 0x80);
+		clear_packet.update(draw_enable_tests, 0, &z);
+		clear_packet.update(draw_finish);
+
+		// Now send our current dma chain.
+		dma_wait_fast();
+		dma_channel_send_packet2(clear_packet, DMA_CHANNEL_GIF, 1);
+	}
+
+	// Wait for scene to finish drawing
+	draw_wait_finish();
+}
+
 void render() { gs_render(frame, &z); }
+
+Vector gs_state::get_camera_pos() const
+{
+	return _gs_state.world_view.invert().get_location();
+}
+
 } // namespace gs

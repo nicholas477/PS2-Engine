@@ -73,7 +73,7 @@ public:
 
 	virtual AABB get_world_bounds() const;
 	virtual AABB get_local_bounds() const { return Bounds; }
-	virtual qword_t* render(qword_t* q, const gs::gs_state& gs_state, color_t color);
+	virtual void render(const gs::gs_state& gs_state, color_t color);
 
 	void set_local_bounds(const AABB& in_bounds) { Bounds = in_bounds; }
 

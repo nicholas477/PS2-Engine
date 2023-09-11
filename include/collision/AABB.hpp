@@ -133,7 +133,19 @@ struct AABB
 		return transformed_AABB;
 	}
 
-	void get_center_and_half_extents(Vector& center, Vector& half_extents) const
+	Vector get_local_center() const
+	{
+		return (Min + Max) / 2.f;
+	}
+
+	Vector get_half_extents() const
+	{
+		return (Max - Min) / 2.f;
+	}
+
+	// gets the center and the half extents (in local space)
+	void
+	get_center_and_half_extents(Vector& center, Vector& half_extents) const
 	{
 		center       = (Min + Max) / 2.f;
 		half_extents = (Max - Min) / 2.f;

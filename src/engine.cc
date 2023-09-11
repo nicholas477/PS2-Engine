@@ -32,15 +32,6 @@ static u32 frameCounter = 0;
 
 void init()
 {
-	// SifExitIopHeap();
-	// SifLoadFileExit();
-	// SifExitRpc();
-
-	// SifInitRpc(0);
-	// while (!SifIopReset("", 0))
-	// 	;
-	// while (!SifIopSync())
-	// 	;
 	SifInitRpc(0);
 	SifLoadFileInit();
 	SifInitIopHeap();
@@ -58,22 +49,24 @@ void init()
 	sound::init();
 	gs::init();
 
-	printf("Graph mode: ");
+	printf("Graph mode (region): ");
+	// This kinda don't work. We want the refresh rate of the screen and this just gives us PS2 region
 	int region = graph_get_region();
 	switch (region)
 	{
 		case GRAPH_MODE_NTSC:
 			printf("NTSC");
-			tickrate = 1.f / 59.93f;
+			//tickrate = 1.f / 59.93f;
 			break;
 		case GRAPH_MODE_PAL:
 			printf("PAL");
-			tickrate = 1.f / 50.0f;
+			//tickrate = 1.f / 50.0f;
 			break;
 		default:
 			printf("OTHER");
 			break;
 	}
+	tickrate = 1.f / 60.f;
 	printf(" (%d)\n", region);
 
 	world::init();
@@ -132,6 +125,7 @@ u64 get_cpu_ticks()
 {
 	return GetTimerSystemTime();
 }
+
 u64 get_cpu_tickrate()
 {
 	return kBUSCLK;

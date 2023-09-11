@@ -146,17 +146,18 @@ struct alignas(16) Vector
 	Vector cross(const Vector& Rhs) const
 	{
 		Vector out;
-		out[0] = vector[1] * Rhs.vector[2] - vector[2] * Rhs.vector[1];
-		out[1] = -(vector[0] * Rhs.vector[2] - vector[2] * Rhs.vector[0]);
-		out[2] = vector[0] * Rhs.vector[1] - vector[1] * Rhs.vector[0];
-		//vector_cross_product(out.vector, const_cast<float*>(vector), const_cast<float*>(Rhs.vector));
+		// out[0] = vector[1] * Rhs.vector[2] - vector[2] * Rhs.vector[1];
+		// out[1] = -(vector[0] * Rhs.vector[2] - vector[2] * Rhs.vector[0]);
+		// out[2] = vector[0] * Rhs.vector[1] - vector[1] * Rhs.vector[0];
+		vector_cross_product(out.vector, const_cast<float*>(vector), const_cast<float*>(Rhs.vector));
 		return out;
 	}
 
 	template <bool with_w = false>
 	float dot(const Vector& Rhs) const
 	{
-		//return vector_innerproduct(const_cast<float*>(vector), const_cast<float*>(Rhs.vector));
+		//return vector_innerproduct(const_cast<float*>(vector), const_cast<float*>(Rhs.vector)); // IDK what innerproduct does, but it definitely is NOT the dot product!
+
 		if constexpr (with_w)
 		{
 			return (x * Rhs.x) + (y * Rhs.y) + (z * Rhs.z) + (w * Rhs.w);
@@ -311,9 +312,20 @@ struct alignas(16) Matrix
 		memcpy(matrix, _matrix, sizeof(MATRIX));
 	}
 
-	Matrix() = default;
+	constexpr Matrix()
+	    : matrix {0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f}
+	{
+	}
 
-	static const Matrix& UnitMatrix();
+	static constexpr Matrix UnitMatrix()
+	{
+		Matrix output;
+		output.matrix[0x00] = 1.00f;
+		output.matrix[0x05] = 1.00f;
+		output.matrix[0x0A] = 1.00f;
+		output.matrix[0x0F] = 1.00f;
+		return output;
+	}
 
 	Vector transform_vector(const Vector& input) const
 	{
@@ -353,6 +365,26 @@ struct alignas(16) Matrix
 		Matrix out_matrix;
 		matrix_inverse(out_matrix.matrix, const_cast<float*>(matrix));
 		return out_matrix;
+	}
+
+	float& operator[](size_t index)
+	{
+		return matrix[index];
+	}
+
+	const float& operator[](size_t index) const
+	{
+		return matrix[index];
+	}
+
+	float& lookup(size_t row, size_t col)
+	{
+		return matrix[col + (row * 4)];
+	}
+
+	const float& lookup(size_t row, size_t col) const
+	{
+		return matrix[col + (row * 4)];
 	}
 };
 

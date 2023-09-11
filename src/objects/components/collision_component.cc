@@ -20,9 +20,9 @@ AABB collision_component::get_world_bounds() const
 	}
 }
 
-qword_t* collision_component::render(qword_t* q, const gs::gs_state& gs_state, color_t color)
+void collision_component::render(const gs::gs_state& gs_state, color_t color)
 {
-	return draw_aabb(q, gs_state, get_world_bounds(), color);
+	draw_aabb(gs_state, get_world_bounds(), color);
 }
 
 hit_result collideable::sweep_collision(const collideable& collideable, const Matrix& sweep_start, const Matrix& sweep_end)
@@ -47,8 +47,8 @@ hit_result collideable::sweep_collision(const collideable& collideable, const Ma
 		}
 		const AABB other_aabb    = (*Itr).get_world_bounds();
 		const AABB minkowski_sum = other_aabb.minkowski_sum(collideable.get_local_bounds());
-		minkowski_sum.check_valid();
-		draw_aabb_one_frame(minkowski_sum, colors::white(), false);
+		//minkowski_sum.check_valid();
+		//draw_aabb_one_frame(minkowski_sum, colors::white(), false);
 
 		std::array<Plane, 6> planes = minkowski_sum.get_face_planes();
 

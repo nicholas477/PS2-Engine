@@ -2,27 +2,29 @@
 // https://github.com/h4570/tyra/blob/master/engine/src/renderer/core/paths/path1/vu1_program.cpp
 
 #include "renderer/vu1_program.hpp"
-
+#include "assert.hpp"
 #include <packet2_utils.h>
 
 VU1Program::VU1Program(u32* t_start, u32* t_end)
     : start(t_start)
     , end(t_end)
 {
-	packetSize  = packet2_utils_get_packet_size_for_program(start, end);
-	programSize = calculateProgramSize();
+	// =1 means uninitialized
+	destinationAddress = -1;
+	packetSize         = packet2_utils_get_packet_size_for_program(start, end);
+	programSize        = calculateProgramSize();
 }
 
-VU1Program::~VU1Program() {}
-
-const u32& VU1Program::getPacketSize() const { return packetSize; }
-const u32& VU1Program::getProgramSize() const { return programSize; }
-const u32& VU1Program::getDestinationAddress() const
+u32 VU1Program::getPacketSize() const { return packetSize; }
+u32 VU1Program::getProgramSize() const { return programSize; }
+u32 VU1Program::getDestinationAddress() const
 {
+	check(destinationAddress != -1);
 	return destinationAddress;
 }
 void VU1Program::setDestinationAddress(const u32& addr)
 {
+	check(destinationAddress == -1);
 	destinationAddress = addr;
 }
 u32* VU1Program::getStart() const { return start; }

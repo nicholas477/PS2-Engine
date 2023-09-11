@@ -6,6 +6,7 @@
 #include "input.hpp"
 #include "debug/debug.hpp"
 
+#if 1
 #define check(expr)                                                                                                             \
 	{                                                                                                                           \
 		if (!(expr))                                                                                                            \
@@ -23,7 +24,12 @@
 			}                                                                                                                   \
 		}                                                                                                                       \
 	}
-
+#else
+#define check(expr) \
+	{               \
+		expr;       \
+	}
+#endif
 
 // loops infinitely, returns true if the start button was pressed, false if the select button was pressed
 static bool check_continue()

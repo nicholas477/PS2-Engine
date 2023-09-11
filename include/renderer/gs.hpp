@@ -1,9 +1,11 @@
 #pragma once
+#include "utils/packet.hpp"
 #include "draw_buffers.h"
 #include "types.hpp"
 #include <vector>
 #include <memory>
 #include <functional>
+#include <array>
 
 class renderable;
 
@@ -34,18 +36,25 @@ struct lightsT
 
 struct gs_state
 {
-	Matrix view_world;
+	Matrix world_view;
 	Matrix view_screen;
 	framebuffer_t* frame;
 	zbuffer_t* zbuffer;
 	lightsT lights;
+
+	Vector get_camera_pos() const;
+
+	static std::array<packet2, 2>& get_packets();
+	static packet2& get_current_packet();
+	static void flip_context();
 };
 
 void add_renderable(renderable* renderable);
 void init();
 void render();
+void clear_screen();
 
 // Adds a renderable to a list that is drawn and cleared out every frame
 void add_renderable_one_frame(renderable* renderable);
-void add_renderable_one_frame(std::function<qword_t*(qword_t*, const gs::gs_state&)> func);
+void add_renderable_one_frame(std::function<void(const gs::gs_state&)> func);
 } // namespace gs

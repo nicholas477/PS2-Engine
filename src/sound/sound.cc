@@ -30,16 +30,16 @@ void init()
 		audsrv_adpcm_set_volume(i, MAX_VOLUME);
 	}
 
-	audsrv_fmt_t format;
-	format.bits     = 16;
-	format.freq     = 44100;
-	format.channels = 2;
-	//audsrv_set_format(&format);
+	// audsrv_fmt_t format;
+	// format.bits     = 16;
+	// format.freq     = 44100;
+	// format.channels = 2;
+	// //audsrv_set_format(&format);
 
 	check(ret == 0);
 
 	printf("loading audiofile...\n");
-	std::ifstream audio_file("cdrom:\\SOUNDS\\VINE_BOOM.ADPCM", std::ios::binary);
+	std::ifstream audio_file("cdrom:\\ASSETS\\SOUNDS\\VINE_BOOM.ADPCM", std::ios::binary);
 	check(audio_file.is_open());
 	audio_file.seekg(0, std::ios::end);
 
@@ -52,7 +52,7 @@ void init()
 	audio_file.close();
 
 	static std::vector<audsrv_adpcm_t> samples;
-	for (int i = 0; i < 4; ++i)
+	for (int i = 0; i < 24; ++i)
 	{
 		auto& result    = samples.emplace_back();
 		result.size     = 0;

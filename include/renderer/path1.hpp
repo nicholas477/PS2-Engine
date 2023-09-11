@@ -3,6 +3,9 @@
 
 #pragma once
 
+
+#include "utils/packet.hpp"
+
 #include <packet2_utils.h>
 #include <tamtypes.h>
 
@@ -12,16 +15,11 @@ class Path1
 {
 public:
 	Path1();
-	~Path1();
 
-	u32 uploadProgram(VU1Program* program, const u32& address);
+	void uploadProgram(VU1Program& program);
 
 	void sendDrawFinishTag();
-
 	void addDrawFinishTag(packet2_t* packet);
-
-	packet2_t* createProgramsCache(VU1Program** programs, const u32& count,
-	                               const u32& address);
 
 	void setDoubleBuffer(const u16& startingAddress, const u16& bufferSize);
 
@@ -29,7 +27,7 @@ private:
 	void uploadDrawFinishProgram();
 	void prepareDrawFinishPacket();
 
-	packet2_t* doubleBufferPacket;
-	packet2_t* drawFinishPacket;
-	u32 drawFinishAddr;
+	packet2 doubleBufferPacket;
+	packet2 drawFinishPacket;
+	u32 currentProgramAddress;
 };

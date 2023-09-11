@@ -9,7 +9,7 @@ class teapot: public renderable
 {
 public:
 	teapot();
-	[[nodiscard]] virtual qword_t* render(qword_t* q, const gs::gs_state& gs_state) override;
+	virtual void render(const gs::gs_state& gs_state) override;
 	transform_component transform;
 	collision_component collision;
 

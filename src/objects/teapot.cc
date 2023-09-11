@@ -1,5 +1,9 @@
 #include "objects/teapot.hpp"
 #include "objects/teapot_mesh.inc"
+#include "utils/rendering.hpp"
+#include "utils/packet.hpp"
+
+#include "renderer/vu1programs/draw_3D.hpp"
 
 #include <malloc.h>
 #include <stdio.h>
@@ -22,9 +26,10 @@ static inline bool cullBackFacingTriangle(const Vector* eye, const Vector* v0,
 	// const Vector d = crossProduct(*v2 - *v0, *v1 - *v0);
 	// const Vector c = *v0 - *eye;
 	// return dotProduct3(c, d) <= 0.0f;
-	const Vector d = (*v2 - *v0).cross((*v1 - *v0));
-	const Vector c = *v0 - *eye;
-	return c.dot(d) >= 0.0f;
+
+	const Vector d = (*v2 - *v0).cross(*v1 - *v0);
+	//const Vector c = *v0 - *eye; // eye is always 0 in view space
+	return v0->dot(d) <= 0.0f; //c.dot(d) <= 0.0f
 }
 
 static class teapot_render_proxy
@@ -57,82 +62,167 @@ public:
 		color.q = 1.0f;
 	}
 
-	[[nodiscard]] qword_t* render(qword_t* q, const gs::gs_state& gs_state, const transform_component& transform)
+	void render(const gs::gs_state& gs_state, const transform_component& transform)
 	{
 		Matrix local_world = Matrix::from_location_and_rotation(transform.get_location(), transform.get_rotation());
-		Matrix local_light = transform.get_rotation().to_rotation_matrix();
+		//Matrix local_light = transform.get_rotation().to_rotation_matrix();
 
 		MATRIX local_screen;
 
 		// Now grab our qword pointer and increment past the dmatag.
-		qword_t* dmatag = q;
-		q++;
+		// qword_t* dmatag = q;
+		// q++;
 
-		// Create the local_screen matrix.
-		create_local_screen(local_screen, local_world.matrix, const_cast<float*>(gs_state.view_world.matrix), const_cast<float*>(gs_state.view_screen.matrix));
+		//texbuffer_t texbuff;
 
-		// Calculate the normal values.
-		calculate_normals(temp_normals, vertex_count, normals, local_light.matrix);
+		// Texture lod
+		// lod_t lod;
+		// lod.calculation = LOD_USE_K;
+		// lod.max_level   = 0;
+		// lod.mag_filter  = LOD_MAG_NEAREST;
+		// lod.min_filter  = LOD_MIN_NEAREST;
+		// lod.l           = 0;
+		// lod.k           = 0;
 
-		// Calculate the lighting values.
-		calculate_lights(temp_lights, vertex_count, temp_normals, (VECTOR*)gs_state.lights.directions.data(),
-		                 (VECTOR*)gs_state.lights.colors.data(), (int*)gs_state.lights.types.data(), gs_state.lights.count());
+		/** 
+		 * Color look up table. 
+		 * Needed for texture. 
+		 */
+		// clutbuffer_t clut;
+		// clut.storage_mode = CLUT_STORAGE_MODE1;
+		// clut.start        = 0;
+		// clut.psm          = 0;
+		// clut.load_method  = CLUT_NO_LOAD;
+		// clut.address      = 0;
 
-		// Calculate the colour values after lighting.
-		calculate_colours(temp_colours, vertex_count, colours, temp_lights);
+		// Create the local world-to-screen matrix.
+		create_local_screen(local_screen, local_world.matrix, const_cast<float*>(gs_state.world_view.matrix), const_cast<float*>(gs_state.view_screen.matrix));
 
-		// Calculate the vertex values.
-		calculate_vertices(temp_vertices, vertex_count, vertices, local_screen);
-
-		// Convert floating point vertices to fixed point and translate to center of
-		// screen.
-		draw_convert_xyz(xyz, 2048, 2048, 32, vertex_count,
-		                 (vertex_f_t*)temp_vertices);
-
-		// Convert floating point colours to fixed point.
-		draw_convert_rgbq(rgbaq, vertex_count, (vertex_f_t*)temp_vertices,
-		                  (color_f_t*)temp_colours, color.a);
-
-		// Draw the triangles using triangle primitive type.
-		q = draw_prim_start(q, 0, &prim, &color);
-
-		//Vector eye_pos = gs_state.view_world.transform_vector(Vector());
-
-		for (int i = 0; i < points_count / 3; ++i)
 		{
-			const Vector* v0 = (Vector*)&temp_vertices[points[(i * 3)]];
-			const Vector* v1 = (Vector*)&temp_vertices[points[(i * 3) + 1]];
-			const Vector* v2 = (Vector*)&temp_vertices[points[(i * 3) + 2]];
+			// printf("making new packet...........!!!!!!!!!!!!!!!!!\n");
+			// packet2 teapot_draw_packet = packet2(10, P2_TYPE_NORMAL, P2_MODE_CHAIN, true);
+			// printf("making new packet...........!!!!!!!!!!!!!!!!! 1\n");
+			// packet2_add_float(teapot_draw_packet, 2048.0F); // scale
+			// printf("making new packet...........!!!!!!!!!!!!!!!!! 2\n");
+			// packet2_add_float(teapot_draw_packet, 2048.0F); // scale
+			// printf("making new packet...........!!!!!!!!!!!!!!!!! 3\n");
+			// packet2_add_float(teapot_draw_packet, ((float)0xFFFFFF) / 32.0F); // scale
+			// printf("making new packet...........!!!!!!!!!!!!!!!!! 4\n");
+			// packet2_add_s32(teapot_draw_packet, vertex_count); // vertex count
+			// printf("making new packet...........!!!!!!!!!!!!!!!!! 5\n");
+			// packet2_utils_gif_add_set(teapot_draw_packet, 1);
+			// printf("making new packet...........!!!!!!!!!!!!!!!!! 6\n");
+			// packet2_utils_gs_add_lod(teapot_draw_packet, &lod);
+			// printf("making new packet...........!!!!!!!!!!!!!!!!! 7\n");
+			// packet2_utils_gs_add_texbuff_clut(teapot_draw_packet, &texbuff, &clut);
+			// printf("making new packet...........!!!!!!!!!!!!!!!!! 8\n");
+			// packet2_utils_gs_add_prim_giftag(teapot_draw_packet, &prim, vertex_count, DRAW_STQ2_REGLIST, 3, 0);
+			// printf("making new packet...........!!!!!!!!!!!!!!!!! 9\n");
+			// u8 j = 0; // RGBA
+			// for (j = 0; j < 4; j++)
+			// 	packet2_add_u32(teapot_draw_packet, 128);
 
-			// if (cullBackFacingTriangle(&eye_pos, v0, v1, v2))
-			// {
-			// 	continue;
-			// }
+			// printf("making new packet...........!!!!!!!!!!!!!!!!! 10\n");
+			// packet2_reset(teapot_draw_packet, 0);
+			// printf("making new packet...........!!!!!!!!!!!!!!!!! 11\n");
 
+			// // Add matrix at the beggining of VU mem (skip TOP)
+			// packet2_utils_vu_add_unpack_data(teapot_draw_packet, 0, &local_screen, 8, 0);
+			// printf("making new packet...........!!!!!!!!!!!!!!!!! 12\n");
 
-			q->dw[0] = rgbaq[points[(i * 3)]].rgbaq;
-			q->dw[1] = xyz[points[(i * 3)]].xyz;
-			q++;
+			// u32 vif_added_bytes = 0; // zero because now we will use TOP register (double buffer)
+			//                          // we don't wan't to unpack at 8 + beggining of buffer, but at
+			//                          // the beggining of the buffer
 
-			q->dw[0] = rgbaq[points[(i * 3) + 1]].rgbaq;
-			q->dw[1] = xyz[points[(i * 3) + 1]].xyz;
-			q++;
+			// // Merge packets
+			// packet2_utils_vu_add_unpack_data(curr_vif_packet, vif_added_bytes, teapot_draw_packet->base, packet2_get_qw_count(teapot_draw_packet), 1);
+			// //vif_added_bytes += packet2_get_qw_count(zbyszek_packet);
 
+			// printf("making new packet...........!!!!!!!!!!!!!!!!! 13\n");
+			// // // Add vertices
+			// packet2_utils_vu_add_unpack_data(teapot_draw_packet, vif_added_bytes, temp_vertices, vertex_count, 1);
+			// vif_added_bytes += vertex_count; // one VECTOR is size of qword
 
-			q->dw[0] = rgbaq[points[(i * 3) + 2]].rgbaq;
-			q->dw[1] = xyz[points[(i * 3) + 2]].xyz;
-			q++;
+			// printf("making new packet...........!!!!!!!!!!!!!!!!! 14\n");
+			// // // Add sts
+			// packet2_utils_vu_add_unpack_data(teapot_draw_packet, vif_added_bytes, temp_vertices, vertex_count, 1);
+			// vif_added_bytes += vertex_count;
+
+			// printf("making new packet...........!!!!!!!!!!!!!!!!! 15\n");
+			// packet2_utils_vu_add_start_program(teapot_draw_packet, draw_3D::get().getDestinationAddress());
+			// packet2_utils_vu_add_end_tag(teapot_draw_packet);
+			// printf("sending packet...........!!!!!!!!!!!!!!!!!\n");
+			// dma_channel_wait(DMA_CHANNEL_VIF1, 0);
+			// dma_channel_send_packet2(teapot_draw_packet, DMA_CHANNEL_VIF1, 1);
 		}
 
-		q = draw_prim_end(q, 2, DRAW_RGBAQ_REGLIST);
+		// Calculate the normal values.
+		// calculate_normals(temp_normals, vertex_count, normals, local_light.matrix);
+
+		// // Calculate the lighting values.
+		// calculate_lights(temp_lights, vertex_count, temp_normals, (VECTOR*)gs_state.lights.directions.data(),
+		//                  (VECTOR*)gs_state.lights.colors.data(), (int*)gs_state.lights.types.data(), gs_state.lights.count());
+
+		// // Calculate the colour values after lighting.
+		// calculate_colours(temp_colours, vertex_count, colours, temp_lights);
+
+		// // Calculate the vertex values.
+		// calculate_vertices(temp_vertices, vertex_count, vertices, local_screen);
+
+		// // Convert floating point vertices to fixed point and translate to center of
+		// // screen.
+		// draw_convert_xyz(xyz, 2048, 2048, 32, vertex_count,
+		//                  (vertex_f_t*)temp_vertices);
+
+		// // Convert floating point colours to fixed point.
+		// draw_convert_rgbq(rgbaq, vertex_count, (vertex_f_t*)temp_vertices,
+		//                   (color_f_t*)temp_colours, color.a);
+
+		// // Draw the triangles using triangle primitive type.
+		// q = draw_prim_start(q, 0, &prim, &color);
+
+		// for (int i = 0; i < points_count / 3; ++i)
+		// {
+		// 	const Vector* v0 = (Vector*)&temp_vertices[points[(i * 3)]];
+		// 	const Vector* v1 = (Vector*)&temp_vertices[points[(i * 3) + 1]];
+		// 	const Vector* v2 = (Vector*)&temp_vertices[points[(i * 3) + 2]];
+
+		// 	if (cullBackFacingTriangle(&Vector::zero, v0, v1, v2))
+		// 	{
+		// 		continue;
+		// 	}
+
+		// 	q->dw[0] = rgbaq[points[(i * 3)]].rgbaq;
+		// 	q->dw[1] = xyz[points[(i * 3)]].xyz;
+		// 	q++;
+
+		// 	q->dw[0] = rgbaq[points[(i * 3) + 1]].rgbaq;
+		// 	q->dw[1] = xyz[points[(i * 3) + 1]].xyz;
+		// 	q++;
+
+
+		// 	q->dw[0] = rgbaq[points[(i * 3) + 2]].rgbaq;
+		// 	q->dw[1] = xyz[points[(i * 3) + 2]].xyz;
+		// 	q++;
+		// }
+
+		// q = draw_prim_end(q, 2, DRAW_RGBAQ_REGLIST);
 
 		// Define our dmatag for the dma chain.
-		DMATAG_CNT(dmatag, q - dmatag - 1, 0, 0, 0);
+		// DMATAG_CNT(dmatag, q - dmatag - 1, 0, 0, 0);
 
-		return q;
+		//return q;
 	}
 
 	AABB get_bounds() const
+	{
+		// Cache the bounds
+		static AABB out = compute_bounds();
+		return out;
+	}
+
+protected:
+	AABB compute_bounds() const
 	{
 		AABB out;
 		out.Min = vertices[0];
@@ -171,10 +261,9 @@ teapot::teapot()
 	collision.set_local_bounds(_teapot_render_proxy.get_bounds());
 }
 
-qword_t*
-teapot::render(qword_t* q, const gs::gs_state& gs_state)
+void teapot::render(const gs::gs_state& gs_state)
 {
-	q = render_proxy->render(q, gs_state, transform);
+	render_proxy->render(gs_state, transform);
 
 	color_t color;
 	color.r = 32;
@@ -183,6 +272,5 @@ teapot::render(qword_t* q, const gs::gs_state& gs_state)
 	color.a = 128.f;
 	color.q = 1.f;
 
-	q = collision.render(q, gs_state, color);
-	return q;
+	collision.render(gs_state, color);
 }
