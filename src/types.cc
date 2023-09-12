@@ -76,6 +76,29 @@ std::string Vector::to_string(bool print_rotation, bool print_w) const
 	return out_stream.str();
 }
 
+std::string Matrix::to_string() const
+{
+	std::stringstream out_stream;
+	for (int i = 0; i < 4; ++i)
+	{
+		out_stream << "[";
+		out_stream << "" << matrix[(i * 4) + 0];
+		out_stream << ", " << matrix[(i * 4) + 1];
+		out_stream << ", " << matrix[(i * 4) + 2];
+		out_stream << ", " << matrix[(i * 4) + 3];
+		if (i < 3)
+		{
+			out_stream << "]\n";
+		}
+		else
+		{
+			out_stream << "]";
+		}
+	}
+	return out_stream.str();
+}
+
+
 Matrix Matrix::from_location_and_rotation(const Vector& location, const Vector& rotation)
 {
 	return rotation.to_rotation_matrix() * location.to_translation_matrix();

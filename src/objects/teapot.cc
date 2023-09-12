@@ -39,59 +39,67 @@ static inline bool cullBackFacingTriangle(const Vector* eye, const Vector* v0,
 static class teapot_render_proxy
 {
 public:
+	struct alignas(128) aligned_vector: public Vector
+	{
+		aligned_vector& operator=(const VECTOR& _vector)
+		{
+			memcpy(vector, _vector, sizeof(VECTOR));
+			return *this;
+		}
+	};
+
+	VECTOR *c_verts __attribute__((aligned(128))), *c_sts __attribute__((aligned(128)));
+
 	teapot_render_proxy()
 	{
-		temp_normals  = (float(*)[4])memalign(128, sizeof(VECTOR) * vertex_count);
-		temp_lights   = (float(*)[4])memalign(128, sizeof(VECTOR) * vertex_count);
-		temp_colours  = (float(*)[4])memalign(128, sizeof(VECTOR) * vertex_count);
-		temp_vertices = (float(*)[4])memalign(128, sizeof(VECTOR) * vertex_count);
+		c_verts = (VECTOR*)memalign(128, sizeof(VECTOR) * faces_count);
+		c_sts   = (VECTOR*)memalign(128, sizeof(VECTOR) * faces_count);
 
-		xyz   = (xyz_t*)memalign(128, sizeof(u64) * vertex_count);
-		rgbaq = (color_t*)memalign(128, sizeof(u64) * vertex_count);
+		for (int i = 0; i < faces_count; i++)
+		{
+			c_verts[i][0] = vertices[faces[i]][0];
+			c_verts[i][1] = vertices[faces[i]][1];
+			c_verts[i][2] = vertices[faces[i]][2];
+			c_verts[i][3] = vertices[faces[i]][3];
+
+			c_sts[i][0] = sts[faces[i]][0];
+			c_sts[i][1] = sts[faces[i]][1];
+			c_sts[i][2] = sts[faces[i]][2];
+			c_sts[i][3] = sts[faces[i]][3];
+		}
 
 		// Define the triangle primitive we want to use.
 		prim.type         = PRIM_TRIANGLE;
 		prim.shading      = PRIM_SHADE_GOURAUD;
-		prim.mapping      = DRAW_DISABLE;
+		prim.mapping      = DRAW_ENABLE;
 		prim.fogging      = DRAW_DISABLE;
 		prim.blending     = DRAW_ENABLE;
 		prim.antialiasing = DRAW_DISABLE;
-		prim.mapping_type = DRAW_DISABLE;
+		prim.mapping_type = PRIM_MAP_ST;
 		prim.colorfix     = PRIM_UNFIXED;
-
-		color.r = 0x80;
-		color.g = 0x80;
-		color.b = 0x80;
-		color.a = 0x80;
-		color.q = 1.0f;
 	}
 
 	void on_gs_init()
 	{
-		// Upload the texture
-		texbuff.width           = 128;
-		texbuff.psm             = GS_PSM_24;
-		texbuff.address         = graph_vram_allocate(128, 128, GS_PSM_24, GRAPH_ALIGN_BLOCK);
-		texbuff.info.width      = draw_log2(128);
-		texbuff.info.height     = draw_log2(128);
-		texbuff.info.components = TEXTURE_COMPONENTS_RGB;
-		texbuff.info.function   = TEXTURE_FUNCTION_DECAL;
+		texbuff.width   = 128;
+		texbuff.psm     = GS_PSM_24;
+		texbuff.address = graph_vram_allocate(128, 128, GS_PSM_24, GRAPH_ALIGN_BLOCK);
 
+		printf("Uploading texture.....\n");
+
+		// Upload the texture
 		packet2_inline<50> packet(P2_TYPE_NORMAL, P2_MODE_CHAIN, false);
 		packet.update(draw_texture_transfer, zbyszek, 128, 128, GS_PSM_24, texbuff.address, texbuff.width);
 		packet.update(draw_texture_flush);
-		dma_channel_send_packet2(packet, DMA_CHANNEL_GIF, 1);
+		packet.send(DMA_CHANNEL_GIF, true);
 		dma_wait_fast();
 	}
 
 	void render(const gs::gs_state& gs_state, const transform_component& transform)
 	{
+		//return;
+		//printf("rendering teapot..... context: %d\n", gs_state.get_context());
 		Matrix local_world = Matrix::from_location_and_rotation(transform.get_location(), transform.get_rotation());
-		//Matrix local_light = transform.get_rotation().to_rotation_matrix();
-
-		// Now grab our qword pointer and increment past the dmatag.
-		// qword_t* dmatag = q;
-		// q++;
 
 		// Texture lod
 		lod_t lod;
@@ -113,126 +121,63 @@ public:
 		clut.load_method  = CLUT_NO_LOAD;
 		clut.address      = 0;
 
+
+		texbuff.info.width      = draw_log2(128);
+		texbuff.info.height     = draw_log2(128);
+		texbuff.info.components = TEXTURE_COMPONENTS_RGB;
+		texbuff.info.function   = TEXTURE_FUNCTION_DECAL;
+
 		// Create the local world-to-screen matrix.
 		Matrix local_screen;
-		create_local_screen(local_screen, local_world.matrix, const_cast<float*>(gs_state.world_view.matrix), const_cast<float*>(gs_state.view_screen.matrix));
+		create_local_screen(local_screen, local_world, const_cast<float*>(gs_state.world_view.matrix), const_cast<float*>(gs_state.view_screen.matrix));
 
-		{
-			printf("making new packet...........!!!!!!!!!!!!!!!!!\n");
-			packet2_inline<128> teapot_draw_packet(P2_TYPE_NORMAL, P2_MODE_CHAIN, true);
-			//packet2 teapot_draw_packet(128, P2_TYPE_NORMAL, P2_MODE_CHAIN, true);
-			printf("making new packet...........!!!!!!!!!!!!!!!!! 1\n");
-			teapot_draw_packet.add(2048.0F); // scale
-			printf("making new packet...........!!!!!!!!!!!!!!!!! 2\n");
-			teapot_draw_packet.add(2048.0F); // scale
-			printf("making new packet...........!!!!!!!!!!!!!!!!! 3\n");
-			teapot_draw_packet.add(((float)0xFFFFFF) / 32.0F); // scale
-			printf("making new packet...........!!!!!!!!!!!!!!!!! 4\n");
-			teapot_draw_packet.add((u32)vertex_count / 10); // vertex count
-			printf("making new packet...........!!!!!!!!!!!!!!!!! 5\n");
-			packet2_utils_gif_add_set(teapot_draw_packet, 1);
-			printf("making new packet...........!!!!!!!!!!!!!!!!! 6\n");
-			packet2_utils_gs_add_lod(teapot_draw_packet, &lod);
-			printf("making new packet...........!!!!!!!!!!!!!!!!! 7\n");
-			packet2_utils_gs_add_texbuff_clut(teapot_draw_packet, &texbuff, &clut);
-			printf("making new packet...........!!!!!!!!!!!!!!!!! 8\n");
-			packet2_utils_gs_add_prim_giftag(teapot_draw_packet, &prim, vertex_count / 10, DRAW_STQ2_REGLIST, 3, 0);
-			printf("making new packet...........!!!!!!!!!!!!!!!!! 9\n");
-			u8 j = 0; // RGBA
-			for (j = 0; j < 4; j++)
-				packet2_add_u32(teapot_draw_packet, 128);
+		packet2 teapot_draw_packet(10, P2_TYPE_NORMAL, P2_MODE_CHAIN, true);
+		//packet2_t* teapot_draw_packet = packet2_create(10, P2_TYPE_NORMAL, P2_MODE_CHAIN, 1);
+		packet2_add_float(teapot_draw_packet, 2048.0F);        // scale
+		packet2_add_float(teapot_draw_packet, 2048.0F);        // scale
+		packet2_add_float(teapot_draw_packet, 32.0F);          // scale
+		packet2_add_s32(teapot_draw_packet, (u32)faces_count); // vertex count
+		packet2_utils_gif_add_set(teapot_draw_packet, 1);
+		packet2_utils_gs_add_lod(teapot_draw_packet, &lod);
+		packet2_utils_gs_add_texbuff_clut(teapot_draw_packet, &texbuff, &clut);
+		packet2_utils_gs_add_prim_giftag(teapot_draw_packet, &prim, faces_count, DRAW_STQ2_REGLIST, 3, 0);
+		u8 j = 0; // RGBA
+		for (j = 0; j < 4; j++)
+			packet2_add_u32(teapot_draw_packet, 128);
 
-			printf("making new packet...........!!!!!!!!!!!!!!!!! 10\n");
-			auto& curr_vif_packet = gs_state.get_current_packet();
-			packet2_reset(curr_vif_packet, 0);
-			printf("making new packet...........!!!!!!!!!!!!!!!!! 11\n");
+		auto& curr_vif_packet = gs_state.get_current_packet();
+		curr_vif_packet.reset(false);
 
-			// Add matrix at the beggining of VU mem (skip TOP)
-			packet2_utils_vu_add_unpack_data(curr_vif_packet, 0, &local_screen, 8, 0);
-			printf("making new packet...........!!!!!!!!!!!!!!!!! 12\n");
+		//Add matrix at the beggining of VU mem (skip TOP)
+		packet2_utils_vu_add_unpack_data(curr_vif_packet, 0, local_screen.matrix, 8, 0);
 
-			u32 vif_added_bytes = 0; // zero because now we will use TOP register (double buffer)
-			                         // we don't wan't to unpack at 8 + beggining of buffer, but at
-			                         // the beggining of the buffer
+		u32 vif_added_bytes = 0; // zero because now we will use TOP register (double buffer)
+		                         // we don't wan't to unpack at 8 + beggining of buffer, but at
+		                         // the beggining of the buffer
 
-			// Merge packets
-			packet2_utils_vu_add_unpack_data(curr_vif_packet, vif_added_bytes, teapot_draw_packet->base, teapot_draw_packet.get_qw_count(), 1);
-			vif_added_bytes += teapot_draw_packet.get_qw_count();
+		check(((uintptr_t)teapot_draw_packet->base % 64) == 0);
 
-			printf("making new packet...........!!!!!!!!!!!!!!!!! 13\n");
-			// Add vertices
-			packet2_utils_vu_add_unpack_data(curr_vif_packet, vif_added_bytes, temp_vertices, vertex_count / 10, 1);
-			vif_added_bytes += vertex_count; // one VECTOR is size of qword
+		// Merge packets
+		packet2_utils_vu_add_unpack_data(curr_vif_packet, vif_added_bytes, teapot_draw_packet->base, packet2_get_qw_count(teapot_draw_packet), 1);
+		vif_added_bytes += packet2_get_qw_count(teapot_draw_packet);
 
-			printf("making new packet...........!!!!!!!!!!!!!!!!! 14\n");
-			// Add sts
-			packet2_utils_vu_add_unpack_data(curr_vif_packet, vif_added_bytes, temp_vertices, vertex_count / 10, 1);
-			vif_added_bytes += vertex_count;
+		// Add vertices
+		packet2_utils_vu_add_unpack_data(curr_vif_packet, vif_added_bytes, c_verts, faces_count, 1);
+		vif_added_bytes += faces_count; // one VECTOR is size of qword
 
-			// printf("making new packet...........!!!!!!!!!!!!!!!!! 15\n");
-			packet2_utils_vu_add_start_program(curr_vif_packet, draw_3D::get().getDestinationAddress());
-			packet2_utils_vu_add_end_tag(curr_vif_packet);
-			printf("sending packet...........!!!!!!!!!!!!!!!!!\n");
-			dma_channel_wait(DMA_CHANNEL_VIF1, 0);
-			dma_channel_send_packet2(curr_vif_packet, DMA_CHANNEL_VIF1, 1);
-		}
+		// Add sts
+		packet2_utils_vu_add_unpack_data(curr_vif_packet, vif_added_bytes, c_sts, faces_count, 1);
+		vif_added_bytes += faces_count;
 
-		// Calculate the normal values.
-		// calculate_normals(temp_normals, vertex_count, normals, local_light.matrix);
-
-		// // Calculate the lighting values.
-		// calculate_lights(temp_lights, vertex_count, temp_normals, (VECTOR*)gs_state.lights.directions.data(),
-		//                  (VECTOR*)gs_state.lights.colors.data(), (int*)gs_state.lights.types.data(), gs_state.lights.count());
-
-		// // Calculate the colour values after lighting.
-		// calculate_colours(temp_colours, vertex_count, colours, temp_lights);
-
-		// // Calculate the vertex values.
-		// calculate_vertices(temp_vertices, vertex_count, vertices, local_screen);
-
-		// // Convert floating point vertices to fixed point and translate to center of
-		// // screen.
-		// draw_convert_xyz(xyz, 2048, 2048, 32, vertex_count,
-		//                  (vertex_f_t*)temp_vertices);
-
-		// // Convert floating point colours to fixed point.
-		// draw_convert_rgbq(rgbaq, vertex_count, (vertex_f_t*)temp_vertices,
-		//                   (color_f_t*)temp_colours, color.a);
-
-		// // Draw the triangles using triangle primitive type.
-		// q = draw_prim_start(q, 0, &prim, &color);
-
-		// for (int i = 0; i < points_count / 3; ++i)
-		// {
-		// 	const Vector* v0 = (Vector*)&temp_vertices[points[(i * 3)]];
-		// 	const Vector* v1 = (Vector*)&temp_vertices[points[(i * 3) + 1]];
-		// 	const Vector* v2 = (Vector*)&temp_vertices[points[(i * 3) + 2]];
-
-		// 	if (cullBackFacingTriangle(&Vector::zero, v0, v1, v2))
-		// 	{
-		// 		continue;
-		// 	}
-
-		// 	q->dw[0] = rgbaq[points[(i * 3)]].rgbaq;
-		// 	q->dw[1] = xyz[points[(i * 3)]].xyz;
-		// 	q++;
-
-		// 	q->dw[0] = rgbaq[points[(i * 3) + 1]].rgbaq;
-		// 	q->dw[1] = xyz[points[(i * 3) + 1]].xyz;
-		// 	q++;
+		packet2_utils_vu_add_start_program(curr_vif_packet, draw_3D::get().getDestinationAddress());
+		packet2_utils_vu_add_end_tag(curr_vif_packet);
 
 
-		// 	q->dw[0] = rgbaq[points[(i * 3) + 2]].rgbaq;
-		// 	q->dw[1] = xyz[points[(i * 3) + 2]].xyz;
-		// 	q++;
-		// }
+		dma_channel_wait(DMA_CHANNEL_VIF1, 0);
+		curr_vif_packet.send(DMA_CHANNEL_VIF1, true);
+		dma_channel_wait(DMA_CHANNEL_VIF1, 0);
 
-		// q = draw_prim_end(q, 2, DRAW_RGBAQ_REGLIST);
-
-		// Define our dmatag for the dma chain.
-		// DMATAG_CNT(dmatag, q - dmatag - 1, 0, 0, 0);
-
-		//return q;
+		gs_state.flip_context();
 	}
 
 	AABB get_bounds() const
@@ -263,15 +208,7 @@ protected:
 	}
 
 private:
-	xyz_t* xyz;
-	color_t* rgbaq;
 	prim_t prim;
-	color_t color;
-
-	VECTOR* temp_normals;
-	VECTOR* temp_lights;
-	VECTOR* temp_colours;
-	VECTOR* temp_vertices;
 
 	texbuffer_t texbuff;
 } _teapot_render_proxy;

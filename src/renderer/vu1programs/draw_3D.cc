@@ -1,7 +1,7 @@
 #include "renderer/vu1programs/draw_3D.hpp"
 
-static u32 VU1Draw3D_CodeStart __attribute__((section(".vudata")));
-static u32 VU1Draw3D_CodeEnd __attribute__((section(".vudata")));
+extern u32 VU1Draw3D_CodeStart __attribute__((section(".vudata")));
+extern u32 VU1Draw3D_CodeEnd __attribute__((section(".vudata")));
 
 draw_3D::draw_3D()
     : VU1Program(&VU1Draw3D_CodeStart, &VU1Draw3D_CodeEnd)

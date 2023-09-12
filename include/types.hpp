@@ -73,6 +73,12 @@ struct alignas(16) Vector
 		return (*this - other).length();
 	}
 
+	Vector& operator=(const VECTOR& _vector)
+	{
+		memcpy(vector, _vector, sizeof(VECTOR));
+		return *this;
+	}
+
 	Vector operator+(const Vector& Rhs) const
 	{
 		Vector out;
@@ -386,6 +392,8 @@ struct alignas(16) Matrix
 	{
 		return matrix[col + (row * 4)];
 	}
+
+	std::string to_string() const;
 
 	operator const float*() const { return matrix; }
 	operator float*() { return matrix; }

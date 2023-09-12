@@ -39,7 +39,6 @@ void init()
 	check(SifLoadModule("rom0:LIBSD", 0, NULL) > 0);
 	check(SifLoadModule("rom0:CDVDMAN", 0, NULL) > 0);
 	check(SifLoadModule("rom0:CDVDFSV", 0, NULL) > 0);
-	// check(SifLoadModule("rom0:CDVDSTM", 0, NULL) > 0);
 
 	sceCdInit(SCECdINIT);
 	sceCdMmode(SCECdPS2DVD);

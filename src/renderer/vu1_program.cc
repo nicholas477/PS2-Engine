@@ -9,10 +9,15 @@ VU1Program::VU1Program(u32* t_start, u32* t_end)
     : start(t_start)
     , end(t_end)
 {
+	check(t_start != 0);
+	check(t_end != 0);
+
 	// =1 means uninitialized
 	destinationAddress = -1;
 	packetSize         = packet2_utils_get_packet_size_for_program(start, end);
 	programSize        = calculateProgramSize();
+
+	check(programSize != 0);
 }
 
 u32 VU1Program::getPacketSize() const { return packetSize; }

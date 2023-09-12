@@ -27,7 +27,6 @@ private:
 	void uploadDrawFinishProgram();
 	void prepareDrawFinishPacket();
 
-	packet2_inline<2> doubleBufferPacket;
 	packet2_inline<10> drawFinishPacket;
 	u32 currentProgramAddress;
 };

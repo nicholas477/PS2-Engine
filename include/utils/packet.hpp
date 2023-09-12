@@ -6,6 +6,9 @@
 #include <memory>
 #include <stdio.h>
 #include <dma.h>
+#include <string.h>
+
+static constexpr std::size_t packet_data_alignment = 64;
 
 /// @brief Static interface for packets. Meant to be a drop-in replacement for packet2_t*.
 /// @tparam T Put your derived class here.
@@ -63,37 +66,28 @@ public:
 		return packet2_get_qw_count(const_cast<packet2_t*>(to_const_ptr()));
 	}
 
+	void reset(bool clear_mem)
+	{
+		packet2_reset(to_ptr(), clear_mem);
+	}
+
+	///////// Override THESE functions
+	const packet2_t* to_const_ptr() const { return static_cast<const T&>(*this).to_const_ptr(); }
+	packet2_t* to_ptr() { return static_cast<T&>(*this).to_ptr(); }
+	/////////
 
 	const packet2_t* operator->() const { return to_const_ptr(); }
 	packet2_t* operator->() { return to_ptr(); }
 
-	const packet2_t* to_const_ptr() const { return static_cast<const T&>(*this); }
-	packet2_t* to_ptr() { return static_cast<T&>(*this); }
-
-	operator const packet2_t*() const { return static_cast<const T&>(*this); }
-	operator packet2_t*() { return static_cast<T&>(*this); }
+	operator const packet2_t*() const { return to_const_ptr(); }
+	operator packet2_t*() { return to_ptr(); }
 };
 
-
-struct packet2_deleter
-{
-	void operator()(packet2_t* packet) const
-	{
-		//printf("destroying packet!\n");
-		packet2_free(packet);
-	}
-};
-
-/// @brief unique_ptr wrapper around packet2_t. Automatically calls `packet2_free` on destruction
-class packet2: public std::unique_ptr<packet2_t, struct packet2_deleter>, public packet2_interface<packet2>
+/// @brief Heap allocated wrapper around packet2_t
+class packet2: public packet2_interface<packet2>
 {
 public:
 	packet2() = default;
-
-	packet2(packet2_t* packet)
-	    : std::unique_ptr<packet2_t, struct packet2_deleter>(packet)
-	{
-	}
 
 	/// @brief Creates a new packet using packet2_create
 	/// @param qwordsMaximum data size in qwords (128bit).
@@ -103,13 +97,24 @@ public:
 	/// Used only for CHAIN mode!
 	/// If true, then transfer tag is set during pack sending and
 	/// add_dma_tag() (so also every open_tag()) will move buffer by DWORD
-	packet2(u16 qwords, enum Packet2Type type, enum Packet2Mode mode, bool tte)
-	    : packet2(packet2_create(qwords, type, mode, tte))
-	{
-	}
+	packet2(u16 qwords, enum Packet2Type type, enum Packet2Mode mode, bool tte);
 
-	operator const packet2_t*() const { return get(); }
-	operator packet2_t*() { return get(); }
+	const packet2_t* to_const_ptr() const { return &packet; }
+	packet2_t* to_ptr() { return &packet; }
+
+	alignas(packet_data_alignment) packet2_t packet;
+	std::unique_ptr<u8> data;
+
+	packet2(const packet2&) = delete;
+	packet2& operator=(const packet2&) = delete;
+
+	packet2& operator=(packet2&& other)
+	{
+		packet = std::move(other.packet);
+		data   = std::move(other.data);
+		printf("Moving packet.\n");
+		return *this;
+	}
 };
 
 void initialize_packet2_inline(packet2_t& packet, qword_t* data, u16 qwords, enum Packet2Type type, enum Packet2Mode mode, bool tte);
@@ -135,14 +140,11 @@ public:
 	}
 
 	static constexpr std::size_t byte_size = qwords << 4;
-	packet2_t packet;
-	alignas(64) std::array<u8, byte_size> data;
+	alignas(packet_data_alignment) packet2_t packet;
+	alignas(packet_data_alignment) std::array<u8, byte_size> data;
 
-	operator const packet2_t*() const
-	{
-		return &packet;
-	}
-	operator packet2_t*() { return &packet; }
+	const packet2_t* to_const_ptr() const { return &packet; }
+	packet2_t* to_ptr() { return &packet; }
 
 	packet2_inline(const packet2_inline&) = delete;
 	packet2_inline& operator=(const packet2_inline&) = delete;

@@ -61,6 +61,7 @@ public:
 		draw_convert_xyz(xyz, 2048, 2048, 32, vertex_count,
 		                 (vertex_f_t*)temp_vertices);
 
+		//packet2 teapot_draw_packet(10, P2_TYPE_NORMAL, P2_MODE_CHAIN, true);
 		packet2_inline<16> packet(Packet2Type::P2_TYPE_NORMAL, Packet2Mode::P2_MODE_NORMAL, false);
 		// Draw the triangles using triangle primitive type.
 		packet.update(draw_prim_start, 0, &prim, &color);

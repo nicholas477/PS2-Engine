@@ -12,39 +12,43 @@
 #include <dma.h>
 
 Path1::Path1()
-    : doubleBufferPacket(P2_TYPE_NORMAL, P2_MODE_CHAIN, true)
-    , drawFinishPacket(P2_TYPE_NORMAL, P2_MODE_CHAIN, true)
+    : drawFinishPacket(P2_TYPE_NORMAL, P2_MODE_CHAIN, true)
 {
+	printf("Setting up path1 rendering.\n");
 	currentProgramAddress = 0;
 
-	uploadProgram(draw_finish::get());
-	prepareDrawFinishPacket();
-
 	uploadProgram(draw_3D::get());
+	printf("Uploaded draw_3D program at address: %d\n", draw_3D::get().getDestinationAddress());
+
+	//uploadProgram(draw_finish::get());
+	//prepareDrawFinishPacket();
+
+	//uploadProgram(draw_3D::get());
 	//uploadProgram(color_triangles_clip_tris::get());
 
 	printf("setting double buffer...\n");
+	printf("current program buffer: %d\n", currentProgramAddress);
 	setDoubleBuffer(8, 496); // No idea how these numbers are picked.
 	printf("done setting double buffer!\n");
 }
 
 void Path1::uploadProgram(VU1Program& program)
 {
-	printf("uploading vu1 program: %s\n", program.getStringName().c_str());
+	printf("Uploading vu1 program: %s\n", program.getStringName().c_str());
 	u32 packetSize = program.getPacketSize() + 1;
 
-	packet2 packet =
-	    packet2_create(packetSize, P2_TYPE_NORMAL, P2_MODE_CHAIN, 1);
+	packet2 packet(packetSize, P2_TYPE_NORMAL, P2_MODE_CHAIN, true);
 
-	program.setDestinationAddress(currentProgramAddress);
-	packet2_vif_add_micro_program(packet, currentProgramAddress, program.getStart(),
+	program.setDestinationAddress(0);
+
+	packet2_vif_add_micro_program(packet, 0, program.getStart(),
 	                              program.getEnd());
+
 	currentProgramAddress += program.getProgramSize() + 1;
 
 	packet2_utils_vu_add_end_tag(packet);
 
 	// Actually upload the program now
-	dma_channel_wait(DMA_CHANNEL_VIF1, 0);
 	packet.send(DMA_CHANNEL_VIF1, true);
 	dma_channel_wait(DMA_CHANNEL_VIF1, 0);
 }
@@ -88,15 +92,12 @@ void Path1::prepareDrawFinishPacket()
 /** Set double buffer settings */
 void Path1::setDoubleBuffer(const u16& startingAddress, const u16& bufferSize)
 {
-	printf("setting double buffer packet...\n");
-	packet2_reset(doubleBufferPacket, false);
-	printf("adding double buffer packet...\n");
+	packet2_inline<1> doubleBufferPacket(P2_TYPE_NORMAL, P2_MODE_CHAIN, true);
 	packet2_utils_vu_add_double_buffer(doubleBufferPacket, startingAddress,
 	                                   bufferSize);
 
 
-	printf("adding double buffer packet end tag\n");
 	doubleBufferPacket.add_end_tag();
-	printf("sending double buffer packet!\n");
 	doubleBufferPacket.send(DMA_CHANNEL_VIF1, true);
+	dma_channel_wait(DMA_CHANNEL_VIF1, 0);
 }

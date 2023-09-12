@@ -31,7 +31,7 @@ void init()
 
 	// Player teapot
 	static teapot teapot4;
-	teapot4.transform.set_location(Vector(0.f, -20.f));
+	teapot4.transform.set_location(Vector(0.f, 0.f, 0.f));
 
 
 	// Camera parent component

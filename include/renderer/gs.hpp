@@ -41,12 +41,16 @@ struct gs_state
 	framebuffer_t* frame;
 	zbuffer_t* zbuffer;
 	lightsT lights;
+	Vector camera_rotation;
 
+	Matrix get_camera_matrix() const;
 	Vector get_camera_pos() const;
+	Vector get_camera_rotation() const;
 
 	static std::array<packet2, 2>& get_packets();
 	static packet2& get_current_packet();
 	static void flip_context();
+	static int get_context();
 };
 
 void add_renderable(renderable* renderable);
