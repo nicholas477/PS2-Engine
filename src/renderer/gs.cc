@@ -1,147 +1,127 @@
-#include <malloc.h>
-#include <stdio.h>
-#include <vector>
-#include <forward_list>
-
 #include "objects/camera.hpp"
 #include "renderer/gs.hpp"
-#include "input.hpp"
 #include "renderer/renderable.hpp"
 #include "stats.hpp"
 #include "assert.hpp"
 
-//#include <libgs.h>
-#include <packet.h>
+/* libc */
+#include <stdio.h>
+#include <stdlib.h>
 
-#include <dma_tags.h>
-#include <gif_tags.h>
-#include <gs_psm.h>
+/* ps2sdk */
+#include "kernel.h"
+#include "graph.h"
 
-#include <dma.h>
+/* GL */
+#include "GL/ps2gl.h"
 
-#include <graph.h>
+/* ps2stuff */
+#include "ps2s/core.h"
+#include "ps2s/displayenv.h"
+#include "ps2s/drawenv.h"
+#include "ps2s/gs.h"
+#include "ps2s/timer.h"
 
-#include <draw.h>
-#include <draw3d.h>
+/* ps2gl */
+#include "ps2gl/debug.h"
+#include "ps2gl/displaycontext.h"
+#include "ps2gl/drawcontext.h"
+#include "ps2gl/glcontext.h"
 
-#include "renderer/path1.hpp"
+#include <GL/glut.h>         // The GL Utility Toolkit (Glut) Header
+#include <ps2gl/glcontext.h> // The GL Utility Toolkit (Glut) Header
+#include <ps2gl/matrix.h>    // The GL Utility Toolkit (Glut) Header
+
 
 namespace gs
 {
-// The buffers to be used.
-static framebuffer_t frame; //[2];
-static zbuffer_t z;
-
 static const int screen_width  = 640;
-static const int screen_height = 512;
-
-
-static Path1& get_path1()
-{
-	static Path1 path1;
-	return path1;
-}
-
-static void init_gs(framebuffer_t* frame, zbuffer_t* z)
-{
-	// Define a 32-bit framebuffer.
-	frame->width  = screen_width;
-	frame->height = screen_height;
-	frame->mask   = 0;
-	frame->psm    = GS_PSM_32;
-
-	// Allocate some vram for our framebuffer.
-	frame->address = graph_vram_allocate(frame->width, frame->height, frame->psm,
-	                                     GRAPH_ALIGN_PAGE);
-
-	// Enable the zbuffer.
-	z->enable  = DRAW_ENABLE;
-	z->mask    = 0;
-	z->method  = ZTEST_METHOD_GREATER_EQUAL;
-	z->zsm     = GS_ZBUF_32;
-	z->address = graph_vram_allocate(frame->width, frame->height, z->zsm,
-	                                 GRAPH_ALIGN_PAGE);
-
-	// Initialize the screen and tie the first framebuffer to the read circuits.
-	graph_initialize(frame->address, frame->width, frame->height, frame->psm, 0,
-	                 0);
-
-	// graph_set_mode(GRAPH_MODE_NONINTERLACED, GRAPH_MODE_VGA_640_60, GRAPH_MODE_FRAME, GRAPH_DISABLE);
-	// graph_set_screen(0, 0, screen_width, screen_height);
-	// graph_set_bgcolor(0, 0, 0);
-	// graph_set_framebuffer_filtered(frame->address, frame->width, frame->psm, 0, 0);
-	// graph_enable_output();
-}
-
-static void init_drawing_environment(framebuffer_t* frame, zbuffer_t* z)
-{
-	packet2_inline<20> packet(P2_TYPE_NORMAL, P2_MODE_NORMAL, false);
-
-	// This will setup a default drawing environment.
-	packet.update(draw_setup_environment, 0, frame, z);
-
-	// Now reset the primitive origin to 2048-width/2,2048-height/2.
-	packet.update(draw_primitive_xyoffset, 0, (2048 - 320), (2048 - 256));
-
-	// Finish setting up the environment.
-	packet.update(draw_finish);
-
-	// Now send the packet, no need to wait since it's the first.
-	packet.send(DMA_CHANNEL_GIF, true);
-	dma_wait_fast();
-}
+static const int screen_height = 448;
 
 static int context = 0;
 
-// Packets for doublebuffering dma sends
-static std::array<packet2, 2> packets;
-
 static gs_state _gs_state;
 
-std::array<packet2, 2>& gs_state::get_packets()
+static void init_lights()
 {
-	return packets;
+	// lighting
+	GLfloat ambient[] = {0.2, 0.2, 0.2, 1.0};
+
+	GLfloat l0_diffuse[] = {1.0f, 1.0f, 1.0f, 0};
+
+	// GLfloat l1_position[] = {0, -1, 1, 0.0};
+	GLfloat l1_diffuse[] = {.6f, .6f, .6f, 0.0f};
+
+	GLfloat black[] = {0, 0, 0, 0};
+
+	glEnable(GL_LIGHTING);
+	glEnable(GL_LIGHT0);
+	glEnable(GL_LIGHT1);
+
+	glLightfv(GL_LIGHT0, GL_AMBIENT, ambient);
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, l0_diffuse);
+	glLightfv(GL_LIGHT0, GL_SPECULAR, l0_diffuse);
+
+	glLightfv(GL_LIGHT1, GL_AMBIENT, black);
+	glLightfv(GL_LIGHT1, GL_DIFFUSE, l1_diffuse);
+	glLightfv(GL_LIGHT1, GL_SPECULAR, black);
+
+	glLightf(GL_LIGHT1, GL_CONSTANT_ATTENUATION, 0.0f);
+	glLightf(GL_LIGHT1, GL_LINEAR_ATTENUATION, 0.005f);
+	glLightf(GL_LIGHT1, GL_QUADRATIC_ATTENUATION, 0.0f);
 }
 
-packet2& gs_state::get_current_packet()
+static void set_light_positions()
 {
-	return packets[context];
+	GLfloat l0_position[] = {0, 1.0, 1.0, 0.0};
+	GLfloat l1_position[] = {0.0, -20.0, -80.0, 1.0};
+
+	glLightfv(GL_LIGHT0, GL_POSITION, l0_position);
+	glLightfv(GL_LIGHT1, GL_POSITION, l1_position);
 }
 
-void gs_state::flip_context()
+//-----------------------------------------------------------------------------
+static void gluPerspective(GLdouble fovy, GLdouble aspect, GLdouble zNear, GLdouble zFar)
 {
-	context ^= 1;
+	GLdouble xmin, xmax, ymin, ymax;
+
+	ymax = zNear * tan(fovy * M_PI / 360.0f);
+	ymin = -ymax;
+	xmin = ymin * aspect;
+	xmax = ymax * aspect;
+
+	glFrustum(xmin, xmax, ymin, ymax, zNear, zFar);
 }
 
-int gs_state::get_context()
+void clear_screen()
 {
-	return context;
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-std::vector<renderable*>& get_renderables()
+static void init_renderer()
 {
-	static std::vector<renderable*> renderables;
-	return renderables;
-}
+	glShadeModel(GL_SMOOTH);              // Enable Smooth Shading
+	glClearColor(0.5f, 0.5f, 0.5f, 0.0f); // Black Background
+	glClearDepth(1.0f);                   // Depth Buffer Setup
+	glEnable(GL_DEPTH_TEST);              // Enables Depth Testing
+	glEnable(GL_RESCALE_NORMAL);
+	glDepthFunc(GL_LEQUAL); // The Type Of Depth Testing To Do
+	glEnable(GL_COLOR_MATERIAL);
+	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 
-static void init_renderer(framebuffer_t* frame, zbuffer_t* z)
-{
-	packets[0] = packet2(11, P2_TYPE_NORMAL, P2_MODE_CHAIN, true);
-	packets[1] = packet2(11, P2_TYPE_NORMAL, P2_MODE_CHAIN, true);
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glEnableClientState(GL_NORMAL_ARRAY);
+	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
-	// Create the view_screen matrix.
-	create_view_screen(_gs_state.view_screen.matrix, graph_aspect_ratio(), -3.00f, 3.00f, -3.00f,
-	                   3.00f, 1.00f, 2000.00f);
 
-	for (renderable* renderable : get_renderables())
+	glViewport(0, 0, screen_width, screen_height);
+
+	init_lights();
+
+	for (renderable::TIterator Itr = renderable::Itr(); Itr; ++Itr)
 	{
-		renderable->on_gs_init();
+		Itr->on_gs_init();
 	}
-}
-
-void add_renderable(renderable* renderable)
-{
-	get_renderables().push_back(renderable);
 }
 
 std::vector<renderable*>& get_transient_renderables()
@@ -175,32 +155,100 @@ void add_renderable_one_frame(std::function<void(const gs::gs_state&)> func)
 	get_renderable_funcs().push_back(func);
 }
 
+static void
+initGsMemory()
+{
+	// frame and depth buffer
+	pgl_slot_handle_t frame_slot_0, frame_slot_1, depth_slot;
+	frame_slot_0 = pglAddGsMemSlot(0, 70, GS::kPsm32);
+	frame_slot_1 = pglAddGsMemSlot(70, 70, GS::kPsm32);
+	depth_slot   = pglAddGsMemSlot(140, 70, GS::kPsmz24);
+	// lock these slots so that they aren't allocated by the memory manager
+	pglLockGsMemSlot(frame_slot_0);
+	pglLockGsMemSlot(frame_slot_1);
+	pglLockGsMemSlot(depth_slot);
+
+	// create gs memory area objects to use for frame and depth buffers
+	pgl_area_handle_t frame_area_0, frame_area_1, depth_area;
+	frame_area_0 = pglCreateGsMemArea(640, 224, GS::kPsm24);
+	frame_area_1 = pglCreateGsMemArea(640, 224, GS::kPsm24);
+	depth_area   = pglCreateGsMemArea(640, 224, GS::kPsmz24);
+	// bind the areas to the slots we created above
+	pglBindGsMemAreaToSlot(frame_area_0, frame_slot_0);
+	pglBindGsMemAreaToSlot(frame_area_1, frame_slot_1);
+	pglBindGsMemAreaToSlot(depth_area, depth_slot);
+
+	// draw to the new areas...
+	pglSetDrawBuffers(PGL_INTERLACED, frame_area_0, frame_area_1, depth_area);
+	// ...and display from them
+	pglSetDisplayBuffers(PGL_INTERLACED, frame_area_0, frame_area_1);
+
+	// 32 bit
+
+	// a slot for fonts (probably)
+	pglAddGsMemSlot(210, 2, GS::kPsm8);
+
+	// 64x32
+	pglAddGsMemSlot(212, 1, GS::kPsm32);
+	pglAddGsMemSlot(213, 1, GS::kPsm32);
+	// 64x64
+	pglAddGsMemSlot(214, 2, GS::kPsm32);
+	pglAddGsMemSlot(216, 2, GS::kPsm32);
+	pglAddGsMemSlot(218, 2, GS::kPsm32);
+	pglAddGsMemSlot(220, 2, GS::kPsm32);
+	// 128x128
+	pglAddGsMemSlot(222, 8, GS::kPsm32);
+	pglAddGsMemSlot(230, 8, GS::kPsm32);
+	// 256x256
+	pglAddGsMemSlot(238, 32, GS::kPsm32);
+	pglAddGsMemSlot(270, 32, GS::kPsm32);
+	// 512x256
+	pglAddGsMemSlot(302, 64, GS::kPsm32);
+	pglAddGsMemSlot(366, 64, GS::kPsm32);
+
+	pglPrintGsMemAllocation();
+}
+
 void init()
 {
 	printf("Initializing graphics synthesizer\n");
 
-	// Init GIF dma channel.
-	dma_channel_initialize(DMA_CHANNEL_GIF, NULL, 0);
-	dma_channel_initialize(DMA_CHANNEL_VIF1, NULL, 0);
-	dma_channel_fast_waits(DMA_CHANNEL_GIF);
-	dma_channel_fast_waits(DMA_CHANNEL_VIF1);
+	if (!pglHasLibraryBeenInitted())
+	{
+		// reset the machine
+		//      sceDevVif0Reset();
+		//      sceDevVu0Reset();
+		//      sceDmaReset(1);
+		//      sceGsResetPath();
 
-	get_path1();
+		// Reset the GIF. OSDSYS leaves PATH3 busy, that ends up having
+		// our PATH1/2 transfers ignored by the GIF.
+		*GIF::Registers::ctrl = 1;
 
-	// Init the GS, framebuffer, and zbuffer.
-	init_gs(&frame, &z);
+		//      sceGsResetGraph(0, SCE_GS_INTERLACE, SCE_GS_NTSC, SCE_GS_FRAME);
+		SetGsCrt(0 /* non-interlaced */, 2 /* ntsc */, 1 /* frame */);
 
-	// Init the drawing environment and framebuffer.
-	init_drawing_environment(&frame, &z);
+		mWarn("ps2gl library has not been initialized by the user; using default values.");
+		int immBufferVertexSize = 64 * 1024;
+		pglInit(immBufferVertexSize, 1000);
+	}
 
-	init_renderer(&frame, &z);
+	// does gs memory need to be initialized?
+
+	if (!pglHasGsMemBeenInitted())
+	{
+		mWarn("GS memory has not been allocated by the user; using default values.");
+		initGsMemory();
+	}
+
+	init_renderer();
 }
 
 static void draw_objects(const gs_state& gs_state)
 {
-	for (renderable* _renderable : get_renderables())
+	for (renderable::TIterator Itr = renderable::Itr(); Itr; ++Itr)
 	{
-		_renderable->render(gs_state);
+		Itr->render(gs_state);
 	}
 
 	// for (renderable* _renderable : get_transient_renderables())
@@ -220,68 +268,59 @@ static void clear_drawables()
 	get_renderable_funcs().clear();
 }
 
-static int gs_render(framebuffer_t* frame, zbuffer_t* z)
+static int gs_render()
 {
 	stats::scoped_timer render_timer(stats::scoped_timers::render);
 
+	static bool firstTime = true;
 	{
 		stats::scoped_timer draw_timer(stats::scoped_timers::draw);
-
-		clear_screen();
 
 		// Create the world-to-view matrix.
 		_gs_state.world_view      = camera::get().transform.get_matrix().invert();
 		_gs_state.camera_rotation = camera::get().transform.get_rotation();
-		//printf("camera transform: %s\n", camera::get().transform.get_matrix().get_location().to_string().c_str());
 
-		_gs_state.frame   = frame;
-		_gs_state.zbuffer = z;
+		glMatrixMode(GL_PROJECTION); // Select The Projection Matrix
+		glLoadIdentity();
+		gluPerspective(camera::get().fov, (GLfloat)screen_width / (GLfloat)screen_height, 1.0f, 2000.0f);
+
+		glMatrixMode(GL_MODELVIEW);
+		glLoadMatrixf(_gs_state.world_view);
+
+		set_light_positions();
+
+		pglBeginGeometry();
+
+		clear_screen();
 
 		draw_objects(_gs_state);
+
+		glFlush();
+
+		pglEndGeometry();
+
+		if (!firstTime)
+			pglFinishRenderingGeometry(PGL_DONT_FORCE_IMMEDIATE_STOP);
+		else
+			firstTime = false;
 	}
 
 	// Either block until a vsync, or keep rendering until there's one
 	// available.
 	{
 		stats::scoped_timer vsync_timer(stats::scoped_timers::render_vsync_wait);
-		graph_wait_vsync();
+		pglWaitForVSync();
 	}
 
-	//graph_set_framebuffer_filtered(frame[context].address, frame[context].width,
-	//                               frame[context].psm, 0, 0);
-
-	//gs_state::flip_context();
-
-	// We need to flip buffers outside of the chain, for some reason,
-	// so we use a separate small packet.
-	//flip_buffers(flip_pkt, &frame[context]);
+	pglSwapBuffers();
+	pglRenderGeometry();
 
 	clear_drawables();
 
 	return 0;
 }
 
-void clear_screen()
-{
-	{
-		packet2_inline<35> clear_packet(P2_TYPE_NORMAL, P2_MODE_NORMAL, 0);
-
-		// Clear framebuffer but don't update zbuffer.
-		clear_packet.update(draw_disable_tests, 0, &z);
-		clear_packet.update(draw_clear, 0, (2048 - (screen_width / 2)), (2048 - (screen_height / 2)), frame.width, frame.height, 0x40, 0x40, 0x40);
-		clear_packet.update(draw_enable_tests, 0, &z);
-		clear_packet.update(draw_finish);
-
-		// Now send our current dma chain.
-		dma_wait_fast();
-		clear_packet.send(DMA_CHANNEL_GIF, true);
-	}
-
-	// Wait for scene to finish drawing
-	draw_wait_finish();
-}
-
-void render() { gs_render(&frame, &z); }
+void render() { gs_render(); }
 
 Vector gs_state::get_camera_pos() const
 {

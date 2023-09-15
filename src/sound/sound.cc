@@ -1,4 +1,5 @@
 #include "sound/sound.hpp"
+#include "utils/filesystem.hpp"
 #include "tick.hpp"
 #include "input.hpp"
 
@@ -32,67 +33,57 @@ void init()
 	check(ret == 0);
 
 	printf("loading audiofile...\n");
-	std::ifstream audio_file("cdrom:\\ASSETS\\SOUNDS\\VINE_BOOM.ADPCM", std::ios::binary);
-	//check(audio_file.is_open());
-	if (audio_file.is_open())
+	std::vector<std::byte> audio_data;
+	if (filesystem::load_file("assets/sounds/vine_boom.adpcm", audio_data))
 	{
-		audio_file.seekg(0, std::ios::end);
-
-		u32 adpcmFileSize = audio_file.tellg();
-		printf("audio size: %d\n", adpcmFileSize);
-		u8 data[adpcmFileSize];
-		audio_file.seekg(0, std::ios::beg);
-
-		audio_file.read((char*)data, adpcmFileSize);
-		audio_file.close();
-
-		static std::vector<audsrv_adpcm_t> samples;
-		for (int i = 0; i < 24; ++i)
-		{
-			auto& result    = samples.emplace_back();
-			result.size     = 0;
-			result.buffer   = 0;
-			result.loop     = 0;
-			result.pitch    = 0;
-			result.channels = 0;
-
-			printf("loading audiofile into adpcm thingy...\n");
-			if (audsrv_load_adpcm(&result, data, adpcmFileSize))
-			{
-				printf("AUDSRV returned error string: %s\n", audsrv_get_error_string());
-				check(false);
-			}
-
-			printf("channels: %d\n", result.channels);
-			printf("buffer: %d\n", (int)result.buffer);
-			printf("loop: %d\n", result.loop);
-		}
+		printf("loaded file! nice!\n");
 	}
 
-	{
-		// static class test: public tickable
-		// {
-		// public:
-		// 	test(std::vector<audsrv_adpcm_t>& in_samples)
-		// 	    : samples(in_samples)
-		// 	{
-		// 	}
+	// 	static std::vector<audsrv_adpcm_t> samples;
+	// 	for (int i = 0; i < 24; ++i)
+	// 	{
+	// 		auto& result    = samples.emplace_back();
+	// 		result.size     = 0;
+	// 		result.buffer   = 0;
+	// 		result.loop     = 0;
+	// 		result.pitch    = 0;
+	// 		result.channels = 0;
 
-		// 	virtual void tick(float) override
-		// 	{
-		// 		if (input::get_paddata() & PAD_TRIANGLE)
-		// 		{
-		// 			printf("playing audio!\n");
-		// 			static int channel = 0;
-		// 			//audsrv_ch_play_adpcm(channel, &samples[channel]);
-		// 			channel++;
-		// 			channel = channel % samples.size();
-		// 		}
-		// 	}
+	// 		printf("loading audiofile into adpcm thingy...\n");
+	// 		if (audsrv_load_adpcm(&result, audio_data.data(), audio_data.size()))
+	// 		{
+	// 			printf("AUDSRV returned error string: %s\n", audsrv_get_error_string());
+	// 			check(false);
+	// 		}
 
-		// 	std::vector<audsrv_adpcm_t>& samples;
-		// } _test(samples);
-	}
+	// 		printf("channels: %d\n", result.channels);
+	// 		printf("buffer: %d\n", (int)result.buffer);
+	// 		printf("loop: %d\n", result.loop);
+	// 	}
+
+	// 	static class test: public tickable
+	// 	{
+	// 	public:
+	// 		test(std::vector<audsrv_adpcm_t>& in_samples)
+	// 		    : samples(in_samples)
+	// 		{
+	// 		}
+
+	// 		virtual void tick(float) override
+	// 		{
+	// 			if (input::get_paddata() & PAD_TRIANGLE)
+	// 			{
+	// 				printf("playing audio!\n");
+	// 				static int channel = 0;
+	// 				//audsrv_ch_play_adpcm(channel, &samples[channel]);
+	// 				channel++;
+	// 				channel = channel % samples.size();
+	// 			}
+	// 		}
+
+	// 		std::vector<audsrv_adpcm_t>& samples;
+	// 	} _test(samples);
+	// }
 
 	printf("sound initialized!\n");
 

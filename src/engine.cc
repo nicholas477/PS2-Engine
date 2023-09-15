@@ -77,7 +77,7 @@ static void tick(float deltaTime)
 
 	for (auto itr = tickable::Itr(); itr; ++itr)
 	{
-		(*itr).tick(deltaTime);
+		itr->tick(deltaTime);
 	}
 	frameCounter++;
 	game_time += deltaTime;

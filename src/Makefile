@@ -4,10 +4,13 @@ SRC_FILES = $(shell find $(PREFIX) -name "*.cc" -o -name "*.cpp" -o -name "*.c")
 EE_OBJS = $(patsubst %.cc, build/%.o, $(SRC_FILES))
 EE_OBJS := $(patsubst %.c, build/%.o, $(EE_OBJS))
 EE_OBJS := $(patsubst %.cpp, build/%.o, $(EE_OBJS))
-EE_INCS := -Iinclude $(EE_INCS)
-EE_LIBS = -ldraw -lgraph -lmath3d -lpacket -ldma -lpad -lc -lstdc++ -lgs -ldebug -leedebug -lpacket2 -laudsrv -lcdvd -lxcdvd
+EE_INCS := -I$(PS2SDK)/ports/include -Iinclude $(EE_INCS)
+EE_LDFLAGS  += -L$(PS2SDK)/ports/lib
+EE_LIBS = -ldraw -lgraph -lmath3d -lpacket -ldma -lpad -lc -lstdc++ -lgs -ldebug -leedebug -lpacket2 -laudsrv -lcdvd -lxcdvd -lps2gl -lps2stuff
 EE_OPTFLAGS = -O3 -g -std=gnu++17
-EE_WARNFLAGS = -Wall -Wno-unused-function -Wno-unused-variable
+EE_CFLAGS += -DNO_VU0_VECTORS -DNO_ASM
+EE_CXXFLAGS += -DNO_VU0_VECTORS -DNO_ASM
+EE_WARNFLAGS = -Wall -Wno-unused-function -Wno-unused-variable -Wno-strict-aliasing -Wno-conversion-null 
 LINKFLAGS	= -O3 -Wl,-zmax-page-size=128
 
 OUTPUT_DIR     = build
@@ -33,7 +36,7 @@ PS2_VCLPP = vclpp
 # VCL/VU microprograms:
 #
 VCL_PATH  = $(PREFIX)vu1progs
-VCL_FILES = color_triangles_clip_tris.vcl color_triangles_clip_verts.vcl draw_finish.vcl draw_3D.vcl
+VCL_FILES =
 
 EE_OBJS := $(VU_PROGS) $(EE_OBJS)
 

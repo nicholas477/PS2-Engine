@@ -58,10 +58,10 @@ public:
 	}
 
 	// Accessors.
-	ElementType& operator->() const
+	ElementType* operator->() const
 	{
 		checkSlow(this->CurrentLink);
-		return **(this->CurrentLink);
+		return *(this->CurrentLink);
 	}
 
 	ElementType& operator*() const
@@ -83,10 +83,10 @@ public:
 	}
 
 	// Accessors.
-	ElementType& operator->() const
+	ElementType* operator->() const
 	{
 		check(this->CurrentLink);
-		return *(this->CurrentLink);
+		return this->CurrentLink;
 	}
 
 	ElementType& operator*() const
@@ -343,12 +343,45 @@ private:
 template <class ElementType>
 class TIntrusiveLinkedList: public TLinkedListBase<ElementType, ElementType, TIntrusiveLinkedListIterator>
 {
-	typedef TLinkedListBase<ElementType, ElementType, TIntrusiveLinkedListIterator> Super;
+	using Super = TLinkedListBase<ElementType, ElementType, TIntrusiveLinkedListIterator>;
 
 public:
-	/** Default constructor (empty list). */
-	TIntrusiveLinkedList()
+	/** Default constructor (static list). */
+	TIntrusiveLinkedList(bool AddToList = true)
 	    : Super()
 	{
+		if (AddToList)
+		{
+			if (head == nullptr)
+			{
+				head = static_cast<ElementType*>(this);
+			}
+			else
+			{
+				Super::LinkHead(head);
+			}
+		}
 	}
+
+	~TIntrusiveLinkedList()
+	{
+		if (head == this)
+		{
+			head = Super::Next();
+		}
+
+		this->Unlink();
+	}
+
+	static TIntrusiveLinkedListIterator<ElementType, ElementType> Itr()
+	{
+		return TIntrusiveLinkedListIterator<ElementType, ElementType>(head);
+	}
+
+	static TIntrusiveLinkedListIterator<ElementType, const ElementType> ConstItr()
+	{
+		return TIntrusiveLinkedListIterator<ElementType, const ElementType>(head);
+	}
+
+	inline static ElementType* head;
 };

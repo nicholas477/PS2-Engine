@@ -64,7 +64,8 @@
         "compare": "cpp",
         "concepts": "cpp",
         "numbers": "cpp",
-        "forward_list": "cpp"
+        "forward_list": "cpp",
+        "list": "cpp"
     },
     "C_Cpp.default.configurationProvider": "ms-vscode.makefile-tools"
 }
