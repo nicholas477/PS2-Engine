@@ -2,7 +2,7 @@
 
 #include "math3d.h"
 #include "tamtypes.h"
-#include "types.hpp"
+#include "egg/math_types.hpp"
 #include "tick.hpp"
 #include "objects/components/transform_component.hpp"
 

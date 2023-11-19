@@ -1,25 +1,25 @@
 #pragma once
 
-#include "types.hpp"
+#include "egg/math_types.hpp"
 
 #include <GL/gl.h>
 
 // Pushes a matrix onto the matrix stack using glPushMatrix, pops the matrix
 // when it goes out of scope
-struct scoped_matrix
+struct ScopedMatrix
 {
-	scoped_matrix()
+	ScopedMatrix()
 	{
 		glPushMatrix();
 	}
 
-	scoped_matrix(const Matrix& matrix)
+	ScopedMatrix(const Matrix& matrix)
 	{
 		glPushMatrix();
 		glLoadMatrixf(matrix);
 	}
 
-	~scoped_matrix()
+	~ScopedMatrix()
 	{
 		glPopMatrix();
 	}

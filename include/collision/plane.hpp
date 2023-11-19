@@ -1,7 +1,7 @@
 #pragma once
 
 #include "assert.hpp"
-#include "types.hpp"
+#include "egg/math_types.hpp"
 
 // Represents an infinite plane that bisects 3d space.
 struct Plane: public Vector

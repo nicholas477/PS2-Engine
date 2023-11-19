@@ -1,6 +1,6 @@
 #pragma once
 #include "tick.hpp"
-#include "types.hpp"
+#include "egg/math_types.hpp"
 
 class movement: public tickable
 {

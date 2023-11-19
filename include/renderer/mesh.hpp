@@ -1,43 +1,43 @@
 #pragma once
 
-#include <string>
+#include <utils/filesystem.hpp>
+#include "egg/math_types.hpp"
+#include <vector>
 
-#include <GL/gl.h>
+// struct ps2glMeshHeader
+// {
+// 	int nStrips;
+// };
 
-struct ps2glMeshHeader
-{
-	int nStrips;
-};
+// struct ps2glStripHeader
+// {
+// 	int nVertices;
+// 	int nNormals;
+// 	int nUVs;
+// 	int nRGBAs;
+// };
 
-struct ps2glStripHeader
-{
-	int nVertices;
-	int nNormals;
-	int nUVs;
-	int nRGBAs;
-};
+// struct ps2glMeshVertex
+// {
+// 	float x;
+// 	float y;
+// 	float z;
+// };
 
-struct ps2glMeshVertex
-{
-	float x;
-	float y;
-	float z;
-};
+// struct ps2glMeshNormal
+// {
+// 	float nx;
+// 	float ny;
+// 	float nz;
+// };
 
-struct ps2glMeshNormal
-{
-	float nx;
-	float ny;
-	float nz;
-};
-
-struct ps2glMeshRGBA
-{
-	float r;
-	float g;
-	float b;
-	float a;
-};
+// struct ps2glMeshRGBA
+// {
+// 	float r;
+// 	float g;
+// 	float b;
+// 	float a;
+// };
 
 struct ps2glMeshUV
 {
@@ -45,13 +45,18 @@ struct ps2glMeshUV
 	float v;
 };
 
-class mesh
+class Mesh
 {
 public:
-	mesh();
+	Mesh();
 
-	mesh(const std::string& path);
+	Mesh(const Filesystem::Path& path);
 
-protected:
-	GLint list;
+	int list;
+	class MeshFileHeader* mesh;
+
+	void compile();
+	void draw();
+
+	bool is_valid() const { return list >= 0; }
 };

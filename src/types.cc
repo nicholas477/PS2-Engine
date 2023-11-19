@@ -1,4 +1,4 @@
-#include "types.hpp"
+#include "egg/math_types.hpp"
 
 #include <sstream>
 

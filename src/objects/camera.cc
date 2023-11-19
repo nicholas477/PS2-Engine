@@ -1,7 +1,7 @@
 #include <stdio.h>
 
 #include "objects/camera.hpp"
-#include "types.hpp"
+#include "egg/math_types.hpp"
 #include "input.hpp"
 
 #include "utils/rendering.hpp"

@@ -2,6 +2,7 @@
 #include "objects/teapot_mesh.inc"
 #include "utils/rendering.hpp"
 #include "utils/packet.hpp"
+#include "renderer/mesh.hpp"
 #include <malloc.h>
 #include <stdio.h>
 
@@ -28,26 +29,30 @@ public:
 
 	void on_gs_init()
 	{
+		teapot_mesh = Mesh("/assets/models/kettle.ps2_model"_p);
+		teapot_mesh.compile();
 	}
 
 	void render(const gs::gs_state& gs_state, const transform_component& transform)
 	{
 		const Matrix local_world = Matrix::from_location_and_rotation(transform.get_location(), transform.get_rotation());
 
-		scoped_matrix sm(local_world * gs_state.world_view);
+		ScopedMatrix sm(local_world * gs_state.world_view);
 
 		static float ps2_diffuse[] = {1.0f, 1.0f, 1.0f, 1.0f};
 		static float black[]       = {0, 0, 0, 0};
 		glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, ps2_diffuse);
 		glMaterialfv(GL_FRONT, GL_EMISSION, black);
 
-		glBegin(GL_TRIANGLES); // Drawing Using Triangles
-		for (int i = 0; i < faces_count; ++i)
-		{
-			glVertex3fv(vertices[faces[i]]);
-			glNormal3f(0, 1, 0);
-		}
-		glEnd(); // Finished Drawing The Triangle
+		teapot_mesh.draw();
+
+		// glBegin(GL_TRIANGLES); // Drawing Using Triangles
+		// for (int i = 0; i < faces_count; ++i)
+		// {
+		// 	glVertex3fv(vertices[faces[i]]);
+		// 	glNormal3f(0, 1, 0);
+		// }
+		// glEnd(); // Finished Drawing The Triangle
 	}
 
 	AABB get_bounds() const
@@ -61,21 +66,23 @@ protected:
 	AABB compute_bounds() const
 	{
 		AABB out;
-		out.Min = vertices[0];
-		out.Max = vertices[0];
-		for (int i = 0; i < vertex_count; ++i)
-		{
-			out.Min.x = std::min(out.Min.x, vertices[i][0]);
-			out.Min.y = std::min(out.Min.y, vertices[i][1]);
-			out.Min.z = std::min(out.Min.z, vertices[i][2]);
+		// out.Min = vertices[0];
+		// out.Max = vertices[0];
+		// for (int i = 0; i < vertex_count; ++i)
+		// {
+		// 	out.Min.x = std::min(out.Min.x, vertices[i][0]);
+		// 	out.Min.y = std::min(out.Min.y, vertices[i][1]);
+		// 	out.Min.z = std::min(out.Min.z, vertices[i][2]);
 
-			out.Max.x = std::max(out.Max.x, vertices[i][0]);
-			out.Max.y = std::max(out.Max.y, vertices[i][1]);
-			out.Max.z = std::max(out.Max.z, vertices[i][2]);
-		}
+		// 	out.Max.x = std::max(out.Max.x, vertices[i][0]);
+		// 	out.Max.y = std::max(out.Max.y, vertices[i][1]);
+		// 	out.Max.z = std::max(out.Max.z, vertices[i][2]);
+		// }
 
 		return out;
 	}
+
+	Mesh teapot_mesh;
 } _teapot_render_proxy;
 
 static class teapot_render_proxy_initializer: public renderable

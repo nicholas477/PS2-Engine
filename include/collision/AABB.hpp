@@ -1,7 +1,7 @@
 #pragma once
 
 #include "assert.hpp"
-#include "types.hpp"
+#include "egg/math_types.hpp"
 #include "collision/plane.hpp"
 
 #include <array>

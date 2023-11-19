@@ -18,7 +18,7 @@ namespace sound
 void init()
 {
 	{
-		int ret = SifLoadModule("cdrom0:\\AUDSRV.IRX", 0, nullptr);
+		int ret = SifLoadModule("AUDSRV.IRX"_p.c_str(), 0, nullptr);
 		printf("ret: %d\n", ret);
 		check(ret >= 0);
 	}
@@ -34,7 +34,7 @@ void init()
 
 	printf("loading audiofile...\n");
 	std::vector<std::byte> audio_data;
-	if (filesystem::load_file("assets/sounds/vine_boom.adpcm", audio_data))
+	if (Filesystem::load_file("/assets/sounds/vine_boom.adpcm"_p, audio_data))
 	{
 		printf("loaded file! nice!\n");
 	}

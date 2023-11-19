@@ -1,6 +1,6 @@
 #include "objects/movement.hpp"
 #include "input.hpp"
-#include "types.hpp"
+#include "egg/math_types.hpp"
 #include "objects/components/transform_component.hpp"
 #include "objects/components/collision_component.hpp"
 #include "generic_math.hpp"

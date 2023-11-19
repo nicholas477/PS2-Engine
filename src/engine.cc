@@ -6,6 +6,8 @@
 #include "objects/teapot.hpp"
 #include "sound/sound.hpp"
 #include "stats.hpp"
+#include "net/net.hpp"
+#include "utils/filesystem.hpp"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -45,6 +47,8 @@ void init()
 
 	stats::init();
 	input::init();
+	Filesystem::set_filesystem_type(Filesystem::Type::cdrom);
+	net::init();
 	sound::init();
 	gs::init();
 
