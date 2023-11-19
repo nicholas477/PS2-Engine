@@ -5,6 +5,7 @@
 #include <iterator>
 #include <egg/math_types.hpp>
 #include <cstddef>
+#include <algorithm>
 #include "types.hpp"
 
 #include <cxxopts.hpp>
@@ -15,9 +16,6 @@
 #include "meshoptimizer.h"
 
 const size_t kCacheSize = 16;
-
-static std::string input_path;
-static std::string output_path;
 
 static Mesh parseObj(const char* path)
 {
@@ -72,8 +70,6 @@ static Mesh parseObj(const char* path)
 	}
 
 	fast_obj_destroy(obj);
-
-	//reindex = timestamp();
 
 	Mesh result;
 
@@ -196,16 +192,6 @@ static std::vector<unsigned int> stripify(const Mesh& mesh, bool use_restart, ch
 	assert(isMeshValid(copy));
 	assert(hashMesh(mesh) == hashMesh(copy));
 
-	meshopt_VertexCacheStatistics vcs       = meshopt_analyzeVertexCache(&copy.indices[0], mesh.indices.size(), mesh.vertices.size(), kCacheSize, 0, 0);
-	meshopt_VertexCacheStatistics vcs_nv    = meshopt_analyzeVertexCache(&copy.indices[0], mesh.indices.size(), mesh.vertices.size(), 32, 32, 32);
-	meshopt_VertexCacheStatistics vcs_amd   = meshopt_analyzeVertexCache(&copy.indices[0], mesh.indices.size(), mesh.vertices.size(), 14, 64, 128);
-	meshopt_VertexCacheStatistics vcs_intel = meshopt_analyzeVertexCache(&copy.indices[0], mesh.indices.size(), mesh.vertices.size(), 128, 0, 0);
-
-	printf("Stripify%c: ACMR %f ATVR %f (NV %f AMD %f Intel %f); %d strip indices (%.1f%%)\n",
-	       desc,
-	       vcs.acmr, vcs.atvr, vcs_nv.atvr, vcs_amd.atvr, vcs_intel.atvr,
-	       int(strip.size()), double(strip.size()) / double(mesh.indices.size()) * 100);
-
 	return strip;
 }
 
@@ -287,6 +273,10 @@ static std::vector<std::byte> serialize_mesh(const std::vector<Vector>& position
 	return out;
 }
 
+static std::string input_path;
+static std::string output_path;
+static bool write_output = true;
+
 static void process()
 {
 	printf("Processing model file: %s\n", input_path.c_str());
@@ -297,16 +287,18 @@ static void process()
 
 	printf("Num verts (before stripping): %lu, num tris: %lu\n", mesh.vertices.size(), mesh.indices.size() / 3);
 
-	Mesh copy = mesh;
-	meshopt_optimizeVertexCache(&copy.indices[0], &copy.indices[0], copy.indices.size(), copy.vertices.size());
-	meshopt_optimizeVertexFetch(&copy.vertices[0], &copy.indices[0], copy.indices.size(), &copy.vertices[0], copy.vertices.size(), sizeof(Vertex));
+	// Mesh copy = mesh;
+	// meshopt_optimizeVertexCache(&copy.indices[0], &copy.indices[0], copy.indices.size(), copy.vertices.size());
+	// meshopt_optimizeVertexFetch(&copy.vertices[0], &copy.indices[0], copy.indices.size(), &copy.vertices[0], copy.vertices.size(), sizeof(Vertex));
 
-	Mesh copystrip = mesh;
-	meshopt_optimizeVertexCacheStrip(&copystrip.indices[0], &copystrip.indices[0], copystrip.indices.size(), copystrip.vertices.size());
-	meshopt_optimizeVertexFetch(&copystrip.vertices[0], &copystrip.indices[0], copystrip.indices.size(), &copystrip.vertices[0], copystrip.vertices.size(), sizeof(Vertex));
+	// Mesh copystrip = mesh;
+	// meshopt_optimizeVertexCacheStrip(&copystrip.indices[0], &copystrip.indices[0], copystrip.indices.size(), copystrip.vertices.size());
+	// meshopt_optimizeVertexFetch(&copystrip.vertices[0], &copystrip.indices[0], copystrip.indices.size(), &copystrip.vertices[0], copystrip.vertices.size(), sizeof(Vertex));
 
 	// Stripify it
-	std::vector<unsigned int> strip = stripify(copystrip, false, 'S');
+	std::vector<unsigned int> strip = stripify(mesh, false, 'S');
+
+	int strips = 1;
 
 	std::vector<Vector> positions;
 	std::vector<Vector> normals;
@@ -316,25 +308,41 @@ static void process()
 	normals.reserve(strip.size());
 	texture_coords.reserve(strip.size());
 
+	std::reverse(strip.begin(), strip.end());
+
+	constexpr unsigned int restart_index = ~0u;
 	for (unsigned int index : strip)
 	{
-		const Vertex& vertex = mesh.vertices[index];
+		//printf("Index: %u\n", index);
+		if (index == restart_index)
+		{
+			strips++;
+		}
+		else
+		{
+			const Vertex& vertex = mesh.vertices[index];
 
-		positions.emplace_back(vertex.px, vertex.py, vertex.pz);
-		normals.emplace_back(vertex.nx, vertex.ny, vertex.nz);
-		texture_coords.emplace_back(vertex.tx, vertex.ty);
+			positions.emplace_back(vertex.px, vertex.py, vertex.pz);
+			normals.emplace_back(vertex.nx, vertex.ny, vertex.nz);
+			texture_coords.emplace_back(vertex.tx, vertex.ty);
+		}
 	}
+
+	printf("strips: %d\n", strips);
 
 	printf("Num verts (after stripping): %lu, num tris: %lu\n", positions.size(), positions.size() - 2);
 
 	std::vector<std::byte> mesh_data = serialize_mesh(positions, normals, texture_coords);
 
-	printf("Writing out file: %s\n", output_path.c_str());
+	if (write_output)
+	{
+		printf("Writing out file: %s\n", output_path.c_str());
 
-	std::ofstream fout;
-	fout.open(output_path, std::ios::binary | std::ios::out);
-	fout.write((const char*)mesh_data.data(), mesh_data.size());
-	fout.close();
+		std::ofstream fout;
+		fout.open(output_path, std::ios::binary | std::ios::out);
+		fout.write((const char*)mesh_data.data(), mesh_data.size());
+		fout.close();
+	}
 }
 
 static void parse_args(int argc, char** argv)
@@ -344,6 +352,7 @@ static void parse_args(int argc, char** argv)
 
 	options.add_options()("i,input", "path to the input obj mesh", cxxopts::value<std::string>());
 	options.add_options()("o,output", "output path for the mesh", cxxopts::value<std::string>());
+	options.add_options()("null", "null output, don't write file", cxxopts::value<bool>()->default_value("false"));
 	options.add_options()("h,help", "print usage", cxxopts::value<bool>());
 
 	options.parse_positional({"input", "output"});
@@ -368,6 +377,11 @@ static void parse_args(int argc, char** argv)
 	}
 
 	input_path = result["input"].as<std::string>();
+
+	if (result["null"].as<bool>())
+	{
+		write_output = false;
+	}
 
 	if (result["output"].count())
 	{

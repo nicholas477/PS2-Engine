@@ -93,20 +93,20 @@ bool load_file(const Path& path, std::vector<std::byte>& out_bytes)
 	return false;
 }
 
-bool load_file(const Path& path, std::unique_ptr<std::byte[]>& out_bytes, size_t alignment)
+bool load_file(const Path& path, std::unique_ptr<std::byte[]>& out_bytes, size_t& size, size_t alignment)
 {
 	std::ifstream file(path, std::ios::binary);
 	if (file.is_open() && file.good())
 	{
 		// Read the file size
 		file.seekg(0, std::ios::end);
-		const size_t file_size = file.tellg();
-		out_bytes              = std::unique_ptr<std::byte[]>(new (std::align_val_t(alignment)) std::byte[file_size]);
+		size      = file.tellg();
+		out_bytes = std::unique_ptr<std::byte[]>(new (std::align_val_t(alignment)) std::byte[size]);
 
 		// Seek back to the beginning
 		file.seekg(0, std::ios::beg);
 
-		file.read((char*)out_bytes.get(), file_size);
+		file.read((char*)out_bytes.get(), size);
 		return true;
 	}
 

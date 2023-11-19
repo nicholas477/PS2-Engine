@@ -82,7 +82,7 @@ struct Path
 
 // Returns true if the file was loaded succesfully
 bool load_file(const Path& path, std::vector<std::byte>& out_bytes);
-bool load_file(const Path& path, std::unique_ptr<std::byte[]>& out_bytes, size_t alignment = 1);
+bool load_file(const Path& path, std::unique_ptr<std::byte[]>& out_bytes, size_t& size, size_t alignment = 1);
 
 } // namespace Filesystem
 

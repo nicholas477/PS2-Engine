@@ -105,6 +105,7 @@ static void init_renderer()
 	glClearDepth(1.0f);                   // Depth Buffer Setup
 	glEnable(GL_DEPTH_TEST);              // Enables Depth Testing
 	glEnable(GL_RESCALE_NORMAL);
+	glEnable(GL_CULL_FACE);
 	glDepthFunc(GL_LEQUAL); // The Type Of Depth Testing To Do
 	glEnable(GL_COLOR_MATERIAL);
 	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
@@ -170,9 +171,9 @@ initGsMemory()
 
 	// create gs memory area objects to use for frame and depth buffers
 	pgl_area_handle_t frame_area_0, frame_area_1, depth_area;
-	frame_area_0 = pglCreateGsMemArea(640, 224, GS::kPsm24);
-	frame_area_1 = pglCreateGsMemArea(640, 224, GS::kPsm24);
-	depth_area   = pglCreateGsMemArea(640, 224, GS::kPsmz24);
+	frame_area_0 = pglCreateGsMemArea(screen_width, screen_height / 2, GS::kPsm24);
+	frame_area_1 = pglCreateGsMemArea(screen_width, screen_height / 2, GS::kPsm24);
+	depth_area   = pglCreateGsMemArea(screen_width, screen_height / 2, GS::kPsmz24);
 	// bind the areas to the slots we created above
 	pglBindGsMemAreaToSlot(frame_area_0, frame_slot_0);
 	pglBindGsMemAreaToSlot(frame_area_1, frame_slot_1);
@@ -226,7 +227,7 @@ void init()
 		*GIF::Registers::ctrl = 1;
 
 		//      sceGsResetGraph(0, SCE_GS_INTERLACE, SCE_GS_NTSC, SCE_GS_FRAME);
-		SetGsCrt(0 /* non-interlaced */, 2 /* ntsc */, 1 /* frame */);
+		SetGsCrt(1 /* non-interlaced */, 2 /* ntsc */, 1 /* frame */);
 
 		mWarn("ps2gl library has not been initialized by the user; using default values.");
 		int immBufferVertexSize = 64 * 1024;

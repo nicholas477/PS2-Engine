@@ -55,10 +55,9 @@ $(OUTPUT_DIR)/$(VU_OUTPUT_DIR)/%.vsm:
 	$(PS2_VCLPP) $(VCL_PATH)/$*.vcl $(dir $@)$*.pp.vcl -j
 	$(PS2_VCL) -o$@ $(dir $@)$*.pp.vcl
 
-clean:
+clean: cleaniso
 	rm -f $(EE_BIN)
 	rm -rf $(OUTPUT_DIR)
-	rm -rf $(ISO_TGT)
 
 run: $(EE_BIN)
 	ps2client -h $(PS2HOST) execee host:$(ISO_FOLDER_DIR)/$(EE_BIN)

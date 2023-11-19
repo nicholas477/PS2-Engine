@@ -32,7 +32,6 @@ models: $(MODEL_FILES)
 
 .PHONY: ISO_ASSETS
 ISO_ASSETS: $(ISO_FOLDER_DIR)/SYSTEM.CNF copy_libs $(ISO_FOLDER_DIR)/assets models
-	@echo -e ${GREEN}COPYING ISO ASSETS${NC}
 
 GREEN='\033[0;32m'
 NC='\033[0m'
@@ -42,3 +41,8 @@ $(ISO_TGT): ISO_ASSETS $(EE_BIN)
 	cp $(EE_BIN) $(ISO_FOLDER_DIR)/$(EE_BIN)
 	@echo -e ${GREEN}PACKAGING ISO${NC}
 	mkisofs -l -o $(ISO_TGT) $(ISO_FOLDER_DIR)
+
+.PHONY: cleaniso
+cleaniso:
+	rm -rf $(ISO_FOLDER_DIR)
+	rm -rf $(ISO_TGT)
