@@ -8,6 +8,7 @@
 #include "stats.hpp"
 #include "net/net.hpp"
 #include "utils/filesystem.hpp"
+#include "threading.hpp"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -34,20 +35,26 @@ static u32 frameCounter = 0;
 
 void init()
 {
+	Filesystem::set_filesystem_type(Filesystem::Type::host);
+
 	SifInitRpc(0);
-	SifLoadFileInit();
-	SifInitIopHeap();
+	//SifLoadFileInit();
+	//SifInitIopHeap();
 
 	check(SifLoadModule("rom0:LIBSD", 0, NULL) > 0);
-	check(SifLoadModule("rom0:CDVDMAN", 0, NULL) > 0);
-	check(SifLoadModule("rom0:CDVDFSV", 0, NULL) > 0);
 
-	sceCdInit(SCECdINIT);
-	sceCdMmode(SCECdPS2DVD);
+	if (Filesystem::get_filesystem_type() == Filesystem::Type::cdrom)
+	{
+		check(SifLoadModule("rom0:CDVDMAN", 0, NULL) > 0);
+		check(SifLoadModule("rom0:CDVDFSV", 0, NULL) > 0);
+
+		sceCdInit(SCECdINIT);
+		sceCdMmode(SCECdPS2DVD);
+	}
 
 	stats::init();
 	input::init();
-	Filesystem::set_filesystem_type(Filesystem::Type::cdrom);
+	Filesystem::run_tests();
 	net::init();
 	sound::init();
 	gs::init();
@@ -96,15 +103,19 @@ void run()
 
 			input::read_inputs();
 
+			Threading::switch_thread();
+
 			tick(tickrate);
+
+			Threading::switch_thread();
 
 			gs::render();
 		}
 
-		if (input::get_paddata() & PAD_SELECT)
-		{
-			return;
-		}
+		// if (input::get_paddata() & PAD_SELECT)
+		// {
+		// 	return;
+		// }
 
 		if (input::get_paddata() & PAD_START)
 		{

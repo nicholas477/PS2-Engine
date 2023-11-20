@@ -4,34 +4,52 @@ $(ISO_FOLDER_DIR):
 $(ISO_FOLDER_DIR)/SYSTEM.CNF: $(ISO_FOLDER_DIR)
 	cp SYSTEM.CNF $@
 
-$(ISO_FOLDER_DIR)/audsrv.irx: $(ISO_FOLDER_DIR)
+$(ISO_FOLDER_DIR)/AUDSRV.IRX: $(ISO_FOLDER_DIR)
 	cp $(PS2SDK)/iop/irx/audsrv.irx $@
 
-$(ISO_FOLDER_DIR)/libsd.irx: $(ISO_FOLDER_DIR)
+$(ISO_FOLDER_DIR)/LIBSD.IRX: $(ISO_FOLDER_DIR)
 	cp $(PS2SDK)/iop/irx/libsd.irx $@
 
-$(ISO_FOLDER_DIR)/ps2snd.irx: $(ISO_FOLDER_DIR)
+$(ISO_FOLDER_DIR)/PS2SND.IRX: $(ISO_FOLDER_DIR)
 	cp $(PS2SDK)/iop/irx/ps2snd.irx $@
 
-.PHONY: copy_libs
-copy_libs: $(ISO_FOLDER_DIR)/audsrv.irx $(ISO_FOLDER_DIR)/libsd.irx $(ISO_FOLDER_DIR)/ps2snd.irx
+$(ISO_FOLDER_DIR)/ps2client.exe: $(ISO_FOLDER_DIR)
+	cp assets/ps2client.exe $@
 
-$(ISO_FOLDER_DIR)/assets: $(ISO_FOLDER_DIR)
-	cp -r assets/ $(ISO_FOLDER_DIR)/
+.PHONY: copy_libs
+copy_libs: $(ISO_FOLDER_DIR)/AUDSRV.IRX $(ISO_FOLDER_DIR)/LIBSD.IRX $(ISO_FOLDER_DIR)/PS2SND.IRX $(ISO_FOLDER_DIR)/ps2client.exe
+
+# Sound files
+AUDIO_FILE_TYPE = wav
+SOUND_INPUT_FILES = $(wildcard assets/*.$(AUDIO_FILE_TYPE)) $(wildcard assets/**/*.wav)
+SOUND_ISO_FILES = $(SOUND_INPUT_FILES:%.wav=$(ISO_FOLDER_DIR)/%.$(AUDIO_FILE_TYPE))
+$(SOUND_ISO_FILES): $(ISO_FOLDER_DIR)/assets/%.$(AUDIO_FILE_TYPE): assets/%.wav
+	$(MKDIR) -p $(dir $@)
+#	adpenc $< $@
+	cp $< $@
+
+.PHONY: sounds
+sounds: $(SOUND_ISO_FILES)
 
 # Model compilation
-MODEL_SRC_FILES = $(shell find assets/ -name "*.obj")
-MODEL_FILES := $(patsubst %.obj, $(ISO_FOLDER_DIR)/%.ps2_model, $(MODEL_SRC_FILES))
+MODEL_CC = egg-ps2-mesh-converter
+MODEL_SRC_FILES = $(wildcard assets/*.obj) $(wildcard assets/**/*.obj)
+MODEL_FILES := $(MODEL_SRC_FILES:%.obj=$(ISO_FOLDER_DIR)/%.ps2_model)
 
-$(MODEL_FILES): $(MODEL_SRC_FILES)
+$(MODEL_FILES): $(ISO_FOLDER_DIR)/assets/%.ps2_model: assets/%.obj
 	$(MKDIR) -p $(dir $@)
-	egg-ps2-mesh-converter $< $@
+	$(MODEL_CC) $< $@
+
+debug:
+	@echo working directory: ${PWD}
+	@echo .obj input files: $(MODEL_SRC_FILES)
+	@echo .ps2_model files: $(MODEL_FILES)
 
 .PHONY: models
 models: $(MODEL_FILES)
 
 .PHONY: ISO_ASSETS
-ISO_ASSETS: $(ISO_FOLDER_DIR)/SYSTEM.CNF copy_libs $(ISO_FOLDER_DIR)/assets models
+ISO_ASSETS: $(ISO_FOLDER_DIR)/SYSTEM.CNF copy_libs $(SOUND_ISO_FILES) models
 
 GREEN='\033[0;32m'
 NC='\033[0m'

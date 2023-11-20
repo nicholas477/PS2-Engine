@@ -251,16 +251,6 @@ static void draw_objects(const gs_state& gs_state)
 	{
 		Itr->render(gs_state);
 	}
-
-	// for (renderable* _renderable : get_transient_renderables())
-	// {
-	// 	_renderable->render(gs_state);
-	// }
-
-	// for (std::function<void(const gs::gs_state&)>& func : get_renderable_funcs())
-	// {
-	// 	func(gs_state);
-	// }
 }
 
 static void clear_drawables()

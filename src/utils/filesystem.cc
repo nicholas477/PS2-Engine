@@ -30,10 +30,13 @@ template <Type type>
 static std::string convert_filepath_to_systempath_impl(std::string_view path)
 {
 	size_t host_string_length = constexpr_strlen(get_filesystem_prefix(type)) + 1; // + 1 for the filesystem separator
-	host_string_length += path.length() + 1;
-	char out_path_chars[host_string_length];
-	//memset(out_path_chars, 0, host_string_length);
-	snprintf(out_path_chars, host_string_length, "%s%c%.*s",
+	host_string_length += path.length();
+
+	check(host_string_length <= 255);
+
+	static char out_path_chars[256];
+
+	snprintf(out_path_chars, host_string_length + 1, "%s%c%.*s",
 	         get_filesystem_prefix(type), get_filesystem_separator(type), path.length(), path.data());
 
 	for (size_t i = 0; i < host_string_length; ++i)
@@ -48,7 +51,11 @@ static std::string convert_filepath_to_systempath_impl(std::string_view path)
 			{
 				out_path_chars[i] = '_';
 			}
-			out_path_chars[i] = toupper(out_path_chars[i]);
+
+			if (get_filesystem_type() == Type::cdrom)
+			{
+				out_path_chars[i] = toupper(out_path_chars[i]);
+			}
 		}
 	}
 
@@ -111,5 +118,28 @@ bool load_file(const Path& path, std::unique_ptr<std::byte[]>& out_bytes, size_t
 	}
 
 	return false;
+}
+
+void run_tests()
+{
+	switch (get_filesystem_type())
+	{
+		case Type::cdrom: {
+			const std::string converted_path           = convert_filepath_to_systempath_impl<Type::cdrom>("audsrv.irx");
+			constexpr std::string_view expected_string = "cdrom0:\\AUDSRV.IRX";
+			if (converted_path != expected_string)
+			{
+				printf("Filesystem check failed!\n");
+				printf("Input string: %s\n", "audsrv.irx");
+				printf("Converted string: %s\n", converted_path.c_str());
+				printf("Expected string: %s\n", expected_string.data());
+				check(false);
+			}
+			break;
+		}
+
+		default:
+			break;
+	}
 }
 } // namespace Filesystem

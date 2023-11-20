@@ -1,12 +1,11 @@
 #include <kernel.h>
+#include <stdio.h>
 
 #include "exception_handler.hpp"
 #include "engine.hpp"
 
 int main(int argc, char* argv[])
 {
-	//install_exception_handler();
-
 	engine::init();
 
 	engine::run();

@@ -1,7 +1,5 @@
 #include "objects/teapot.hpp"
-#include "objects/teapot_mesh.inc"
 #include "utils/rendering.hpp"
-#include "utils/packet.hpp"
 #include "renderer/mesh.hpp"
 #include <malloc.h>
 #include <stdio.h>
@@ -17,9 +15,6 @@
 #include <GL/gl.h> // The GL Header File
 #include <dma.h>
 
-/** Data of our texture (24bit, RGB8) */
-extern unsigned char zbyszek[];
-
 static class teapot_render_proxy
 {
 public:
@@ -29,8 +24,7 @@ public:
 
 	void on_gs_init()
 	{
-		teapot_mesh = Mesh("/assets/models/kettle.ps2_model"_p);
-		teapot_mesh.compile();
+		teapot_mesh = &Mesh::loaded_meshes["/assets/models/kettle.ps2_model"_p];
 	}
 
 	void render(const gs::gs_state& gs_state, const transform_component& transform)
@@ -44,15 +38,7 @@ public:
 		glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, ps2_diffuse);
 		glMaterialfv(GL_FRONT, GL_EMISSION, black);
 
-		teapot_mesh.draw();
-
-		// glBegin(GL_TRIANGLES); // Drawing Using Triangles
-		// for (int i = 0; i < faces_count; ++i)
-		// {
-		// 	glVertex3fv(vertices[faces[i]]);
-		// 	glNormal3f(0, 1, 0);
-		// }
-		// glEnd(); // Finished Drawing The Triangle
+		teapot_mesh->draw();
 	}
 
 	AABB get_bounds() const
@@ -82,7 +68,7 @@ protected:
 		return out;
 	}
 
-	Mesh teapot_mesh;
+	Mesh* teapot_mesh;
 } _teapot_render_proxy;
 
 static class teapot_render_proxy_initializer: public renderable

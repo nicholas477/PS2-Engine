@@ -8,6 +8,7 @@
 
 namespace Filesystem
 {
+struct Path;
 enum class Type {
 	cdrom,
 	host,
@@ -16,6 +17,8 @@ enum class Type {
 
 Type get_filesystem_type();
 void set_filesystem_type(Type new_type);
+
+void run_tests();
 
 static constexpr const char* get_filesystem_prefix(Type in_filesystem_type = get_filesystem_type())
 {
@@ -48,6 +51,39 @@ static constexpr char get_filesystem_separator(Type in_filesystem_type = get_fil
 
 std::string convert_filepath_to_systempath(std::string_view path, Type in_filesystem_type = get_filesystem_type());
 
+template <Type type>
+static constexpr const char* constexpr_convert_filepath_to_systempath(std::string_view path)
+{
+	size_t host_string_length = std::char_traits<char>::length(get_filesystem_prefix(type)) + 1; // + 1 for the filesystem separator
+	host_string_length += path.length() + 1;
+	char* out_path_chars = new char[host_string_length];
+
+	snprintf(out_path_chars, host_string_length, "%s%c%.*s",
+	         get_filesystem_prefix(type), get_filesystem_separator(type), path.length(), path.data());
+
+	for (size_t i = 0; i < host_string_length; ++i)
+	{
+		if (out_path_chars[i] == '\\' || out_path_chars[i] == '/')
+		{
+			out_path_chars[i] = get_filesystem_separator(type);
+		}
+		else if (i > std::char_traits<char>::length(get_filesystem_prefix(type)))
+		{
+			if (out_path_chars[i] == '-')
+			{
+				out_path_chars[i] = '_';
+			}
+			out_path_chars[i] = toupper(out_path_chars[i]);
+		}
+	}
+
+	return out_path_chars;
+}
+
+// Returns true if the file was loaded succesfully
+bool load_file(const Path& path, std::vector<std::byte>& out_bytes);
+bool load_file(const Path& path, std::unique_ptr<std::byte[]>& out_bytes, size_t& size, size_t alignment = 1);
+
 struct Path
 {
 	Path(const std::string& in_path, bool convert_path = true)
@@ -78,11 +114,12 @@ struct Path
 	}
 
 	std::string _path_str;
-};
 
-// Returns true if the file was loaded succesfully
-bool load_file(const Path& path, std::vector<std::byte>& out_bytes);
-bool load_file(const Path& path, std::unique_ptr<std::byte[]>& out_bytes, size_t& size, size_t alignment = 1);
+	bool operator==(const Path& other) const
+	{
+		return _path_str == other._path_str;
+	}
+};
 
 } // namespace Filesystem
 
@@ -93,3 +130,12 @@ static Filesystem::Path operator""_p(const char* p, std::size_t)
 {
 	return Filesystem::Path(p);
 }
+
+template <>
+struct std::hash<Filesystem::Path>
+{
+	std::size_t operator()(const Filesystem::Path& k) const
+	{
+		return std::hash<std::string>()(k._path_str);
+	}
+};

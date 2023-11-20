@@ -7,7 +7,7 @@ EE_OBJS := $(patsubst %.cpp, build/%.o, $(EE_OBJS))
 EE_INCS := -I$(PS2SDK)/ports/include -Iinclude $(EE_INCS)
 EE_LDFLAGS  += -L$(PS2SDK)/ports/lib
 EE_LIBS = -ldraw -lgraph -lmath3d -lpacket -ldma -lpad -lc -lstdc++ -lgs -ldebug -leedebug -lpacket2 -laudsrv -lcdvd -lxcdvd -lps2gl -lps2stuff
-EE_OPTFLAGS = -O3 -g -std=gnu++20
+EE_OPTFLAGS = -O3 -std=gnu++20
 EE_CFLAGS += -DNO_VU0_VECTORS -DNO_ASM
 EE_CXXFLAGS += -DNO_VU0_VECTORS -DNO_ASM
 EE_WARNFLAGS = -Wall -Wno-unused-function -Wno-unused-variable -Wno-strict-aliasing -Wno-conversion-null 
@@ -42,6 +42,15 @@ EE_OBJS := $(VU_PROGS) $(EE_OBJS)
 
 include src/Makefile.iso
 
+.PHONY: compile cleancompile
+compile: $(EE_BIN)
+
+cleancompile:
+	rm -f $(EE_BIN)
+	rm -rf $(OUTPUT_DIR)
+
+clean: cleaniso cleancompile
+
 all: $(ISO_TGT)
 
 #
@@ -55,12 +64,8 @@ $(OUTPUT_DIR)/$(VU_OUTPUT_DIR)/%.vsm:
 	$(PS2_VCLPP) $(VCL_PATH)/$*.vcl $(dir $@)$*.pp.vcl -j
 	$(PS2_VCL) -o$@ $(dir $@)$*.pp.vcl
 
-clean: cleaniso
-	rm -f $(EE_BIN)
-	rm -rf $(OUTPUT_DIR)
-
 run: $(EE_BIN)
-	ps2client -h $(PS2HOST) execee host:$(ISO_FOLDER_DIR)/$(EE_BIN)
+	ps2client -h $(PS2HOST) execee host:$(EE_BIN)
 
 reset:
 	ps2client -h $(PS2HOST) reset
