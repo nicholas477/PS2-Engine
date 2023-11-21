@@ -26,7 +26,7 @@ static bool song_loaded  = false;
 static int chunkReadStatus;
 static const u16 chunkSize = 4 * 1024;
 static char chunk[chunkSize];
-static std::ifstream song_file;
+//static std::ifstream song_file;
 
 static void audioThread();
 
@@ -164,8 +164,8 @@ void init()
 
 static void work_song()
 {
-	if (!song_playing || !song_file.is_open())
-		return;
+	// if (!song_playing || !song_file.is_open())
+	// 	return;
 
 	// if (songFinished)
 	// {
@@ -191,8 +191,8 @@ static void work_song()
 		// 	songListeners[i]->listener->onAudioTick();
 	}
 
-	song_file.read(chunk, chunkSize);
-	chunkReadStatus = song_file.gcount();
+	//song_file.read(chunk, chunkSize);
+	//chunkReadStatus = song_file.gcount();
 
 	if (chunkReadStatus < (s32)chunkSize)
 		song_playing = false;

@@ -32,26 +32,26 @@ static void draw_rejected_hit(const collision_component* collision_component, co
 	color.a         = 255.f;
 	const AABB aabb = collision_component->get_local_bounds().transform(end_location);
 
-	draw_aabb_one_frame(aabb, color);
+	//draw_aabb_one_frame(aabb, color);
 }
 
 bool movement::try_move(const Vector& location, Vector& out_sweep_stop)
 {
-	if (collision_component == nullptr)
-	{
-		// No collision component, don't need to sweep
-		return true;
-	}
+	// if (collision_component == nullptr)
+	// {
+	// 	// No collision component, don't need to sweep
+	// 	return true;
+	// }
 
-	const Matrix start_location = updated_location_component->get_matrix();
-	const Matrix end_location   = Matrix::from_location_and_rotation(location, Vector::quat_identity);
+	// const Matrix start_location = updated_location_component->get_matrix();
+	// const Matrix end_location   = Matrix::from_location_and_rotation(location, Vector::quat_identity);
 
-	hit_result hit = collideable::sweep_collision(*collision_component, start_location, end_location);
-	if (hit.hit)
-	{
-		out_sweep_stop = hit.sweep_location;
-		return false;
-	}
+	// hit_result hit = collideable::sweep_collision(*collision_component, start_location, end_location);
+	// if (hit.hit)
+	// {
+	// 	out_sweep_stop = hit.sweep_location;
+	// 	return false;
+	// }
 	return true;
 }
 

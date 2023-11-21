@@ -24,7 +24,9 @@ public:
 
 	void on_gs_init()
 	{
-		teapot_mesh = &Mesh::loaded_meshes["/assets/models/kettle.ps2_model"_p];
+		teapot_mesh = new Mesh("/assets/models/kettle.ps2_model"_p); //&Mesh::loaded_meshes["/assets/models/kettle.ps2_model"_p];
+		                                                             //teapot_mesh = nullptr;
+		teapot_mesh->compile();
 	}
 
 	void render(const gs::gs_state& gs_state, const transform_component& transform)
@@ -75,7 +77,6 @@ static class teapot_render_proxy_initializer: public renderable
 {
 public:
 	teapot_render_proxy_initializer()
-	    : renderable(true)
 	{
 	}
 
