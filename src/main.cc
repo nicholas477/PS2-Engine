@@ -19,25 +19,6 @@
 
 int main(int argc, char* argv[])
 {
-	init_scr();
-
-	// SifExitIopHeap();
-	// SifLoadFileExit();
-	// SifExitRpc();
-
-	// SifInitRpc(0);
-	// // while (!SifIopReset("rom0:UDNL cdrom:\\IOPRP300.IMG", 0))
-	// while (!SifIopReset("", 0))
-	// 	;
-	// while (!SifIopSync())
-	// 	;
-	// SifInitRpc(0);
-	// SifLoadFileInit();
-	// SifInitIopHeap();
-
-	scr_printf("hello!!!!!!!!!!!!!!!\n");
-	printf("Hello to you too!!!!\n");
-
 	engine::init();
 
 	engine::run();

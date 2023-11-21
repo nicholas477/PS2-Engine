@@ -119,10 +119,10 @@ static void init_renderer()
 
 	init_lights();
 
-	// for (renderable::TIterator Itr = renderable::Itr(); Itr; ++Itr)
-	// {
-	// 	Itr->on_gs_init();
-	// }
+	for (renderable::TIterator Itr = renderable::Itr(); Itr; ++Itr)
+	{
+		Itr->on_gs_init();
+	}
 }
 
 static void

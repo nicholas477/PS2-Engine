@@ -82,7 +82,8 @@ public:
 
 	virtual void on_gs_init() override
 	{
-		_teapot_render_proxy.on_gs_init();
+		//_teapot_render_proxy.on_gs_init();
+		static Mesh* teapot_mesh = new Mesh("/assets/models/kettle.ps2_model"_p);
 	}
 
 } _teapot_render_proxy_initializer;

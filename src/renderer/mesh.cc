@@ -41,8 +41,9 @@ Mesh::Mesh()
 Mesh::Mesh(const Filesystem::Path& in_path)
     : Mesh()
 {
-	path = in_path;
-	check(Filesystem::load_file(in_path, mesh_bytes, mesh_size, 16));
+	path                 = in_path;
+	const char* path_str = in_path.c_str();
+	checkf(Filesystem::load_file(in_path, mesh_bytes, mesh_size, 16), path_str);
 	mesh = reinterpret_cast<MeshFileHeader*>(mesh_bytes.get());
 }
 

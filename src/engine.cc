@@ -130,6 +130,7 @@ void run()
 
 		if (input::get_paddata() & PAD_SELECT)
 		{
+			exit(0);
 			return;
 		}
 

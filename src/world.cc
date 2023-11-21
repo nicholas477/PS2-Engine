@@ -23,30 +23,30 @@ namespace world
 void init()
 {
 	// Other mesh
-	static struct other_mesh: public renderable
-	{
-	public:
-		virtual void on_gs_init() override
-		{
-			//mesh = &Mesh::loaded_meshes["/assets/models/shopping_cart.ps2_model"_p];
-		}
-		virtual void render(const gs::gs_state& gs_state) override
-		{
-			const Matrix local_world = Matrix::from_location_and_rotation(transform.get_location(), transform.get_rotation());
+	// static struct other_mesh: public renderable
+	// {
+	// public:
+	// 	virtual void on_gs_init() override
+	// 	{
+	// 		//mesh = &Mesh::loaded_meshes["/assets/models/shopping_cart.ps2_model"_p];
+	// 	}
+	// 	virtual void render(const gs::gs_state& gs_state) override
+	// 	{
+	// 		const Matrix local_world = Matrix::from_location_and_rotation(transform.get_location(), transform.get_rotation());
 
-			ScopedMatrix sm(local_world * gs_state.world_view);
+	// 		ScopedMatrix sm(local_world * gs_state.world_view);
 
-			static float ps2_diffuse[] = {1.0f, 1.0f, 1.0f, 1.0f};
-			static float black[]       = {0, 0, 0, 0};
-			//glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, ps2_diffuse);
-			//glMaterialfv(GL_FRONT, GL_EMISSION, black);
+	// 		static float ps2_diffuse[] = {1.0f, 1.0f, 1.0f, 1.0f};
+	// 		static float black[]       = {0, 0, 0, 0};
+	// 		//glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, ps2_diffuse);
+	// 		//glMaterialfv(GL_FRONT, GL_EMISSION, black);
 
-			//mesh->draw();
-		}
-		transform_component transform;
-		Mesh* mesh;
-	} other_mesh;
-	other_mesh.transform.set_location(Vector(100.f, 20.f));
+	// 		//mesh->draw();
+	// 	}
+	// 	transform_component transform;
+	// 	Mesh* mesh;
+	// } other_mesh;
+	// other_mesh.transform.set_location(Vector(100.f, 20.f));
 
 	// Player teapot
 	static teapot teapot4;
