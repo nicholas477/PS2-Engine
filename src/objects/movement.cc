@@ -3,7 +3,7 @@
 #include "egg/math_types.hpp"
 #include "objects/components/transform_component.hpp"
 #include "objects/components/collision_component.hpp"
-#include "generic_math.hpp"
+#include "egg/generic_math.hpp"
 #include "utils/rendering.hpp"
 
 #include "stats.hpp"
@@ -221,6 +221,9 @@ void third_person_movement::calculate_movement_input(float delta_time)
 	{
 		new_location = updated_location_component->get_location() + damperv_exponential(velocity, velocity_target, normal_acceleration, delta_time) * delta_time;
 	}
+
+	updated_location_component->set_location(new_location);
+	return;
 
 	Vector sweep_stop;
 	if (try_move(new_location, sweep_stop))

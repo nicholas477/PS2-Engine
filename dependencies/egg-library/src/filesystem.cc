@@ -1,4 +1,4 @@
-#include "utils/filesystem.hpp"
+#include "egg/filesystem.hpp"
 
 #include <cstdio>
 #include <stdio.h>
@@ -6,11 +6,11 @@
 #include <fstream>
 #include <memory>
 
-#include "assert.hpp"
+#include "egg/assert.hpp"
 
 namespace Filesystem
 {
-static Type _filesystem_type;
+static Type _filesystem_type = Type::uninitialized;
 Type get_filesystem_type()
 {
 	return _filesystem_type;

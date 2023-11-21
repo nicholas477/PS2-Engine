@@ -1,10 +1,10 @@
 #include "sound/sound.hpp"
 #include "threading.hpp"
-#include "utils/filesystem.hpp"
+#include "egg/filesystem.hpp"
 #include "tick.hpp"
 #include "input.hpp"
 
-#include "assert.hpp"
+#include "egg/assert.hpp"
 
 
 #include <kernel.h>
@@ -96,11 +96,11 @@ void init()
 
 	//audsrv_play_audio
 
-	song_file = std::ifstream("/assets/sounds/white_waking.wav"_p.c_str());
-	song_file.seekg(0x30);
-	song_playing = true;
+	//song_file = std::ifstream("/assets/sounds/white_waking.wav"_p.c_str());
+	//song_file.seekg(0x30);
+	//song_playing = true;
 
-	create_audio_thread();
+	//create_audio_thread();
 
 
 	//std::vector<std::byte> audio_data;

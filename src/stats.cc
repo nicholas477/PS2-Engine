@@ -32,7 +32,7 @@ void print_timer_stats()
 			u32 elapsed_time_ms_f = elapsed_time % 1000;
 
 
-			printf("%-30s %3d.%.3d, (%f fps)\n", lookup_stat_timer_name(i), elapsed_time_ms_i, elapsed_time_ms_f, (1000.f * 1000.f) / (float)elapsed_time);
+			printf("%-30s %3d.%.3dms, (%f fps)\n", lookup_stat_timer_name(i), elapsed_time_ms_i, elapsed_time_ms_f, (1000.f * 1000.f) / (float)elapsed_time);
 		}
 	}
 	printf("----- end timer stats ------\n");

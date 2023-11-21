@@ -1,11 +1,11 @@
 #include "renderer/mesh.hpp"
 #include "renderer/renderable.hpp"
 
-#include "utils/filesystem.hpp"
+#include "egg/filesystem.hpp"
 #include <egg/mesh_header.hpp>
 #include <GL/gl.h>
 #include <GL/ps2gl.h>
-#include <assert.hpp>
+#include <egg/assert.hpp>
 
 std::unordered_map<Filesystem::Path, Mesh> Mesh::loaded_meshes;
 static GLint num_lists = 0;
@@ -16,13 +16,12 @@ public:
 	MeshLoader()
 	    : renderable(true)
 	{
-		//Mesh::loaded_meshes["/assets/models/kettle.ps2_model"_p]        = Mesh("/assets/models/kettle.ps2_model"_p);
-		//Mesh::loaded_meshes["/assets/models/shopping_cart.ps2_model"_p] = Mesh("/assets/models/shopping_cart.ps2_model"_p);
 	}
 
 	virtual void on_gs_init() override
 	{
 		Mesh::loaded_meshes["/assets/models/kettle.ps2_model"_p] = Mesh("/assets/models/kettle.ps2_model"_p);
+		//Mesh::loaded_meshes["/assets/models/shopping_cart.ps2_model"_p] = Mesh("/assets/models/shopping_cart.ps2_model"_p);
 
 		for (auto& [path, mesh] : Mesh::loaded_meshes)
 		{
@@ -39,10 +38,11 @@ Mesh::Mesh()
 	mesh_size  = 0;
 }
 
-Mesh::Mesh(const Filesystem::Path& path)
+Mesh::Mesh(const Filesystem::Path& in_path)
     : Mesh()
 {
-	check(Filesystem::load_file(path, mesh_bytes, mesh_size, 16));
+	path = in_path;
+	check(Filesystem::load_file(in_path, mesh_bytes, mesh_size, 16));
 	mesh = reinterpret_cast<MeshFileHeader*>(mesh_bytes.get());
 }
 
@@ -51,18 +51,24 @@ void Mesh::compile()
 	check(!is_valid());
 	check(mesh != nullptr);
 
-	printf("Compiling mesh, size in bytes: %d\n", mesh_size);
+	printf("Compiling mesh %s, size in bytes: %d\n", path.c_str(), mesh_size);
 
 	list = num_lists++;
+	printf("New mesh draw list: %d\n", list);
+
 	check(num_lists <= 4096);
 	glNewList(list, GL_COMPILE);
 	{
 		glCullFace(GL_BACK);
 		//glFrontFace(GL_CCW);
 
+		check((uintptr_t)mesh->pos.get_ptr() % 16 == 0);
+		check((uintptr_t)mesh->nrm.get_ptr() % 16 == 0);
+		check((uintptr_t)mesh->uvs.get_ptr() % 16 == 0);
+
 		glVertexPointer(4, GL_FLOAT, 0, mesh->pos.get_ptr());
 		pglNormalPointer(4, GL_FLOAT, 0, mesh->nrm.get_ptr());
-		glTexCoordPointer(2, GL_FLOAT, 0, mesh->uvs.get_ptr());
+		//glTexCoordPointer(2, GL_FLOAT, 0, mesh->uvs.get_ptr());
 
 		int i = 0;
 		for (const MeshTriangleStripHeader& strip : mesh->strips)
@@ -74,6 +80,8 @@ void Mesh::compile()
 
 			++i;
 		}
+
+		//glFlush();
 	}
 	glEndList();
 }

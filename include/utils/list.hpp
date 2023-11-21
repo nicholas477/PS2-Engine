@@ -1,6 +1,6 @@
 #pragma once
 
-#include "assert.hpp"
+#include "egg/assert.hpp"
 
 template <class ContainerType>
 class TLinkedListIteratorBase

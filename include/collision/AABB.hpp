@@ -1,6 +1,6 @@
 #pragma once
 
-#include "assert.hpp"
+#include "egg/assert.hpp"
 #include "egg/math_types.hpp"
 #include "collision/plane.hpp"
 

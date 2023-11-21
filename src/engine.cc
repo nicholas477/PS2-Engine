@@ -7,7 +7,7 @@
 #include "sound/sound.hpp"
 #include "stats.hpp"
 #include "net/net.hpp"
-#include "utils/filesystem.hpp"
+#include "egg/filesystem.hpp"
 #include "threading.hpp"
 
 #include <stdio.h>
@@ -35,11 +35,11 @@ static u32 frameCounter = 0;
 
 void init()
 {
-	Filesystem::set_filesystem_type(Filesystem::Type::host);
+	Filesystem::set_filesystem_type(Filesystem::Type::cdrom);
 
 	SifInitRpc(0);
-	//SifLoadFileInit();
-	//SifInitIopHeap();
+	SifLoadFileInit();
+	SifInitIopHeap();
 
 	check(SifLoadModule("rom0:LIBSD", 0, NULL) > 0);
 
@@ -54,9 +54,9 @@ void init()
 
 	stats::init();
 	input::init();
-	Filesystem::run_tests();
-	net::init();
-	sound::init();
+	//Filesystem::run_tests();
+	//net::init();
+	//sound::init();
 	gs::init();
 
 	printf("Graph mode (region): ");
@@ -103,19 +103,19 @@ void run()
 
 			input::read_inputs();
 
-			Threading::switch_thread();
+			//Threading::switch_thread();
 
 			tick(tickrate);
 
-			Threading::switch_thread();
+			//Threading::switch_thread();
 
 			gs::render();
 		}
 
-		// if (input::get_paddata() & PAD_SELECT)
-		// {
-		// 	return;
-		// }
+		if (input::get_paddata() & PAD_SELECT)
+		{
+			return;
+		}
 
 		if (input::get_paddata() & PAD_START)
 		{

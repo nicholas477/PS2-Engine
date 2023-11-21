@@ -1,5 +1,6 @@
 #pragma once
 
+#include "assert.hpp"
 #include <cstddef>
 #include <vector>
 #include <string>
@@ -10,6 +11,8 @@ namespace Filesystem
 {
 struct Path;
 enum class Type {
+	uninitialized = 0, // default value, if any filesystem functions are run
+	                   // before initialization then it will crash
 	cdrom,
 	host,
 	rom
@@ -30,6 +33,10 @@ static constexpr const char* get_filesystem_prefix(Type in_filesystem_type = get
 			return "host0:";
 		case Type::rom:
 			return "rom0:";
+
+		case Type::uninitialized:
+			check(false);
+			break;
 	}
 
 	return 0;
@@ -44,6 +51,10 @@ static constexpr char get_filesystem_separator(Type in_filesystem_type = get_fil
 		case Type::host:
 		case Type::rom:
 			return '/';
+
+		case Type::uninitialized:
+			check(false);
+			break;
 	}
 
 	return '\0';
@@ -86,6 +97,8 @@ bool load_file(const Path& path, std::unique_ptr<std::byte[]>& out_bytes, size_t
 
 struct Path
 {
+	Path() = default;
+
 	Path(const std::string& in_path, bool convert_path = true)
 	{
 		if (convert_path)

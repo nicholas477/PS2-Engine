@@ -6,7 +6,7 @@ EE_OBJS := $(patsubst %.c, build/%.o, $(EE_OBJS))
 EE_OBJS := $(patsubst %.cpp, build/%.o, $(EE_OBJS))
 EE_INCS := -I$(PS2SDK)/ports/include -Iinclude $(EE_INCS)
 EE_LDFLAGS  += -L$(PS2SDK)/ports/lib
-EE_LIBS = -ldraw -lgraph -lmath3d -lpacket -ldma -lpad -lc -lstdc++ -lgs -ldebug -leedebug -lpacket2 -laudsrv -lcdvd -lxcdvd -lps2gl -lps2stuff
+EE_LIBS = -ldraw -lgraph -lmath3d -lpacket -ldma -lpad -lc -lstdc++ -lgs -ldebug -leedebug -lpacket2 -laudsrv -lcdvd -lxcdvd -lps2gl -lps2stuff -legg
 EE_OPTFLAGS = -O3 -std=gnu++20
 EE_CFLAGS += -DNO_VU0_VECTORS -DNO_ASM
 EE_CXXFLAGS += -DNO_VU0_VECTORS -DNO_ASM

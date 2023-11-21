@@ -11,9 +11,8 @@ enum class scoped_timers : u8 {
 	frame = 0,
 	tick,
 	tick_movement,
-	render,
-	render_vsync_wait,
 	draw,
+	render_vsync_wait,
 
 	MAX = 32
 };
@@ -21,12 +20,13 @@ template <typename T>
 using stats_array_t = std::array<T, static_cast<size_t>(stats::scoped_timers::MAX)>;
 
 static constexpr stats_array_t<std::pair<scoped_timers, const char*>> scoped_timers_names =
-    {{{scoped_timers::frame, "frame"},
-      {scoped_timers::tick, "tick"},
-      {scoped_timers::tick_movement, "tick movement"},
-      {scoped_timers::render, "render"},
-      {scoped_timers::render_vsync_wait, "render vsync wait"},
-      {scoped_timers::draw, "draw"}}};
+    {{
+        {scoped_timers::frame, "frame"},
+        {scoped_timers::tick, "tick"},
+        {scoped_timers::tick_movement, "tick movement"},
+        {scoped_timers::draw, "render/draw"},
+        {scoped_timers::render_vsync_wait, "vsync wait (idle time)"},
+    }};
 
 static constexpr const char* lookup_stat_timer_name(scoped_timers timer)
 {

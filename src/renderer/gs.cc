@@ -2,7 +2,7 @@
 #include "renderer/gs.hpp"
 #include "renderer/renderable.hpp"
 #include "stats.hpp"
-#include "assert.hpp"
+#include "egg/assert.hpp"
 
 /* libc */
 #include <stdio.h>
@@ -56,19 +56,19 @@ static void init_lights()
 
 	glEnable(GL_LIGHTING);
 	glEnable(GL_LIGHT0);
-	glEnable(GL_LIGHT1);
+	//glEnable(GL_LIGHT1);
 
 	glLightfv(GL_LIGHT0, GL_AMBIENT, ambient);
 	glLightfv(GL_LIGHT0, GL_DIFFUSE, l0_diffuse);
 	glLightfv(GL_LIGHT0, GL_SPECULAR, l0_diffuse);
 
-	glLightfv(GL_LIGHT1, GL_AMBIENT, black);
-	glLightfv(GL_LIGHT1, GL_DIFFUSE, l1_diffuse);
-	glLightfv(GL_LIGHT1, GL_SPECULAR, black);
+	// glLightfv(GL_LIGHT1, GL_AMBIENT, black);
+	// glLightfv(GL_LIGHT1, GL_DIFFUSE, l1_diffuse);
+	// glLightfv(GL_LIGHT1, GL_SPECULAR, black);
 
-	glLightf(GL_LIGHT1, GL_CONSTANT_ATTENUATION, 0.0f);
-	glLightf(GL_LIGHT1, GL_LINEAR_ATTENUATION, 0.005f);
-	glLightf(GL_LIGHT1, GL_QUADRATIC_ATTENUATION, 0.0f);
+	// glLightf(GL_LIGHT1, GL_CONSTANT_ATTENUATION, 0.0f);
+	// glLightf(GL_LIGHT1, GL_LINEAR_ATTENUATION, 0.005f);
+	// glLightf(GL_LIGHT1, GL_QUADRATIC_ATTENUATION, 0.0f);
 }
 
 static void set_light_positions()
@@ -77,7 +77,7 @@ static void set_light_positions()
 	GLfloat l1_position[] = {0.0, -20.0, -80.0, 1.0};
 
 	glLightfv(GL_LIGHT0, GL_POSITION, l0_position);
-	glLightfv(GL_LIGHT1, GL_POSITION, l1_position);
+	//glLightfv(GL_LIGHT1, GL_POSITION, l1_position);
 }
 
 //-----------------------------------------------------------------------------
@@ -174,6 +174,7 @@ initGsMemory()
 	frame_area_0 = pglCreateGsMemArea(screen_width, screen_height / 2, GS::kPsm24);
 	frame_area_1 = pglCreateGsMemArea(screen_width, screen_height / 2, GS::kPsm24);
 	depth_area   = pglCreateGsMemArea(screen_width, screen_height / 2, GS::kPsmz24);
+
 	// bind the areas to the slots we created above
 	pglBindGsMemAreaToSlot(frame_area_0, frame_slot_0);
 	pglBindGsMemAreaToSlot(frame_area_1, frame_slot_1);
@@ -187,25 +188,25 @@ initGsMemory()
 	// 32 bit
 
 	// a slot for fonts (probably)
-	pglAddGsMemSlot(210, 2, GS::kPsm8);
+	// pglAddGsMemSlot(210, 2, GS::kPsm8);
 
-	// 64x32
-	pglAddGsMemSlot(212, 1, GS::kPsm32);
-	pglAddGsMemSlot(213, 1, GS::kPsm32);
-	// 64x64
-	pglAddGsMemSlot(214, 2, GS::kPsm32);
-	pglAddGsMemSlot(216, 2, GS::kPsm32);
-	pglAddGsMemSlot(218, 2, GS::kPsm32);
-	pglAddGsMemSlot(220, 2, GS::kPsm32);
-	// 128x128
-	pglAddGsMemSlot(222, 8, GS::kPsm32);
-	pglAddGsMemSlot(230, 8, GS::kPsm32);
-	// 256x256
-	pglAddGsMemSlot(238, 32, GS::kPsm32);
-	pglAddGsMemSlot(270, 32, GS::kPsm32);
-	// 512x256
-	pglAddGsMemSlot(302, 64, GS::kPsm32);
-	pglAddGsMemSlot(366, 64, GS::kPsm32);
+	// // 64x32
+	// pglAddGsMemSlot(212, 1, GS::kPsm32);
+	// pglAddGsMemSlot(213, 1, GS::kPsm32);
+	// // 64x64
+	// pglAddGsMemSlot(214, 2, GS::kPsm32);
+	// pglAddGsMemSlot(216, 2, GS::kPsm32);
+	// pglAddGsMemSlot(218, 2, GS::kPsm32);
+	// pglAddGsMemSlot(220, 2, GS::kPsm32);
+	// // 128x128
+	// pglAddGsMemSlot(222, 8, GS::kPsm32);
+	// pglAddGsMemSlot(230, 8, GS::kPsm32);
+	// // 256x256
+	// pglAddGsMemSlot(238, 32, GS::kPsm32);
+	// pglAddGsMemSlot(270, 32, GS::kPsm32);
+	// // 512x256
+	// pglAddGsMemSlot(302, 64, GS::kPsm32);
+	// pglAddGsMemSlot(366, 64, GS::kPsm32);
 
 	pglPrintGsMemAllocation();
 }
@@ -261,8 +262,6 @@ static void clear_drawables()
 
 static int gs_render()
 {
-	stats::scoped_timer render_timer(stats::scoped_timers::render);
-
 	static bool firstTime = true;
 	{
 		stats::scoped_timer draw_timer(stats::scoped_timers::draw);
@@ -273,7 +272,7 @@ static int gs_render()
 
 		glMatrixMode(GL_PROJECTION); // Select The Projection Matrix
 		glLoadIdentity();
-		gluPerspective(camera::get().fov, (GLfloat)screen_width / (GLfloat)screen_height, 1.0f, 2000.0f);
+		gluPerspective(camera::get().fov, (GLfloat)screen_width / (GLfloat)screen_height, 1.0f, 200000.0f);
 
 		glMatrixMode(GL_MODELVIEW);
 		glLoadMatrixf(_gs_state.world_view);

@@ -48,17 +48,20 @@ debug:
 .PHONY: models
 models: $(MODEL_FILES)
 
-.PHONY: ISO_ASSETS
-ISO_ASSETS: $(ISO_FOLDER_DIR)/SYSTEM.CNF copy_libs $(SOUND_ISO_FILES) models
+.PHONY: isoassets
+isoassets: $(ISO_FOLDER_DIR)/SYSTEM.CNF copy_libs $(SOUND_ISO_FILES) models
 
 GREEN='\033[0;32m'
 NC='\033[0m'
 
-$(ISO_TGT): ISO_ASSETS $(EE_BIN)
+$(ISO_TGT): isoassets $(EE_BIN)
 	$(MKDIR) -p $(ISO_FOLDER_DIR)
 	cp $(EE_BIN) $(ISO_FOLDER_DIR)/$(EE_BIN)
 	@echo -e ${GREEN}PACKAGING ISO${NC}
 	mkisofs -l -o $(ISO_TGT) $(ISO_FOLDER_DIR)
+
+.PHONY: iso
+iso: $(ISO_TGT)
 
 .PHONY: cleaniso
 cleaniso:

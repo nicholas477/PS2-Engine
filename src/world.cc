@@ -1,3 +1,4 @@
+#include "input.hpp"
 #include "world.hpp"
 #include "renderer/mesh.hpp"
 #include "objects/teapot.hpp"
@@ -28,7 +29,6 @@ void init()
 		virtual void on_gs_init() override
 		{
 			//mesh = &Mesh::loaded_meshes["/assets/models/shopping_cart.ps2_model"_p];
-			mesh = nullptr;
 		}
 		virtual void render(const gs::gs_state& gs_state) override
 		{
@@ -38,8 +38,8 @@ void init()
 
 			static float ps2_diffuse[] = {1.0f, 1.0f, 1.0f, 1.0f};
 			static float black[]       = {0, 0, 0, 0};
-			glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, ps2_diffuse);
-			glMaterialfv(GL_FRONT, GL_EMISSION, black);
+			//glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, ps2_diffuse);
+			//glMaterialfv(GL_FRONT, GL_EMISSION, black);
 
 			//mesh->draw();
 		}

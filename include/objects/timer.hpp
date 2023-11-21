@@ -3,7 +3,7 @@
 #include <functional>
 #include <memory>
 
-#include "assert.hpp"
+#include "egg/assert.hpp"
 #include "engine.hpp"
 #include "tick.hpp"
 
