@@ -23,7 +23,7 @@ public:
 
 	bool is_valid() const { return list >= 0; }
 
-	static std::unordered_map<Filesystem::Path, Mesh> loaded_meshes;
+	//static std::unordered_map<Filesystem::Path, Mesh> loaded_meshes;
 
 	// for debug
 	Filesystem::Path path;

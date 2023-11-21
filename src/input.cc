@@ -42,13 +42,6 @@ loadModules(void)
 {
 	int ret;
 
-	ret = SifLoadModule("rom0:SIO2MAN", 0, NULL);
-	if (ret < 0)
-	{
-		printf("sifLoadModule sio failed: %d\n", ret);
-		SleepThread();
-	}
-
 	ret = SifLoadModule("rom0:PADMAN", 0, NULL);
 	if (ret < 0)
 	{

@@ -125,37 +125,6 @@ static void init_renderer()
 	}
 }
 
-std::vector<renderable*>& get_transient_renderables()
-{
-	static std::vector<renderable*> transient_renderables;
-	return transient_renderables;
-}
-
-void add_renderable_one_frame(renderable* renderable)
-{
-	get_transient_renderables().push_back(renderable);
-}
-
-static std::vector<std::function<void(const gs::gs_state&)>> make_renderable_funcs()
-{
-	std::vector<std::function<void(const gs::gs_state&)>> renderable_funcs;
-	renderable_funcs.reserve(256);
-	return renderable_funcs;
-}
-
-std::vector<std::function<void(const gs::gs_state&)>>& get_renderable_funcs()
-{
-	static std::vector<std::function<void(const gs::gs_state&)>> renderable_funcs = make_renderable_funcs();
-	return renderable_funcs;
-}
-
-void add_renderable_one_frame(std::function<void(const gs::gs_state&)> func)
-{
-	check(get_renderable_funcs().size() < 256);
-
-	get_renderable_funcs().push_back(func);
-}
-
 static void
 initGsMemory()
 {
@@ -254,12 +223,6 @@ static void draw_objects(const gs_state& gs_state)
 	}
 }
 
-static void clear_drawables()
-{
-	get_transient_renderables().clear();
-	get_renderable_funcs().clear();
-}
-
 static int gs_render()
 {
 	static bool firstTime = true;
@@ -304,8 +267,6 @@ static int gs_render()
 
 	pglSwapBuffers();
 	pglRenderGeometry();
-
-	clear_drawables();
 
 	return 0;
 }

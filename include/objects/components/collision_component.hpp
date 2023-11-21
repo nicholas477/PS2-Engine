@@ -15,52 +15,22 @@ struct hit_result
 	class collideable* hit_collideable = nullptr;
 };
 
-class collideable: public TIntrusiveLinkedList<collideable>
+class collideable //: public TIntrusiveLinkedList<collideable>
 {
 public:
 	virtual AABB get_world_bounds() const = 0;
 	virtual AABB get_local_bounds() const = 0;
 
-	virtual ~collideable()
-	{
-		if (head == this)
-		{
-			head = Next();
-		}
-
-		this->Unlink();
-	};
-
-	static collideable::TIterator Itr()
-	{
-		return collideable::TIterator(head);
-	}
-
-	static collideable::TConstIterator ConstItr()
-	{
-		return collideable::TConstIterator(head);
-	}
-
 	static hit_result sweep_collision(const collideable& collideable, const Matrix& sweep_start, const Matrix& sweep_end);
 
-protected:
-	collideable()
-	{
-		if (head == nullptr)
-		{
-			head = this;
-		}
-		else
-		{
-			LinkHead(head);
-		}
-	}
-
-private:
-	static collideable* head;
+	// protected:
+	// 	collideable()
+	// 	    : TIntrusiveLinkedList<collideable>(true)
+	// 	{
+	// 	}
 };
 
-class collision_component: public collideable
+class collision_component //: public collideable
 {
 public:
 	collision_component() = default;

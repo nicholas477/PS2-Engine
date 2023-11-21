@@ -9,8 +9,6 @@
 #include <functional>
 #include <array>
 
-class renderable;
-
 namespace gs
 {
 struct gs_state
@@ -27,8 +25,4 @@ struct gs_state
 void init();
 void render();
 void clear_screen();
-
-// Adds a renderable to a list that is drawn and cleared out every frame
-void add_renderable_one_frame(renderable* renderable);
-void add_renderable_one_frame(std::function<void(const gs::gs_state&)> func);
 } // namespace gs
