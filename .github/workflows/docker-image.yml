@@ -15,14 +15,28 @@ jobs:
     - uses: actions/checkout@v3
     - name: Get dependencies
       run: |
-        apk add build-base git
+        apk add build-base git cmake
         
     - name: Install ps2stuff
       run: |
-        git clone https://github.com/ps2dev/ps2stuff.git
-        cd ps2stuff && make clean all install
+        git clone https://github.com/ps2dev/ps2stuff.git dependencies/ps2stuff
+        cd dependencies/ps2stuff && make clean all install
 
     - name: Install ps2gl
       run: |
-        git clone https://github.com/ps2dev/ps2gl.git
-        cd ps2gl && make clean all install
+        git clone https://github.com/ps2dev/ps2gl.git dependencies/ps2gl
+        cd dependencies/ps2gl && make clean all install
+
+    - name: Install meshoptimizer
+      run: |
+        git clone https://github.com/zeux/meshoptimizer.git dependencies/meshoptimizer
+        cd dependencies/meshoptimizer
+        mkdir -p build
+        cd build
+        cmake ..
+        make clean all install
+
+    - name: Compile egg-library
+      run: |
+        cd dependencies/egg-library
+        make clean all install
