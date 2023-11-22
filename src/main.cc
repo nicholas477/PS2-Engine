@@ -12,10 +12,7 @@
 #include <sbv_patches.h>
 #include <libcdvd-common.h>
 
-//#include "exception_handler.hpp"
 #include "engine.hpp"
-
-//DISABLE_PATCHED_FUNCTIONS();
 
 int main(int argc, char* argv[])
 {

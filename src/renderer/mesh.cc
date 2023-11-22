@@ -41,9 +41,8 @@ Mesh::Mesh()
 Mesh::Mesh(const Filesystem::Path& in_path)
     : Mesh()
 {
-	path                 = in_path;
-	const char* path_str = in_path.c_str();
-	checkf(Filesystem::load_file(in_path, mesh_bytes, mesh_size, 16), path_str);
+	path = in_path;
+	checkf(Filesystem::load_file(in_path, mesh_bytes, mesh_size, 16), in_path.c_str());
 	mesh = reinterpret_cast<MeshFileHeader*>(mesh_bytes.get());
 }
 
@@ -82,7 +81,7 @@ void Mesh::compile()
 			++i;
 		}
 
-		//glFlush();
+		glFlush();
 	}
 	glEndList();
 }

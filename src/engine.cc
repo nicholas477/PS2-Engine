@@ -102,10 +102,10 @@ static void tick(float deltaTime)
 {
 	stats::scoped_timer tick_timer(stats::scoped_timers::tick);
 
-	// for (auto itr = tickable::Itr(); itr; ++itr)
-	// {
-	// 	itr->tick(deltaTime);
-	// }
+	for (auto itr = tickable::Itr(); itr; ++itr)
+	{
+		itr->tick(deltaTime);
+	}
 	frameCounter++;
 	game_time += deltaTime;
 }
@@ -119,11 +119,11 @@ void run()
 
 			input::read_inputs();
 
-			//Threading::switch_thread();
+			Threading::switch_thread();
 
 			tick(tickrate);
 
-			//Threading::switch_thread();
+			Threading::switch_thread();
 
 			gs::render();
 		}

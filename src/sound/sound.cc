@@ -26,7 +26,7 @@ static bool song_loaded  = false;
 static int chunkReadStatus;
 static const u16 chunkSize = 4 * 1024;
 static char chunk[chunkSize];
-//static std::ifstream song_file;
+static std::ifstream song_file;
 
 static void audioThread();
 
@@ -94,13 +94,13 @@ void init()
 		}
 	}
 
-	//audsrv_play_audio
+	song_file = std::ifstream("/assets/sounds/white_wa.wav"_p.c_str());
+	check(song_file.is_open());
+	song_file.seekg(0x30);
+	chunkReadStatus = 0;
+	song_playing    = true;
 
-	//song_file = std::ifstream("/assets/sounds/white_waking.wav"_p.c_str());
-	//song_file.seekg(0x30);
-	//song_playing = true;
-
-	//create_audio_thread();
+	create_audio_thread();
 
 
 	//std::vector<std::byte> audio_data;
@@ -164,23 +164,10 @@ void init()
 
 static void work_song()
 {
-	// if (!song_playing || !song_file.is_open())
-	// 	return;
+	printf("work_song()");
 
-	// if (songFinished)
-	// {
-	// 	if (inLoop)
-	// 	{
-	// 		for (u32 i = 0; i < getListenersCount(); i++)
-	// 			songListeners[i]->listener->onAudioFinish();
-	// 		rewindSongToStart();
-	// 	}
-	// 	else
-	// 	{
-	// 		stop();
-	// 		return;
-	// 	}
-	// }
+	if (!song_playing || !song_file.is_open())
+		return;
 
 	if (chunkReadStatus > 0)
 	{
@@ -191,8 +178,9 @@ static void work_song()
 		// 	songListeners[i]->listener->onAudioTick();
 	}
 
-	//song_file.read(chunk, chunkSize);
-	//chunkReadStatus = song_file.gcount();
+
+	song_file.read(chunk, chunkSize);
+	chunkReadStatus = song_file.gcount();
 
 	if (chunkReadStatus < (s32)chunkSize)
 		song_playing = false;
@@ -211,6 +199,7 @@ static void audioThread()
 {
 	while (true)
 	{
+		printf("hello from sound thread!\n");
 		sound::work();
 	}
 }

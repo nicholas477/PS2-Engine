@@ -217,10 +217,10 @@ void init()
 
 static void draw_objects(const gs_state& gs_state)
 {
-	// for (renderable::TIterator Itr = renderable::Itr(); Itr; ++Itr)
-	// {
-	// 	Itr->render(gs_state);
-	// }
+	for (renderable::TIterator Itr = renderable::Itr(); Itr; ++Itr)
+	{
+		Itr->render(gs_state);
+	}
 }
 
 static int gs_render()

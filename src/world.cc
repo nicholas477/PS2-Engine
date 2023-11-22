@@ -28,7 +28,7 @@ void init()
 	// public:
 	// 	virtual void on_gs_init() override
 	// 	{
-	// 		//mesh = &Mesh::loaded_meshes["/assets/models/shopping_cart.ps2_model"_p];
+	// 		//mesh = &Mesh::loaded_meshes["/assets/models/shopping_cart.mdl"_p];
 	// 	}
 	// 	virtual void render(const gs::gs_state& gs_state) override
 	// 	{

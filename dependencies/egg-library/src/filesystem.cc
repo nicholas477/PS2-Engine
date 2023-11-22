@@ -36,26 +36,45 @@ static std::string convert_filepath_to_systempath_impl(std::string_view path)
 
 	static char out_path_chars[256];
 
-	snprintf(out_path_chars, host_string_length + 1, "%s%c%.*s",
-	         get_filesystem_prefix(type), get_filesystem_separator(type), path.length(), path.data());
+	// snprintf(out_path_chars, host_string_length + 1, "%s%c%.*s",
+	//          get_filesystem_prefix(type), get_filesystem_separator(type), path.length(), path.data());
 
-	for (size_t i = 0; i < host_string_length; ++i)
+	constexpr const char* filesystem_prefix = get_filesystem_prefix(type);
+	constexpr int filesystem_prefix_len     = constexpr_strlen(filesystem_prefix);
+
+	// Copy over the filesystem prefix to the buffer
+	for (int i = 0; i < filesystem_prefix_len; ++i)
 	{
-		if (out_path_chars[i] == '\\' || out_path_chars[i] == '/')
-		{
-			out_path_chars[i] = get_filesystem_separator(type);
-		}
-		else if (i > constexpr_strlen(get_filesystem_prefix(type)))
-		{
-			if (out_path_chars[i] == '-')
-			{
-				out_path_chars[i] = '_';
-			}
+		out_path_chars[i] = filesystem_prefix[i];
+	}
 
-			if (get_filesystem_type() == Type::cdrom)
-			{
-				out_path_chars[i] = toupper(out_path_chars[i]);
-			}
+	// Write out the filename
+	int filename_start_index  = -1;
+	int extension_start_index = -1;
+	for (int i = 0; i < host_string_length; ++i)
+	{
+		if (path[i] == '\\' || path[i] == '/')
+		{
+			out_path_chars[filesystem_prefix_len + i] = get_filesystem_separator(type);
+
+			filename_start_index = i + 1;
+		}
+		else if (path[i] == '-')
+		{
+			out_path_chars[filesystem_prefix_len + i] = '_';
+		}
+		else if (get_filesystem_type() == Type::cdrom)
+		{
+			out_path_chars[filesystem_prefix_len + i] = toupper(path[i]);
+		}
+		else
+		{
+			out_path_chars[filesystem_prefix_len + i] = path[i];
+		}
+
+		if (path[i] == '.')
+		{
+			extension_start_index = i + 1;
 		}
 	}
 
