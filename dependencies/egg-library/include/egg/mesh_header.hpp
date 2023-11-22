@@ -27,4 +27,10 @@ struct MeshFileHeader
 	OffsetArray<MeshTriangleStripHeader> strips;
 };
 
+static_assert(std::is_standard_layout_v<Vector> == true);
+static_assert(std::is_standard_layout_v<OffsetArray<Vector>> == true);
+static_assert(std::is_standard_layout_v<OffsetArray<Vector2>> == true);
+static_assert(std::is_standard_layout_v<OffsetArray<MeshTriangleStripHeader>> == true);
+static_assert(std::is_standard_layout_v<MeshFileHeader> == true);
+
 #pragma pack(pop)

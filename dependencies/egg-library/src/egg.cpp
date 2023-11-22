@@ -1,4 +1,5 @@
 #include "egg/math_types.hpp"
+#include "egg/mesh_header.hpp"
 
 #include <sstream>
 
