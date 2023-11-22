@@ -22,7 +22,7 @@ jobs:
         git clone https://github.com/ps2dev/ps2stuff.git
         cd ps2stuff && make clean all install
 
-    - name: Install ps2stuff
+    - name: Install ps2gl
       run: |
-        git clone git@github.com:ps2dev/ps2gl.git
+        git clone https://github.com/ps2dev/ps2gl.git
         cd ps2gl && make clean all install
