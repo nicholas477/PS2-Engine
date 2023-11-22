@@ -26,6 +26,7 @@ jobs:
       run: |
         git clone https://github.com/ps2dev/ps2gl.git dependencies/ps2gl
         cd dependencies/ps2gl && make clean all install -j$(getconf _NPROCESSORS_ONLN)
+        cd glut && make clean all install -j$(getconf _NPROCESSORS_ONLN)
 
     - name: Install meshoptimizer
       run: |
