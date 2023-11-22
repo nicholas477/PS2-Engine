@@ -4,7 +4,7 @@
 #include <iostream>
 #include <unordered_map>
 
-namespace stats
+namespace Stats
 {
 static stats_array_t<u64> timer_stats;
 
@@ -21,13 +21,13 @@ static void add_timer_stat(scoped_timers timer, u64 elapsed_time)
 void print_timer_stats()
 {
 	printf("----- timer stats (ms) -----\n");
-	printf("%-30s %7d\n", "frame number", engine::get_frame_counter());
-	for (size_t i = 0; i < static_cast<size_t>(stats::scoped_timers::MAX); ++i)
+	printf("%-30s %7d\n", "frame number", Engine::get_frame_counter());
+	for (size_t i = 0; i < static_cast<size_t>(Stats::scoped_timers::MAX); ++i)
 	{
 		if (lookup_stat_timer_name(i) != nullptr)
 		{
 			u64 timer             = timer_stats[i];
-			u64 elapsed_time      = (timer * 1000 * 1000) / engine::get_cpu_tickrate();
+			u64 elapsed_time      = (timer * 1000 * 1000) / Engine::get_cpu_tickrate();
 			u32 elapsed_time_ms_i = elapsed_time / 1000;
 			u32 elapsed_time_ms_f = elapsed_time % 1000;
 
@@ -40,7 +40,7 @@ void print_timer_stats()
 
 void clear_timer_stats()
 {
-	for (size_t i = 0; i < static_cast<size_t>(stats::scoped_timers::MAX); ++i)
+	for (size_t i = 0; i < static_cast<size_t>(Stats::scoped_timers::MAX); ++i)
 	{
 		timer_stats[i] = 0;
 	}
@@ -49,11 +49,11 @@ void clear_timer_stats()
 scoped_timer::scoped_timer(scoped_timers _timer)
     : timer(_timer)
 {
-	start_time = engine::get_cpu_ticks();
+	start_time = Engine::get_cpu_ticks();
 }
 
 scoped_timer::~scoped_timer()
 {
-	add_timer_stat(timer, engine::get_cpu_ticks() - start_time);
+	add_timer_stat(timer, Engine::get_cpu_ticks() - start_time);
 }
-} // namespace stats
+} // namespace Stats

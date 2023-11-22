@@ -5,13 +5,13 @@
 #include "components/collision_component.hpp"
 #include "egg/filesystem.hpp"
 
-class MeshObject: public renderable
+class MeshObject: public Renderable
 {
 public:
 	MeshObject();
 	MeshObject(const Filesystem::Path& mesh_path);
 	virtual void on_gs_init() override;
-	virtual void render(const gs::gs_state& gs_state) override;
-	transform_component transform;
+	virtual void render(const GS::GSState& gs_state) override;
+	TransformComponent transform;
 	class Mesh* mesh;
 };

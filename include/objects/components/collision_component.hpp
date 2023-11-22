@@ -34,16 +34,16 @@ class collision_component //: public collideable
 {
 public:
 	collision_component() = default;
-	collision_component(class transform_component* in_transform)
+	collision_component(class TransformComponent* in_transform)
 	    : transform(in_transform)
 	{
 	}
 
-	class transform_component* transform;
+	class TransformComponent* transform;
 
 	virtual AABB get_world_bounds() const;
 	virtual AABB get_local_bounds() const { return Bounds; }
-	virtual void render(const gs::gs_state& gs_state, color_t color);
+	virtual void render(const GS::GSState& gs_state, color_t color);
 
 	void set_local_bounds(const AABB& in_bounds) { Bounds = in_bounds; }
 

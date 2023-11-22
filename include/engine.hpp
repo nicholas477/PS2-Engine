@@ -1,9 +1,9 @@
 #pragma once
 #include "tamtypes.h"
 
-class tickable;
+class Tickable;
 
-namespace engine
+namespace Engine
 {
 void init();
 void run();
@@ -27,4 +27,4 @@ u64 get_cpu_ticks();
 /// @brief Gets the number of CPU ticks per second.
 /// @return
 u64 get_cpu_tickrate();
-}; // namespace engine
+}; // namespace Engine

@@ -33,14 +33,14 @@
 #include <ps2gl/matrix.h>    // The GL Utility Toolkit (Glut) Header
 
 
-namespace gs
+namespace GS
 {
 static const int screen_width  = 640;
 static const int screen_height = 448;
 
 static int context = 0;
 
-static gs_state _gs_state;
+static GSState _gs_state;
 
 static void init_lights()
 {
@@ -103,14 +103,15 @@ static bool has_initialized = false;
 static void init_renderer()
 {
 	glShadeModel(GL_SMOOTH);              // Enable Smooth Shading
-	glClearColor(0.5f, 0.5f, 0.5f, 0.0f); // Black Background
-	glClearDepth(1.0f);                   // Depth Buffer Setup
-	glEnable(GL_DEPTH_TEST);              // Enables Depth Testing
-	glEnable(GL_RESCALE_NORMAL);
-	glEnable(GL_CULL_FACE);
+	glClearColor(0.5f, 0.5f, 0.5f, 0.5f); // Black Background
+	//glClearDepth(1.0f);                   // Depth Buffer Setup
+	glEnable(GL_DEPTH_TEST); // Enables Depth Testing
+	//glEnable(GL_RESCALE_NORMAL);
+	//glEnable(GL_CULL_FACE);
 	glDepthFunc(GL_LEQUAL); // The Type Of Depth Testing To Do
 	glEnable(GL_COLOR_MATERIAL);
 	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
+	pglEnable(PGL_CLIPPING);
 
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glEnableClientState(GL_NORMAL_ARRAY);
@@ -121,7 +122,7 @@ static void init_renderer()
 
 	init_lights();
 
-	for (renderable::TIterator Itr = renderable::Itr(); Itr; ++Itr)
+	for (Renderable::TIterator Itr = Renderable::Itr(); Itr; ++Itr)
 	{
 		Itr->on_gs_init();
 	}
@@ -224,9 +225,9 @@ void init()
 	init_renderer();
 }
 
-static void draw_objects(const gs_state& gs_state)
+static void draw_objects(const GSState& gs_state)
 {
-	for (renderable::TIterator Itr = renderable::Itr(); Itr; ++Itr)
+	for (Renderable::TIterator Itr = Renderable::Itr(); Itr; ++Itr)
 	{
 		Itr->render(gs_state);
 	}
@@ -236,16 +237,16 @@ static int gs_render()
 {
 	static bool firstTime = true;
 	{
-		stats::scoped_timer draw_timer(stats::scoped_timers::draw);
+		Stats::scoped_timer draw_timer(Stats::scoped_timers::draw);
 
 		constexpr float world_scale = 0.0001f;
 		// Create the world-to-view matrix.
-		_gs_state.world_view      = camera::get().transform.get_matrix().invert() * Matrix::from_scale(Vector(world_scale, world_scale, world_scale));
-		_gs_state.camera_rotation = camera::get().transform.get_rotation();
+		_gs_state.world_view      = Camera::get().transform.get_matrix().invert() * Matrix::from_scale(Vector(world_scale, world_scale, world_scale));
+		_gs_state.camera_rotation = Camera::get().transform.get_rotation();
 
 		glMatrixMode(GL_PROJECTION); // Select The Projection Matrix
 		glLoadIdentity();
-		gluPerspective(camera::get().fov, (GLfloat)screen_width / (GLfloat)screen_height, 0.001f, 1.f);
+		gluPerspective(Camera::get().fov, (GLfloat)screen_width / (GLfloat)screen_height, 0.001f, 1.f);
 		glMultMatrixf(_gs_state.world_view);
 
 		glMatrixMode(GL_MODELVIEW);
@@ -259,7 +260,7 @@ static int gs_render()
 
 		draw_objects(_gs_state);
 
-		//glFlush();
+		glFlush();
 
 		pglEndGeometry();
 
@@ -272,7 +273,7 @@ static int gs_render()
 	// Either block until a vsync, or keep rendering until there's one
 	// available.
 	{
-		stats::scoped_timer vsync_timer(stats::scoped_timers::render_vsync_wait);
+		Stats::scoped_timer vsync_timer(Stats::scoped_timers::render_vsync_wait);
 		pglWaitForVSync();
 	}
 
@@ -284,19 +285,19 @@ static int gs_render()
 
 void render() { gs_render(); }
 
-Vector gs_state::get_camera_pos() const
+Vector GSState::get_camera_pos() const
 {
 	return _gs_state.world_view.invert().get_location();
 }
 
-Matrix gs_state::get_camera_matrix() const
+Matrix GSState::get_camera_matrix() const
 {
 	return _gs_state.world_view.invert();
 }
 
-Vector gs_state::get_camera_rotation() const
+Vector GSState::get_camera_rotation() const
 {
 	return camera_rotation;
 }
 
-} // namespace gs
+} // namespace GS

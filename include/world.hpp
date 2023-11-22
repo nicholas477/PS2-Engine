@@ -1,6 +1,6 @@
 #pragma once
 
-namespace world
+namespace World
 {
 void init();
 }

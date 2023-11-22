@@ -20,7 +20,7 @@ void MeshObject::on_gs_init()
 	}
 }
 
-void MeshObject::render(const gs::gs_state& gs_state)
+void MeshObject::render(const GS::GSState& gs_state)
 {
 	if (mesh)
 	{

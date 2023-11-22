@@ -14,15 +14,15 @@
 static void make_teapot()
 {
 	static int i       = 0;
-	teapot* new_teapot = new teapot();
+	Teapot* new_teapot = new Teapot();
 	srand(GetTimerSystemTime() + i++);
 	new_teapot->transform.add_location(Vector(((double)rand() / (double)RAND_MAX) * 256.f, 0.f, ((double)rand() / (double)RAND_MAX) * 256.f));
 }
 
-class World: public MeshObject
+class WorldMesh: public MeshObject
 {
 public:
-	World()
+	WorldMesh()
 	    : MeshObject("assets/models/testmap.mdl"_p)
 	{
 		mesh->compile();
@@ -39,9 +39,9 @@ public:
 		}
 	}
 
-	virtual void render(const gs::gs_state& gs_state) override
+	virtual void render(const GS::GSState& gs_state) override
 	{
-		for (int i = 0; i < 10; ++i)
+		for (int i = 0; i < 7; ++i)
 		{
 			const Matrix local_world = transforms[i];
 			ScopedMatrix sm(local_world); // * gs_state.world_view);
@@ -53,7 +53,7 @@ public:
 	std::array<Matrix, 10> transforms;
 };
 
-namespace world
+namespace World
 {
 void init()
 {
@@ -83,20 +83,20 @@ void init()
 	// } other_mesh;
 	// other_mesh.transform.set_location(Vector(100.f, 20.f));
 
-	static World world;
+	static WorldMesh world;
 
 	// Player teapot
-	static teapot teapot4;
+	static Teapot teapot4;
 	teapot4.transform.set_location(Vector(0.f, 0.f, 0.f));
 
 
 	// Camera parent component
-	static struct camera_transform_component: public transform_component, public tickable
+	static struct camera_transform_component: public TransformComponent, public Tickable
 	{
 		virtual void tick(float deltatime) override
 		{
-			const u32 paddata   = input::get_paddata();
-			const auto& buttons = input::get_button_status();
+			const u32 paddata   = Input::get_paddata();
+			const auto& buttons = Input::get_button_status();
 
 			Vector input_vector = Vector::zero;
 
@@ -110,11 +110,11 @@ void init()
 	scene.set_parent(teapot4.transform);
 	scene.set_location(Vector(0.f, teapot4.collision.get_local_bounds().get_half_extents().y));
 
-	camera::get().transform.set_parent(scene);
+	Camera::get().transform.set_parent(scene);
 
-	static third_person_movement movement;
+	static ThirdPersonMovement movement;
 	movement.updated_rotation_component = &scene;
 	movement.updated_location_component = &teapot4.transform;
 	movement.collision_component        = &teapot4.collision;
 }
-} // namespace world
+} // namespace World

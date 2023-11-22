@@ -52,6 +52,9 @@ static Mesh parseObj(const char* path)
 			        obj->normals[gi.n * 3 + 2],
 			        obj->texcoords[gi.t * 2 + 0],
 			        obj->texcoords[gi.t * 2 + 1],
+			        // obj->colors[gi.p * 3 + 0],
+			        // obj->colors[gi.p * 3 + 1],
+			        // obj->colors[gi.p * 3 + 2],
 			    };
 
 			// triangulate polygon on the fly; offset-3 is always the first polygon vertex
@@ -236,6 +239,7 @@ static std::vector<std::byte> serialize_mesh(const std::vector<Vector>& position
 
 		current_byte_index     = pad_to_alignment(current_byte_index, 16);
 		mesh_header.uvs.offset = current_byte_index - offsetof(MeshFileHeader, uvs);
+		//mesh_header.uvs.offset = -1;
 		current_byte_index += texture_coords.size() * sizeof(Vector2);
 	}
 

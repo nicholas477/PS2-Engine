@@ -188,7 +188,7 @@ static int initializePad(int port, int slot)
 	return 1;
 }
 
-namespace input
+namespace Input
 {
 const ::padButtonStatus& get_button_status() { return get_pad_data().buttons; }
 const u32& get_paddata() { return get_pad_data().paddata; };
@@ -354,4 +354,4 @@ void read_inputs()
 	}
 }
 
-} // namespace input
+} // namespace Input

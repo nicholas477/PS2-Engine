@@ -5,7 +5,7 @@
 #include <string>
 #include <map>
 
-namespace stats
+namespace Stats
 {
 enum class scoped_timers : u8 {
 	frame = 0,
@@ -18,7 +18,7 @@ enum class scoped_timers : u8 {
 	MAX = 32
 };
 template <typename T>
-using stats_array_t = std::array<T, static_cast<size_t>(stats::scoped_timers::MAX)>;
+using stats_array_t = std::array<T, static_cast<size_t>(Stats::scoped_timers::MAX)>;
 
 static constexpr stats_array_t<std::pair<scoped_timers, const char*>> scoped_timers_names =
     {{
@@ -60,4 +60,4 @@ struct scoped_timer
 void init();
 void print_timer_stats();
 void clear_timer_stats();
-} // namespace stats
+} // namespace Stats

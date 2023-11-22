@@ -33,7 +33,7 @@ static std::ifstream song_file;
 
 static void audioThread();
 
-namespace sound
+namespace Sound
 {
 static void create_audio_thread()
 {
@@ -128,7 +128,7 @@ static void work()
 
 bool work_song()
 {
-	stats::scoped_timer audio_timer(stats::scoped_timers::audio);
+	Stats::scoped_timer audio_timer(Stats::scoped_timers::audio);
 
 	bool did_work = false;
 	//printf("work_song()");
@@ -167,13 +167,13 @@ bool work_song()
 
 	return did_work;
 }
-} // namespace sound
+} // namespace Sound
 
 static void audioThread()
 {
 	while (true)
 	{
 		//printf("hello from sound thread!\n");
-		sound::work();
+		Sound::work();
 	}
 }

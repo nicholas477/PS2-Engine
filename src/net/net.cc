@@ -39,7 +39,7 @@ static void send_shit()
 	printf("trying to connect!\n");
 	if (connect(sock_fd, (sockaddr*)&serv_addr, sizeof(serv_addr)) >= 0)
 	{
-		while (true)
+		for (int i = 0; i < 100; ++i)
 		{
 			printf("sending new message!!!!!!!!!!!\n");
 			send(sock_fd, (void*)"hello!\n", strlen("hello!\n"), 0);
@@ -262,7 +262,7 @@ static int ethWaitValidDHCPState(void)
 	return WaitValidNetState(&ethGetDHCPStatus);
 }
 
-void net::init()
+void Net::init()
 {
 	struct ip4_addr IP, NM, GW, DNS;
 	int EthernetLinkMode;
@@ -356,7 +356,7 @@ void net::init()
 	//At this point, network support has been initialized and the PS2 can be pinged.
 	//SleepThread();
 
-	while (true)
+	for (int i = 0; i < 10; ++i)
 	{
 		send_shit();
 	}

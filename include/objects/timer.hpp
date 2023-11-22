@@ -7,10 +7,10 @@
 #include "engine.hpp"
 #include "tick.hpp"
 
-class timer: public tickable
+class Timer: public Tickable
 {
 public:
-	timer(float timer_length);
+	Timer(float timer_length);
 
 	virtual void tick(float deltaTime) override;
 
@@ -31,7 +31,7 @@ public:
 
 	float get_time_left() const
 	{
-		return end_time - engine::get_game_time();
+		return end_time - Engine::get_game_time();
 	}
 
 	bool is_valid() const
@@ -48,7 +48,7 @@ public:
 	{
 	}
 
-	virtual ~timer() {};
+	virtual ~Timer() {};
 
 protected:
 	float start_time    = -1.f;
@@ -57,7 +57,7 @@ protected:
 };
 
 
-std::vector<std::unique_ptr<timer>>& get_managed_timers();
+std::vector<std::unique_ptr<Timer>>& get_managed_timers();
 
 // Creates a timer that is automatically destroyed when the timer is finished
 template <class T, class... Args>
@@ -66,11 +66,11 @@ void create_managed_timer(Args&&... args)
 	check(get_managed_timers().size() < 128);
 	printf("timers size: %d\n", get_managed_timers().size());
 
-	static_assert(std::is_base_of<timer, T>::value);
+	static_assert(std::is_base_of<Timer, T>::value);
 	get_managed_timers().emplace_back(std::make_unique<T>(std::forward<Args>(args)...));
 }
 
 // Creates a timer that is automatically destroyed when the timer is finished
 void create_managed_timer_lambda(float timer_length,
-                                 std::function<void(timer*, float)> on_timer_tick   = std::function<void(timer*, float)>(),
-                                 std::function<void(timer*, float)> on_timer_finish = std::function<void(timer*, float)>());
+                                 std::function<void(Timer*, float)> on_timer_tick   = std::function<void(Timer*, float)>(),
+                                 std::function<void(Timer*, float)> on_timer_finish = std::function<void(Timer*, float)>());

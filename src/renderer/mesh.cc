@@ -51,7 +51,7 @@ void Mesh::compile()
 	check(!is_valid());
 	check(mesh != nullptr);
 
-	printf("Compiling mesh %s, size in bytes: %d\n", path.c_str(), mesh->pos.length + mesh->nrm.length);
+	printf("Compiling mesh %s, size in bytes: %ld\n", path.c_str(), mesh->pos.length + mesh->nrm.length);
 
 	list = num_lists++;
 	printf("New mesh draw list: %d\n", list);
@@ -68,7 +68,11 @@ void Mesh::compile()
 
 		glVertexPointer(4, GL_FLOAT, 0, mesh->pos.get_ptr());
 		pglNormalPointer(4, GL_FLOAT, 0, mesh->nrm.get_ptr());
-		//glTexCoordPointer(2, GL_FLOAT, 0, mesh->uvs.get_ptr());
+
+		if (mesh->uvs.offset > 0)
+		{
+			glTexCoordPointer(2, GL_FLOAT, 0, mesh->uvs.get_ptr());
+		}
 
 		int i = 0;
 		for (const MeshTriangleStripHeader& strip : mesh->strips)
@@ -95,4 +99,19 @@ void Mesh::draw(bool flush)
 	{
 		glFlush();
 	}
+}
+
+int Mesh::get_triangle_count() const
+{
+	int triangle_count = 0;
+
+	if (mesh)
+	{
+		for (const MeshTriangleStripHeader& strip : mesh->strips)
+		{
+			triangle_count += (strip.strip_end_index - strip.strip_start_index) - 2;
+		}
+	}
+
+	return triangle_count;
 }

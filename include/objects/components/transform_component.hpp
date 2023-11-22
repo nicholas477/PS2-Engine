@@ -5,10 +5,10 @@
 #include <set>
 
 
-class transform_component
+class TransformComponent
 {
 public:
-	transform_component();
+	TransformComponent();
 
 	Matrix get_matrix() const;
 	Matrix get_rotation_matrix() const;
@@ -30,18 +30,18 @@ public:
 	void set_location(const Vector& new_location) { location = new_location; }
 	void set_rotation(const Vector& new_rotation) { rotation = new_rotation; }
 
-	void set_parent(transform_component& new_parent)
+	void set_parent(TransformComponent& new_parent)
 	{
 		parent = &new_parent;
 		new_parent.children.insert(this);
 	}
-	transform_component* get_parent() const { return parent; }
+	TransformComponent* get_parent() const { return parent; }
 
 protected:
 	Vector location;
 	Vector rotation;
 	Vector scale;
 
-	transform_component* parent = nullptr;
-	std::set<transform_component*> children;
+	TransformComponent* parent = nullptr;
+	std::set<TransformComponent*> children;
 };

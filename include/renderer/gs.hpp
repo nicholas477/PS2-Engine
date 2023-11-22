@@ -9,9 +9,9 @@
 #include <functional>
 #include <array>
 
-namespace gs
+namespace GS
 {
-struct gs_state
+struct GSState
 {
 	Matrix world_view;
 	Matrix view_screen;
@@ -26,4 +26,4 @@ bool has_gs_initialized();
 void init();
 void render();
 void clear_screen();
-} // namespace gs
+} // namespace GS

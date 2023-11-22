@@ -5,9 +5,9 @@
 
 int main(int argc, char* argv[])
 {
-	engine::init();
+	Engine::init();
 
-	engine::run();
+	Engine::run();
 
 	// Sleep
 	SleepThread();

@@ -1,7 +1,7 @@
 #pragma once
 
-namespace sound
+namespace Sound
 {
 void init();
 bool work_song();
-} // namespace sound
+} // namespace Sound

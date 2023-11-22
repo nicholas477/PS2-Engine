@@ -27,7 +27,7 @@
 
 #include "graph.h"
 
-namespace engine
+namespace Engine
 {
 static float game_time  = 0.f;
 static float tickrate   = 1.f / 59.93f; // ntsc default
@@ -66,14 +66,14 @@ void init()
 	// This initializes the network debugging so do this first
 	if (Filesystem::get_filesystem_type() != Filesystem::Type::host)
 	{
-		net::init();
+		//net::init();
 	}
 
-	stats::init();
-	input::init();
+	Stats::init();
+	Input::init();
 	//Filesystem::run_tests();
 	//sound::init();
-	gs::init();
+	GS::init();
 
 	printf("Graph mode (region): ");
 	// This kinda don't work. We want the refresh rate of the screen and this just gives us PS2 region
@@ -95,14 +95,14 @@ void init()
 	tickrate = 1.f / 60.f;
 	printf(" (%d)\n", region);
 
-	world::init();
+	World::init();
 }
 
 static void tick(float deltaTime)
 {
-	stats::scoped_timer tick_timer(stats::scoped_timers::tick);
+	Stats::scoped_timer tick_timer(Stats::scoped_timers::tick);
 
-	for (auto itr = tickable::Itr(); itr; ++itr)
+	for (auto itr = Tickable::Itr(); itr; ++itr)
 	{
 		itr->tick(deltaTime);
 	}
@@ -115,30 +115,30 @@ void run()
 	for (;;)
 	{
 		{
-			stats::scoped_timer frame_timer(stats::scoped_timers::frame);
+			Stats::scoped_timer frame_timer(Stats::scoped_timers::frame);
 
 			//sound::work_song();
 
-			input::read_inputs();
+			Input::read_inputs();
 
 			//sound::work_song();
 
 			tick(tickrate);
 
-			sound::work_song();
+			Sound::work_song();
 
-			gs::render();
+			GS::render();
 		}
 
-		if (input::get_paddata() & PAD_SELECT)
+		if (Input::get_paddata() & PAD_SELECT)
 		{
 			exit(0);
 			return;
 		}
 
-		if (input::get_paddata() & PAD_START)
+		if (Input::get_paddata() & PAD_START)
 		{
-			stats::print_timer_stats();
+			Stats::print_timer_stats();
 		}
 	}
 }
@@ -163,4 +163,4 @@ u64 get_cpu_tickrate()
 {
 	return kBUSCLK;
 }
-} // namespace engine
+} // namespace Engine

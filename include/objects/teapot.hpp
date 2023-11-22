@@ -5,12 +5,12 @@
 #include "components/transform_component.hpp"
 #include "components/collision_component.hpp"
 
-class teapot: public renderable
+class Teapot: public Renderable
 {
 public:
-	teapot();
-	virtual void render(const gs::gs_state& gs_state) override;
-	transform_component transform;
+	Teapot();
+	virtual void render(const GS::GSState& gs_state) override;
+	TransformComponent transform;
 	collision_component collision;
 
 	class teapot_render_proxy* render_proxy;

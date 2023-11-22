@@ -2,12 +2,12 @@
 #include "tick.hpp"
 #include "egg/math_types.hpp"
 
-class movement: public tickable
+class Movement: public Tickable
 {
 public:
 	class collision_component* collision_component;
-	class transform_component* updated_location_component;
-	class transform_component* updated_rotation_component;
+	class TransformComponent* updated_location_component;
+	class TransformComponent* updated_rotation_component;
 
 	virtual void tick(float delta_seconds) override final;
 
@@ -25,7 +25,7 @@ protected:
 	float rotation_speed = M_PI * 0.8f;
 };
 
-class flying_movement: public movement
+class FlyingMovement: public Movement
 {
 public:
 	virtual void perform_movement(float delta_seconds) override;
@@ -37,7 +37,7 @@ protected:
 	void calculate_movement_input(float delta_time);
 };
 
-class third_person_movement: public movement
+class ThirdPersonMovement: public Movement
 {
 public:
 	virtual void perform_movement(float delta_seconds) override;

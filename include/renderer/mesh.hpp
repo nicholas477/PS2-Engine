@@ -22,6 +22,7 @@ public:
 	void draw(bool flush = false);
 
 	bool is_valid() const { return list >= 0; }
+	int get_triangle_count() const;
 
 	//static std::unordered_map<Filesystem::Path, Mesh> loaded_meshes;
 

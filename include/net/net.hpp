@@ -1,6 +1,6 @@
 #pragma once
 
-namespace net
+namespace Net
 {
 void init();
 }

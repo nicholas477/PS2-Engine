@@ -18,7 +18,7 @@ AABB collision_component::get_world_bounds() const
 	}
 }
 
-void collision_component::render(const gs::gs_state& gs_state, color_t color)
+void collision_component::render(const GS::GSState& gs_state, color_t color)
 {
 	//draw_aabb(gs_state, get_world_bounds(), color);
 }

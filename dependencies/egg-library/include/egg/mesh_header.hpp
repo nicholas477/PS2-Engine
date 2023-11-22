@@ -13,6 +13,10 @@ struct MeshTriangleStripHeader
 	uint32_t strip_end_index;   // Index of the ending vertex
 };
 
+struct MeshColor
+{
+};
+
 struct MeshFileHeader
 {
 	OffsetArray<Vector> pos;

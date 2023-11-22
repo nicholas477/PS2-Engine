@@ -3,15 +3,15 @@
 #include "renderer/gs.hpp"
 #include "utils/list.hpp"
 
-class renderable: public TIntrusiveLinkedList<renderable>
+class Renderable: public TIntrusiveLinkedList<Renderable>
 {
 public:
 	virtual void on_gs_init() {};
-	virtual void render(const gs::gs_state& gs_state) {};
+	virtual void render(const GS::GSState& gs_state) {};
 
 protected:
-	renderable(bool add_to_render_list = true)
-	    : TIntrusiveLinkedList<renderable>(add_to_render_list)
+	Renderable(bool add_to_render_list = true)
+	    : TIntrusiveLinkedList<Renderable>(add_to_render_list)
 	{
 	}
 };

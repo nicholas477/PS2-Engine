@@ -29,7 +29,7 @@ public:
 		teapot_mesh->compile();
 	}
 
-	void render(const gs::gs_state& gs_state, const transform_component& transform)
+	void render(const GS::GSState& gs_state, const TransformComponent& transform)
 	{
 		const Matrix local_world = Matrix::from_location_and_rotation(transform.get_location(), transform.get_rotation());
 
@@ -73,7 +73,7 @@ protected:
 	Mesh* teapot_mesh;
 } _teapot_render_proxy;
 
-static class teapot_render_proxy_initializer: public renderable
+static class teapot_render_proxy_initializer: public Renderable
 {
 public:
 	teapot_render_proxy_initializer()
@@ -87,7 +87,7 @@ public:
 
 } _teapot_render_proxy_initializer;
 
-teapot::teapot()
+Teapot::Teapot()
     : collision(&transform)
 {
 	render_proxy = &_teapot_render_proxy;
@@ -95,7 +95,7 @@ teapot::teapot()
 	collision.set_local_bounds(_teapot_render_proxy.get_bounds());
 }
 
-void teapot::render(const gs::gs_state& gs_state)
+void Teapot::render(const GS::GSState& gs_state)
 {
 	render_proxy->render(gs_state, transform);
 

@@ -6,13 +6,13 @@
 
 #include "utils/rendering.hpp"
 
-camera& camera::get()
+Camera& Camera::get()
 {
-	static camera _camera;
+	static Camera _camera;
 	return _camera;
 }
 
-camera::camera()
+Camera::Camera()
 {
 	transform.set_location(Vector(0.f, 0.f, 100.f));
 	fov = 50.f;

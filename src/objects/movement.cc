@@ -11,9 +11,9 @@
 #include <algorithm>
 #include <cmath>
 
-void movement::tick(float delta_time)
+void Movement::tick(float delta_time)
 {
-	stats::scoped_timer movement_stat(stats::scoped_timers::tick_movement);
+	Stats::scoped_timer movement_stat(Stats::scoped_timers::tick_movement);
 
 	Vector last_frame_position = updated_location_component->get_location();
 
@@ -35,7 +35,7 @@ static void draw_rejected_hit(const collision_component* collision_component, co
 	//draw_aabb_one_frame(aabb, color);
 }
 
-bool movement::try_move(const Vector& location, Vector& out_sweep_stop)
+bool Movement::try_move(const Vector& location, Vector& out_sweep_stop)
 {
 	// if (collision_component == nullptr)
 	// {
@@ -55,16 +55,16 @@ bool movement::try_move(const Vector& location, Vector& out_sweep_stop)
 	return true;
 }
 
-void flying_movement::perform_movement(float delta_time)
+void FlyingMovement::perform_movement(float delta_time)
 {
 	calculate_rotation_input(delta_time);
 	calculate_movement_input(delta_time);
 }
 
-void flying_movement::calculate_rotation_input(float delta_time)
+void FlyingMovement::calculate_rotation_input(float delta_time)
 {
-	const u32 paddata   = input::get_paddata();
-	const auto& buttons = input::get_button_status();
+	const u32 paddata   = Input::get_paddata();
+	const auto& buttons = Input::get_button_status();
 
 	Vector input_vector = Vector();
 
@@ -83,10 +83,10 @@ void flying_movement::calculate_rotation_input(float delta_time)
 	}
 }
 
-void flying_movement::calculate_movement_input(float delta_time)
+void FlyingMovement::calculate_movement_input(float delta_time)
 {
-	const u32 paddata   = input::get_paddata();
-	const auto& buttons = input::get_button_status();
+	const u32 paddata   = Input::get_paddata();
+	const auto& buttons = Input::get_button_status();
 
 	Vector input_vector    = Vector();
 	Vector movement_vector = Vector();
@@ -124,16 +124,16 @@ void flying_movement::calculate_movement_input(float delta_time)
 	}
 }
 
-void third_person_movement::perform_movement(float delta_time)
+void ThirdPersonMovement::perform_movement(float delta_time)
 {
 	calculate_rotation_input(delta_time);
 	calculate_movement_input(delta_time);
 }
 
-void third_person_movement::calculate_rotation_input(float delta_time)
+void ThirdPersonMovement::calculate_rotation_input(float delta_time)
 {
 	//const u32 paddata   = input::get_paddata();
-	const auto& buttons = input::get_button_status();
+	const auto& buttons = Input::get_button_status();
 
 	Vector input_vector = Vector();
 
@@ -158,17 +158,17 @@ void third_person_movement::calculate_rotation_input(float delta_time)
 	updated_rotation_component->set_rotation(desired_rot);
 }
 
-bool third_person_movement::is_braking(const Vector& velocity, const Vector& velocity_target)
+bool ThirdPersonMovement::is_braking(const Vector& velocity, const Vector& velocity_target)
 {
 	Vector inbtwn_vector = velocity_target - velocity;
 
 	return inbtwn_vector.dot(velocity) < 0.f;
 }
 
-void third_person_movement::calculate_movement_input(float delta_time)
+void ThirdPersonMovement::calculate_movement_input(float delta_time)
 {
-	const u32 paddata   = input::get_paddata();
-	const auto& buttons = input::get_button_status();
+	const u32 paddata   = Input::get_paddata();
+	const auto& buttons = Input::get_button_status();
 
 	Vector input_vector    = Vector();
 	Vector movement_vector = Vector();
