@@ -41,6 +41,14 @@ jobs:
         cd dependencies/egg-library
         make clean all install -j$(getconf _NPROCESSORS_ONLN)
 
+    - name: Compile ps2-mesh-converter
+      run: |
+        cd tools/ps2-mesh-converter
+        mkdir -p build
+        cd build
+        cmake ..
+        make clean all install -j$(getconf _NPROCESSORS_ONLN)
+
     - name: Compile ps2 engine
       run: |
         make clean iso -j$(getconf _NPROCESSORS_ONLN)
