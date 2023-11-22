@@ -20,12 +20,12 @@ jobs:
     - name: Install ps2stuff
       run: |
         git clone https://github.com/ps2dev/ps2stuff.git dependencies/ps2stuff
-        cd dependencies/ps2stuff && make clean all install
+        cd dependencies/ps2stuff && make clean all install -j$(getconf _NPROCESSORS_ONLN)
 
     - name: Install ps2gl
       run: |
         git clone https://github.com/ps2dev/ps2gl.git dependencies/ps2gl
-        cd dependencies/ps2gl && make clean all install
+        cd dependencies/ps2gl && make clean all install -j$(getconf _NPROCESSORS_ONLN)
 
     - name: Install meshoptimizer
       run: |
@@ -34,9 +34,9 @@ jobs:
         mkdir -p build
         cd build
         cmake ..
-        make clean all install
+        make clean all install -j$(getconf _NPROCESSORS_ONLN)
 
     - name: Compile egg-library
       run: |
         cd dependencies/egg-library
-        make clean all install
+        make clean all install -j$(getconf _NPROCESSORS_ONLN)

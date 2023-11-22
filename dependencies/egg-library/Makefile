@@ -21,7 +21,7 @@ $(EE_OBJS_DIR)%.o : $(EE_SRC_DIR)%.c
 	$(EE_C_COMPILE) -DIOAPI_NO_64 -c $< -o $@
 
 install: all
-	mkdir -p $(DESTDIR)$(PS2SDK)/ports/include
+	mkdir -p $(DESTDIR)$(PS2SDK)/ports/include/egg/
 	mkdir -p $(DESTDIR)$(PS2SDK)/ports/lib
 	cp -f $(EE_LIB) $(DESTDIR)$(PS2SDK)/ports/lib
 	cp -f include/egg/*.hpp $(DESTDIR)$(PS2SDK)/ports/include/egg/
