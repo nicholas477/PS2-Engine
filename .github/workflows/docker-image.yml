@@ -1,0 +1,22 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: ps2dev/ps2sdk
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Get dependencies
+      run: |
+        apk add build-base git
+    - name: Install ps2stuff
+      run: |
+        git clone https://github.com/ps2dev/ps2stuff.git
+        cd ps2stuff && make clean all install
