@@ -15,7 +15,7 @@ jobs:
     - uses: actions/checkout@v3
     - name: Get dependencies
       run: |
-        apk add build-base git cmake mkisofs
+        apk add build-base git cmake xorriso
         
     - name: Install ps2stuff
       run: |
