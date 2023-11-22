@@ -35,13 +35,24 @@ static u32 frameCounter = 0;
 
 void init()
 {
-	Filesystem::set_filesystem_type(Filesystem::Type::cdrom);
+	SifExitIopHeap();
+	SifLoadFileExit();
+	SifExitRpc();
 
+	SifInitRpc(0);
+
+	while (!SifIopReset("", 0))
+		;
+	while (!SifIopSync())
+		;
 	SifInitRpc(0);
 	SifLoadFileInit();
 	SifInitIopHeap();
 
+	Filesystem::set_filesystem_type(Filesystem::Type::cdrom);
+
 	check(SifLoadModule("rom0:LIBSD", 0, NULL) > 0);
+	check(SifLoadModule("rom0:SIO2MAN", 0, NULL) > 0);
 
 	if (Filesystem::get_filesystem_type() == Filesystem::Type::cdrom)
 	{
@@ -52,10 +63,15 @@ void init()
 		sceCdMmode(SCECdPS2DVD);
 	}
 
+	// This initializes the network debugging so do this first
+	if (Filesystem::get_filesystem_type() != Filesystem::Type::host)
+	{
+		//net::init();
+	}
+
 	stats::init();
 	input::init();
 	//Filesystem::run_tests();
-	//net::init();
 	//sound::init();
 	gs::init();
 
@@ -103,17 +119,18 @@ void run()
 
 			input::read_inputs();
 
-			//Threading::switch_thread();
+			Threading::switch_thread();
 
 			tick(tickrate);
 
-			//Threading::switch_thread();
+			Threading::switch_thread();
 
 			gs::render();
 		}
 
 		if (input::get_paddata() & PAD_SELECT)
 		{
+			exit(0);
 			return;
 		}
 

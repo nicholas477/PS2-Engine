@@ -5,28 +5,6 @@
 #include "collision/plane.hpp"
 #include "draw_types.h"
 
-// Draws a line in worldspace coordinates
-void draw_line(const gs::gs_state& gs_state, const Vector& line_start, const Vector& line_end, color_t color, bool on_top = false);
-void draw_line_one_frame(const Vector& line_start, const Vector& line_end, color_t color, bool on_top = false);
-
-// Draws a plane
-void draw_plane(const gs::gs_state& gs_state, const Plane& plane, float size, color_t color, bool on_top = false);
-void draw_plane_one_frame(const Plane& plane, float size, color_t color, bool on_top = false);
-
-// Draws a point in worldspace coordinates
-void draw_point(const gs::gs_state& gs_state, const Vector& point, float size, color_t color, bool on_top = false);
-void draw_point_one_frame(const Vector& point, float size, color_t color, bool on_top = false);
-
-// Draws an AABB in worldspace coordinates
-void draw_aabb(const gs::gs_state& gs_state, const AABB& aabb, color_t color, bool on_top = false);
-void draw_aabb_one_frame(const AABB& aabb, color_t color, bool on_top = false);
-
-// Draws a gizmo where red = x, green = y, blue = z
-void draw_orientation_gizmo(const gs::gs_state& gs_state, const Vector& pos, float size, bool on_top = false);
-void draw_orientation_gizmo_one_frame(const Vector& pos, float size, bool on_top = false);
-
-void draw_text(const gs::gs_state& gs_state, const Vector& pos, float size, const std::string& text);
-
 namespace colors
 {
 struct color

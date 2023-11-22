@@ -7,4 +7,10 @@ class tickable: public TIntrusiveLinkedList<tickable>
 {
 public:
 	virtual void tick(float deltaTime) {};
+
+protected:
+	tickable(bool add_to_tick_list = true)
+	    : TIntrusiveLinkedList<tickable>(add_to_tick_list)
+	{
+	}
 };

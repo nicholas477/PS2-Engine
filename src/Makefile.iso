@@ -7,17 +7,23 @@ $(ISO_FOLDER_DIR)/SYSTEM.CNF: $(ISO_FOLDER_DIR)
 $(ISO_FOLDER_DIR)/AUDSRV.IRX: $(ISO_FOLDER_DIR)
 	cp $(PS2SDK)/iop/irx/audsrv.irx $@
 
-$(ISO_FOLDER_DIR)/LIBSD.IRX: $(ISO_FOLDER_DIR)
-	cp $(PS2SDK)/iop/irx/libsd.irx $@
-
 $(ISO_FOLDER_DIR)/PS2SND.IRX: $(ISO_FOLDER_DIR)
 	cp $(PS2SDK)/iop/irx/ps2snd.irx $@
+
+$(ISO_FOLDER_DIR)/DEV9.IRX: $(ISO_FOLDER_DIR)
+	cp $(PS2SDK)/iop/irx/ps2dev9.irx $@
+
+$(ISO_FOLDER_DIR)/NETMAN.IRX: $(ISO_FOLDER_DIR)
+	cp $(PS2SDK)/iop/irx/netman.irx $@
+
+$(ISO_FOLDER_DIR)/SMAP.IRX: $(ISO_FOLDER_DIR)
+	cp $(PS2SDK)/iop/irx/smap.irx $@
 
 $(ISO_FOLDER_DIR)/ps2client.exe: $(ISO_FOLDER_DIR)
 	cp assets/ps2client.exe $@
 
 .PHONY: copy_libs
-copy_libs: $(ISO_FOLDER_DIR)/AUDSRV.IRX $(ISO_FOLDER_DIR)/LIBSD.IRX $(ISO_FOLDER_DIR)/PS2SND.IRX $(ISO_FOLDER_DIR)/ps2client.exe
+copy_libs: $(ISO_FOLDER_DIR)/AUDSRV.IRX $(ISO_FOLDER_DIR)/DEV9.IRX $(ISO_FOLDER_DIR)/NETMAN.IRX $(ISO_FOLDER_DIR)/SMAP.IRX $(ISO_FOLDER_DIR)/PS2SND.IRX $(ISO_FOLDER_DIR)/ps2client.exe
 
 # Sound files
 AUDIO_FILE_TYPE = wav
@@ -34,9 +40,9 @@ sounds: $(SOUND_ISO_FILES)
 # Model compilation
 MODEL_CC = egg-ps2-mesh-converter
 MODEL_SRC_FILES = $(wildcard assets/*.obj) $(wildcard assets/**/*.obj)
-MODEL_FILES := $(MODEL_SRC_FILES:%.obj=$(ISO_FOLDER_DIR)/%.ps2_model)
+MODEL_FILES := $(MODEL_SRC_FILES:%.obj=$(ISO_FOLDER_DIR)/%.mdl)
 
-$(MODEL_FILES): $(ISO_FOLDER_DIR)/assets/%.ps2_model: assets/%.obj
+$(MODEL_FILES): $(ISO_FOLDER_DIR)/assets/%.mdl: assets/%.obj
 	$(MKDIR) -p $(dir $@)
 	$(MODEL_CC) $< $@
 
@@ -54,16 +60,26 @@ isoassets: $(ISO_FOLDER_DIR)/SYSTEM.CNF copy_libs $(SOUND_ISO_FILES) models
 GREEN='\033[0;32m'
 NC='\033[0m'
 
+VERSION?=$(shell git rev-parse --short HEAD)
+ISO_FLAGS?=-A "EGG PS2 Engine" -V "EGG-Engine:$(VERSION)"
+
 $(ISO_TGT): isoassets $(EE_BIN)
 	$(MKDIR) -p $(ISO_FOLDER_DIR)
-	cp $(EE_BIN) $(ISO_FOLDER_DIR)/$(EE_BIN)
 	@echo -e ${GREEN}PACKAGING ISO${NC}
-	mkisofs -l -o $(ISO_TGT) $(ISO_FOLDER_DIR)
+	mkisofs $(ISO_FLAGS) -o $(ISO_TGT) $(ISO_FOLDER_DIR)
 
 .PHONY: iso
 iso: $(ISO_TGT)
+
+SMB_ISO = /netmnt/nas/Shared/PS2SMB/DVD/$(notdir $(ISO_TGT))
+
+$(SMB_ISO): $(ISO_TGT)
+	cp $(ISO_TGT) $(SMB_ISO)
+
+deploy_iso: $(SMB_ISO)
 
 .PHONY: cleaniso
 cleaniso:
 	rm -rf $(ISO_FOLDER_DIR)
 	rm -rf $(ISO_TGT)
+	rm -rf $(SMB_ISO)

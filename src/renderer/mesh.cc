@@ -7,28 +7,28 @@
 #include <GL/ps2gl.h>
 #include <egg/assert.hpp>
 
-std::unordered_map<Filesystem::Path, Mesh> Mesh::loaded_meshes;
+//std::unordered_map<Filesystem::Path, Mesh> Mesh::loaded_meshes;
 static GLint num_lists = 0;
 
-static class MeshLoader: public renderable
-{
-public:
-	MeshLoader()
-	    : renderable(true)
-	{
-	}
+// static class MeshLoader: public renderable
+// {
+// public:
+// 	MeshLoader()
+// 	    : renderable(true)
+// 	{
+// 	}
 
-	virtual void on_gs_init() override
-	{
-		Mesh::loaded_meshes["/assets/models/kettle.ps2_model"_p] = Mesh("/assets/models/kettle.ps2_model"_p);
-		//Mesh::loaded_meshes["/assets/models/shopping_cart.ps2_model"_p] = Mesh("/assets/models/shopping_cart.ps2_model"_p);
+// 	virtual void on_gs_init() override
+// 	{
+// 		//Mesh::loaded_meshes["/assets/models/kettle.ps2_model"_p] = Mesh("/assets/models/kettle.ps2_model"_p);
+// 		//Mesh::loaded_meshes["/assets/models/shopping_cart.ps2_model"_p] = Mesh("/assets/models/shopping_cart.ps2_model"_p);
 
-		for (auto& [path, mesh] : Mesh::loaded_meshes)
-		{
-			mesh.compile();
-		}
-	}
-} mesh_loader;
+// 		for (auto& [path, mesh] : Mesh::loaded_meshes)
+// 		{
+// 			mesh.compile();
+// 		}
+// 	}
+// } mesh_loader;
 
 Mesh::Mesh()
 {
@@ -42,7 +42,7 @@ Mesh::Mesh(const Filesystem::Path& in_path)
     : Mesh()
 {
 	path = in_path;
-	check(Filesystem::load_file(in_path, mesh_bytes, mesh_size, 16));
+	checkf(Filesystem::load_file(in_path, mesh_bytes, mesh_size, 16), in_path.c_str());
 	mesh = reinterpret_cast<MeshFileHeader*>(mesh_bytes.get());
 }
 
@@ -81,7 +81,7 @@ void Mesh::compile()
 			++i;
 		}
 
-		//glFlush();
+		glFlush();
 	}
 	glEndList();
 }

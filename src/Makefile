@@ -1,17 +1,19 @@
-EE_BIN = main.elf
+EE_BIN = build/iso/MAIN.00
 ISO_TGT = $(OUTPUT_DIR)/test.iso
 SRC_FILES = $(shell find $(PREFIX) -name "*.cc" -o -name "*.cpp" -o -name "*.c")
+#SRC_FILES = src/main.cc
 EE_OBJS = $(patsubst %.cc, build/%.o, $(SRC_FILES))
 EE_OBJS := $(patsubst %.c, build/%.o, $(EE_OBJS))
 EE_OBJS := $(patsubst %.cpp, build/%.o, $(EE_OBJS))
 EE_INCS := -I$(PS2SDK)/ports/include -Iinclude $(EE_INCS)
 EE_LDFLAGS  += -L$(PS2SDK)/ports/lib
-EE_LIBS = -ldraw -lgraph -lmath3d -lpacket -ldma -lpad -lc -lstdc++ -lgs -ldebug -leedebug -lpacket2 -laudsrv -lcdvd -lxcdvd -lps2gl -lps2stuff -legg
-EE_OPTFLAGS = -O3 -std=gnu++20
+#EE_LIBS = -ldebug -lpatches -lxcdvd 
+EE_LIBS = -ldebug -lpatches -lxcdvd -lnetman -lps2gl -lps2stuff -legg -lps2ip -ldraw -lgraph -lmath3d -ldma -lpad -lc -lstdc++ -lgs -ldebug -leedebug -laudsrv -lcdvd -lxcdvd
+EE_OPTFLAGS = -O3 -g -std=gnu++20
 EE_CFLAGS += -DNO_VU0_VECTORS -DNO_ASM
 EE_CXXFLAGS += -DNO_VU0_VECTORS -DNO_ASM
 EE_WARNFLAGS = -Wall -Wno-unused-function -Wno-unused-variable -Wno-strict-aliasing -Wno-conversion-null 
-LINKFLAGS	= -O3 -Wl,-zmax-page-size=128
+LINKFLAGS	= -O3 -g -Wl,-zmax-page-size=128
 
 OUTPUT_DIR     = build
 ISO_FOLDER_DIR = build/iso
