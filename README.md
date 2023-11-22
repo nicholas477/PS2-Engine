@@ -5,6 +5,7 @@ Currently supports untextured model rendering and music and that's about it.
 
 # How to compile
 1. Install PS2DEV
-2. Run `sudo make install` in `dependencies/egg-library`
-3. Run `sudo make install` in `tools/ps2-mesh-converter`
-4. Run `make all -j$(nproc)` in the root of this repository. The iso should be in the `build` folder
+2. Install PS2GL
+3. Run `sudo make install` in `dependencies/egg-library`
+4. Run `sudo make install` in `tools/ps2-mesh-converter`
+5. Run `make all -j$(nproc)` in the root of this repository. The iso should be in the `build` folder
