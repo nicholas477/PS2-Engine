@@ -38,7 +38,7 @@ jobs:
 
     - name: Install cxxopts
       run: |
-        git clone https://github.com/jarro2783/cxxopts.git dependencies/cxxopts
+        git clone https://github.com/artpaul/cxxopts.git dependencies/cxxopts
         cd dependencies/cxxopts
         mkdir -p build
         cd build
