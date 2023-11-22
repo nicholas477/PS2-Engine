@@ -104,4 +104,14 @@ Matrix Matrix::from_location_and_rotation(const Vector& location, const Vector& 
 {
 	return rotation.to_rotation_matrix() * location.to_translation_matrix();
 }
+
+Matrix Matrix::from_scale(const Vector& scale)
+{
+	Matrix output;
+	output.matrix[0x00] = scale.x;
+	output.matrix[0x05] = scale.y;
+	output.matrix[0x0A] = scale.z;
+	output.matrix[0x0F] = 1.00f;
+	return output;
+}
 #endif

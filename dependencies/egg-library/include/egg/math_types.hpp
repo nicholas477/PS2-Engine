@@ -408,7 +408,10 @@ struct alignas(16) Matrix
 		return vector;
 	}
 
+	// Makes a matrix from a location vector and a quaternion
 	static Matrix from_location_and_rotation(const Vector& location, const Vector& rotation);
+
+	static Matrix from_scale(const Vector& scale);
 
 	Matrix operator*(const Matrix& Rhs) const
 	{

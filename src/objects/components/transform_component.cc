@@ -1,14 +1,21 @@
 #include "objects/components/transform_component.hpp"
 
+transform_component::transform_component()
+{
+	location = Vector::zero;
+	rotation = Vector::zero;
+	scale    = Vector(1.f, 1.f, 1.f);
+}
+
 Matrix transform_component::get_matrix() const
 {
 	if (parent)
 	{
-		return Matrix::from_location_and_rotation(location, rotation) * parent->get_matrix();
+		return Matrix::from_location_and_rotation(location, rotation) * Matrix::from_scale(scale) * parent->get_matrix();
 	}
 	else
 	{
-		return Matrix::from_location_and_rotation(location, rotation);
+		return Matrix::from_location_and_rotation(location, rotation) * Matrix::from_scale(scale);
 	}
 }
 

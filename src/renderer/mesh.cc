@@ -51,7 +51,7 @@ void Mesh::compile()
 	check(!is_valid());
 	check(mesh != nullptr);
 
-	printf("Compiling mesh %s, size in bytes: %d\n", path.c_str(), mesh_size);
+	printf("Compiling mesh %s, size in bytes: %d\n", path.c_str(), mesh->pos.length + mesh->nrm.length);
 
 	list = num_lists++;
 	printf("New mesh draw list: %d\n", list);
@@ -80,17 +80,19 @@ void Mesh::compile()
 
 			++i;
 		}
-
-		glFlush();
 	}
 	glEndList();
 }
 
-void Mesh::draw()
+void Mesh::draw(bool flush)
 {
 	if (this == nullptr)
 		return;
 
-	check(is_valid());
+	checkf(is_valid(), "Mesh::draw called with an invalid mesh! Did you compile the mesh before drawing it?\n");
 	glCallList(list);
+	if (flush)
+	{
+		glFlush();
+	}
 }

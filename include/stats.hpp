@@ -11,6 +11,7 @@ enum class scoped_timers : u8 {
 	frame = 0,
 	tick,
 	tick_movement,
+	audio,
 	draw,
 	render_vsync_wait,
 
@@ -24,6 +25,7 @@ static constexpr stats_array_t<std::pair<scoped_timers, const char*>> scoped_tim
         {scoped_timers::frame, "frame"},
         {scoped_timers::tick, "tick"},
         {scoped_timers::tick_movement, "tick movement"},
+        {scoped_timers::audio, "audio"},
         {scoped_timers::draw, "render/draw"},
         {scoped_timers::render_vsync_wait, "vsync wait (idle time)"},
     }};

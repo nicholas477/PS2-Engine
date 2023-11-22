@@ -5,6 +5,7 @@
 #include "objects/camera.hpp"
 #include "objects/movement.hpp"
 #include "objects/components/collision_component.hpp"
+#include "objects/mesh_object.hpp"
 
 #include "timer.h"
 
@@ -17,6 +18,40 @@ static void make_teapot()
 	srand(GetTimerSystemTime() + i++);
 	new_teapot->transform.add_location(Vector(((double)rand() / (double)RAND_MAX) * 256.f, 0.f, ((double)rand() / (double)RAND_MAX) * 256.f));
 }
+
+class World: public MeshObject
+{
+public:
+	World()
+	    : MeshObject("assets/models/testmap.mdl"_p)
+	{
+		mesh->compile();
+
+		for (int i = 0; i < 10; ++i)
+		{
+			float yaw = (float)rand() / (float)(RAND_MAX / 360);
+
+			Vector loc;
+			loc.x = (float)rand() / (float)(RAND_MAX / 1000);
+			//loc.y = (float)rand() / (float)(RAND_MAX / 1000);
+			loc.z         = (float)rand() / (float)(RAND_MAX / 1000);
+			transforms[i] = Matrix::from_location_and_rotation(loc, Vector(yaw).euler_to_quat());
+		}
+	}
+
+	virtual void render(const gs::gs_state& gs_state) override
+	{
+		for (int i = 0; i < 10; ++i)
+		{
+			const Matrix local_world = transforms[i];
+			ScopedMatrix sm(local_world); // * gs_state.world_view);
+
+			mesh->draw();
+		}
+	}
+
+	std::array<Matrix, 10> transforms;
+};
 
 namespace world
 {
@@ -47,6 +82,8 @@ void init()
 	// 	Mesh* mesh;
 	// } other_mesh;
 	// other_mesh.transform.set_location(Vector(100.f, 20.f));
+
+	static World world;
 
 	// Player teapot
 	static teapot teapot4;

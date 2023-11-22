@@ -98,6 +98,8 @@ void clear_screen()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
+static bool has_initialized = false;
+
 static void init_renderer()
 {
 	glShadeModel(GL_SMOOTH);              // Enable Smooth Shading
@@ -123,6 +125,13 @@ static void init_renderer()
 	{
 		Itr->on_gs_init();
 	}
+
+	has_initialized = true;
+}
+
+bool has_gs_initialized()
+{
+	return has_initialized;
 }
 
 static void
@@ -229,16 +238,18 @@ static int gs_render()
 	{
 		stats::scoped_timer draw_timer(stats::scoped_timers::draw);
 
+		constexpr float world_scale = 0.0001f;
 		// Create the world-to-view matrix.
-		_gs_state.world_view      = camera::get().transform.get_matrix().invert();
+		_gs_state.world_view      = camera::get().transform.get_matrix().invert() * Matrix::from_scale(Vector(world_scale, world_scale, world_scale));
 		_gs_state.camera_rotation = camera::get().transform.get_rotation();
 
 		glMatrixMode(GL_PROJECTION); // Select The Projection Matrix
 		glLoadIdentity();
-		gluPerspective(camera::get().fov, (GLfloat)screen_width / (GLfloat)screen_height, 1.0f, 200000.0f);
+		gluPerspective(camera::get().fov, (GLfloat)screen_width / (GLfloat)screen_height, 0.001f, 1.f);
+		glMultMatrixf(_gs_state.world_view);
 
 		glMatrixMode(GL_MODELVIEW);
-		glLoadMatrixf(_gs_state.world_view);
+		//glLoadMatrixf(_gs_state.world_view);
 
 		set_light_positions();
 
@@ -248,7 +259,7 @@ static int gs_render()
 
 		draw_objects(_gs_state);
 
-		glFlush();
+		//glFlush();
 
 		pglEndGeometry();
 

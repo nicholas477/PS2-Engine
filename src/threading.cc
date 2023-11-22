@@ -1,5 +1,7 @@
 #include "threading.hpp"
 
+#include <stdio.h>
+
 static timespec tv = {0, 0};
 
 namespace Threading
@@ -17,8 +19,10 @@ void sleep(const timespec& t_tv)
 
 void switch_thread()
 {
+	printf("switching threads!!!!!!!!!!!!\n");
 	tv.tv_sec  = 0;
 	tv.tv_nsec = 500000; // 1/2ms
 	nanosleep(&tv, nullptr);
+	printf("done switching threads!!!!!!!!!!!!\n");
 }
 } // namespace Threading

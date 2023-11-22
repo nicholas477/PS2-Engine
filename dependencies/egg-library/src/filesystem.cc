@@ -48,6 +48,14 @@ static std::string convert_filepath_to_systempath_impl(std::string_view path)
 		out_path_chars[i] = filesystem_prefix[i];
 	}
 
+	int index = filesystem_prefix_len;
+
+	if (path[0] != '\\' || path[0] != '/')
+	{
+		out_path_chars[index] = get_filesystem_separator();
+		index++;
+	}
+
 	// Write out the filename
 	int filename_start_index  = -1;
 	int extension_start_index = -1;
@@ -55,21 +63,21 @@ static std::string convert_filepath_to_systempath_impl(std::string_view path)
 	{
 		if (path[i] == '\\' || path[i] == '/')
 		{
-			out_path_chars[filesystem_prefix_len + i] = get_filesystem_separator(type);
+			out_path_chars[index + i] = get_filesystem_separator(type);
 
 			filename_start_index = i + 1;
 		}
 		else if (path[i] == '-')
 		{
-			out_path_chars[filesystem_prefix_len + i] = '_';
+			out_path_chars[index + i] = '_';
 		}
 		else if (get_filesystem_type() == Type::cdrom)
 		{
-			out_path_chars[filesystem_prefix_len + i] = toupper(path[i]);
+			out_path_chars[index + i] = toupper(path[i]);
 		}
 		else
 		{
-			out_path_chars[filesystem_prefix_len + i] = path[i];
+			out_path_chars[index + i] = path[i];
 		}
 
 		if (path[i] == '.')

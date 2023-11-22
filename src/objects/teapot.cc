@@ -33,14 +33,14 @@ public:
 	{
 		const Matrix local_world = Matrix::from_location_and_rotation(transform.get_location(), transform.get_rotation());
 
-		ScopedMatrix sm(local_world * gs_state.world_view);
+		ScopedMatrix sm(local_world); // * gs_state.world_view);
 
 		static float ps2_diffuse[] = {1.0f, 1.0f, 1.0f, 1.0f};
 		static float black[]       = {0, 0, 0, 0};
 		glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, ps2_diffuse);
 		glMaterialfv(GL_FRONT, GL_EMISSION, black);
 
-		teapot_mesh->draw();
+		teapot_mesh->draw(false);
 	}
 
 	AABB get_bounds() const

@@ -19,7 +19,7 @@ public:
 	size_t mesh_size;
 
 	void compile();
-	void draw();
+	void draw(bool flush = false);
 
 	bool is_valid() const { return list >= 0; }
 

@@ -8,6 +8,8 @@
 class transform_component
 {
 public:
+	transform_component();
+
 	Matrix get_matrix() const;
 	Matrix get_rotation_matrix() const;
 
@@ -38,6 +40,7 @@ public:
 protected:
 	Vector location;
 	Vector rotation;
+	Vector scale;
 
 	transform_component* parent = nullptr;
 	std::set<transform_component*> children;

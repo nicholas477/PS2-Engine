@@ -66,7 +66,7 @@ void init()
 	// This initializes the network debugging so do this first
 	if (Filesystem::get_filesystem_type() != Filesystem::Type::host)
 	{
-		//net::init();
+		net::init();
 	}
 
 	stats::init();
@@ -117,13 +117,15 @@ void run()
 		{
 			stats::scoped_timer frame_timer(stats::scoped_timers::frame);
 
+			//sound::work_song();
+
 			input::read_inputs();
 
-			Threading::switch_thread();
+			//sound::work_song();
 
 			tick(tickrate);
 
-			Threading::switch_thread();
+			sound::work_song();
 
 			gs::render();
 		}

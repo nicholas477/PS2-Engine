@@ -22,6 +22,7 @@ struct gs_state
 	Vector get_camera_rotation() const;
 };
 
+bool has_gs_initialized();
 void init();
 void render();
 void clear_screen();
