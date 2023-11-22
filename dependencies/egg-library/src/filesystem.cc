@@ -59,7 +59,7 @@ static std::string convert_filepath_to_systempath_impl(std::string_view path)
 	// Write out the filename
 	int filename_start_index  = -1;
 	int extension_start_index = -1;
-	for (int i = 0; i < host_string_length; ++i)
+	for (size_t i = 0; i < host_string_length; ++i)
 	{
 		if (path[i] == '\\' || path[i] == '/')
 		{
@@ -101,6 +101,9 @@ std::string convert_filepath_to_systempath(std::string_view path, Type in_filesy
 
 		case Type::rom:
 			return convert_filepath_to_systempath_impl<Type::rom>(path);
+
+		case Type::uninitialized:
+			checkf(false, "Tried to convert filepath to systempath on an uninitialized filesystem!\n");
 	}
 
 	check(false);

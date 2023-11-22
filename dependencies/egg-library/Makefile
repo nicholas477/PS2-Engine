@@ -7,7 +7,7 @@ EE_INCS += -I./include -I$(EE_SRC_DIR)
 EE_LIB = $(EE_LIB_DIR)libegg.a
 EE_OBJS = src/egg.o src/filesystem.o
 EE_OPTFLAGS = -O3 -std=gnu++20
-EE_WARNFLAGS = -Wall -Wno-unused-function -Wno-unused-variable -Wno-strict-aliasing -Wno-conversion-null 
+EE_WARNFLAGS = -Wall -Wno-unused-function -Wno-unused-variable -Wno-strict-aliasing -Wno-conversion-null -Wno-unused-but-set-variable
 
 all: $(EE_OBJS_DIR) $(EE_LIB_DIR) $(EE_LIB)
 
