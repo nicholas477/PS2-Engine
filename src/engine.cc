@@ -100,7 +100,7 @@ void init()
 
 static void tick(float deltaTime)
 {
-	Stats::scoped_timer tick_timer(Stats::scoped_timers::tick);
+	Stats::ScopedTimer tick_timer(Stats::scoped_timers::tick);
 
 	for (auto itr = Tickable::Itr(); itr; ++itr)
 	{
@@ -115,7 +115,7 @@ void run()
 	for (;;)
 	{
 		{
-			Stats::scoped_timer frame_timer(Stats::scoped_timers::frame);
+			Stats::ScopedTimer frame_timer(Stats::scoped_timers::frame);
 
 			//sound::work_song();
 

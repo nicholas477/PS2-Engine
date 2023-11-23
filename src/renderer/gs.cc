@@ -237,7 +237,7 @@ static int gs_render()
 {
 	static bool firstTime = true;
 	{
-		Stats::scoped_timer draw_timer(Stats::scoped_timers::draw);
+		Stats::ScopedTimer draw_timer(Stats::scoped_timers::draw);
 
 		constexpr float world_scale = 0.0001f;
 		// Create the world-to-view matrix.
@@ -273,7 +273,7 @@ static int gs_render()
 	// Either block until a vsync, or keep rendering until there's one
 	// available.
 	{
-		Stats::scoped_timer vsync_timer(Stats::scoped_timers::render_vsync_wait);
+		Stats::ScopedTimer vsync_timer(Stats::scoped_timers::render_vsync_wait);
 		pglWaitForVSync();
 	}
 

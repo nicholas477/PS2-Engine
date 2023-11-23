@@ -8,99 +8,11 @@
 #include <algorithm>
 #include "types.hpp"
 
+#include "model_importer.hpp"
+#include "model_exporter.hpp"
 #include <cxxopts.hpp>
 
-#define FAST_OBJ_IMPLEMENTATION
-#include "../extern/fast_obj.h"
-
 #include "meshoptimizer.h"
-
-const size_t kCacheSize = 16;
-
-static Mesh parseObj(const char* path)
-{
-	fastObjMesh* obj = fast_obj_read(path);
-	if (!obj)
-	{
-		printf("Error loading %s: file not found\n", path);
-		return Mesh();
-	}
-
-	size_t total_indices = 0;
-
-	for (unsigned int i = 0; i < obj->face_count; ++i)
-		total_indices += 3 * (obj->face_vertices[i] - 2);
-
-	std::vector<Vertex> vertices(total_indices);
-
-	size_t vertex_offset = 0;
-	size_t index_offset  = 0;
-
-	for (unsigned int i = 0; i < obj->face_count; ++i)
-	{
-		for (unsigned int j = 0; j < obj->face_vertices[i]; ++j)
-		{
-			fastObjIndex gi = obj->indices[index_offset + j];
-
-			Vertex v =
-			    {
-			        obj->positions[gi.p * 3 + 0],
-			        obj->positions[gi.p * 3 + 1],
-			        obj->positions[gi.p * 3 + 2],
-			        obj->normals[gi.n * 3 + 0],
-			        obj->normals[gi.n * 3 + 1],
-			        obj->normals[gi.n * 3 + 2],
-			        obj->texcoords[gi.t * 2 + 0],
-			        obj->texcoords[gi.t * 2 + 1],
-			        // obj->colors[gi.p * 3 + 0],
-			        // obj->colors[gi.p * 3 + 1],
-			        // obj->colors[gi.p * 3 + 2],
-			    };
-
-			// triangulate polygon on the fly; offset-3 is always the first polygon vertex
-			if (j >= 3)
-			{
-				vertices[vertex_offset + 0] = vertices[vertex_offset - 3];
-				vertices[vertex_offset + 1] = vertices[vertex_offset - 1];
-				vertex_offset += 2;
-			}
-
-			vertices[vertex_offset] = v;
-			vertex_offset++;
-		}
-
-		index_offset += obj->face_vertices[i];
-	}
-
-	fast_obj_destroy(obj);
-
-	Mesh result;
-
-	std::vector<unsigned int> remap(total_indices);
-
-	size_t total_vertices = meshopt_generateVertexRemap(&remap[0], NULL, total_indices, &vertices[0], total_indices, sizeof(Vertex));
-
-	result.indices.resize(total_indices);
-	meshopt_remapIndexBuffer(&result.indices[0], NULL, total_indices, &remap[0]);
-
-	result.vertices.resize(total_vertices);
-	meshopt_remapVertexBuffer(&result.vertices[0], &vertices[0], total_indices, sizeof(Vertex), &remap[0]);
-
-	return result;
-}
-
-static bool loadMesh(Mesh& mesh, const char* path)
-{
-	mesh = parseObj(path);
-
-	if (mesh.vertices.empty())
-	{
-		printf("Mesh %s is empty, skipping\n", path);
-		return false;
-	}
-
-	return true;
-}
 
 static bool rotateTriangle(Triangle& t)
 {
@@ -198,85 +110,6 @@ static std::vector<unsigned int> stripify(const Mesh& mesh, bool use_restart, ch
 	return strip;
 }
 
-static int pad_to_alignment(int current_index, int alignment = 16)
-{
-	int mask = alignment - 1;
-	return current_index + (-current_index & mask);
-}
-
-static std::vector<std::byte> serialize_mesh(const std::vector<Vector>& positions,
-                                             const std::vector<Vector>& normals,
-                                             const std::vector<Vector2>& texture_coords)
-{
-	std::vector<std::byte> out;
-
-	MeshFileHeader mesh_header;
-	mesh_header.nrm.set_num_elements(normals.size());
-	mesh_header.pos.set_num_elements(positions.size());
-	mesh_header.uvs.set_num_elements(texture_coords.size());
-	mesh_header.strips.set_num_elements(1);
-
-	MeshTriangleStripHeader strip_header;
-	strip_header.strip_start_index = 0;
-	strip_header.strip_end_index   = positions.size();
-
-	int current_byte_index = 0; // Index of the byte currently being written to
-
-	// Calculate header offsets and the size of the file
-	{
-		current_byte_index += sizeof(mesh_header);
-
-		mesh_header.strips.offset = current_byte_index - offsetof(MeshFileHeader, strips);
-		current_byte_index += sizeof(strip_header);
-
-		current_byte_index     = pad_to_alignment(current_byte_index, 16);
-		mesh_header.pos.offset = current_byte_index - offsetof(MeshFileHeader, pos);
-		current_byte_index += positions.size() * sizeof(Vector);
-
-		current_byte_index     = pad_to_alignment(current_byte_index, 16);
-		mesh_header.nrm.offset = current_byte_index - offsetof(MeshFileHeader, nrm);
-		current_byte_index += normals.size() * sizeof(Vector);
-
-		current_byte_index     = pad_to_alignment(current_byte_index, 16);
-		mesh_header.uvs.offset = current_byte_index - offsetof(MeshFileHeader, uvs);
-		//mesh_header.uvs.offset = -1;
-		current_byte_index += texture_coords.size() * sizeof(Vector2);
-	}
-
-	out.resize(current_byte_index);
-
-	// Now copy over the data
-	memcpy(out.data(), &mesh_header, sizeof(mesh_header));
-	memcpy(out.data() + mesh_header.strips.offset + offsetof(MeshFileHeader, strips), &strip_header, sizeof(strip_header));
-	memcpy(out.data() + mesh_header.pos.offset + offsetof(MeshFileHeader, pos), positions.data(), positions.size() * sizeof(Vector));
-	memcpy(out.data() + mesh_header.nrm.offset + offsetof(MeshFileHeader, nrm), normals.data(), normals.size() * sizeof(Vector));
-	memcpy(out.data() + mesh_header.uvs.offset + offsetof(MeshFileHeader, uvs), texture_coords.data(), texture_coords.size() * sizeof(Vector2));
-
-
-	MeshFileHeader* out_header                = (MeshFileHeader*)out.data();
-	MeshTriangleStripHeader* out_strip_header = out_header->strips.get_ptr();
-
-	printf("Testing mesh header and strip header equality...\n");
-	assert(memcmp(&mesh_header, out_header, sizeof(mesh_header)) == 0);
-	assert(memcmp(&strip_header, out_strip_header, sizeof(strip_header)) == 0);
-
-	printf("Testing position equality...\n");
-	assert(positions.size() == out_header->pos.num_elements());
-	assert(memcmp(positions.data(), out_header->pos.get_ptr(), out_header->pos.length) == 0);
-
-	printf("Testing normals equality...\n");
-	assert(normals.size() == out_header->nrm.num_elements());
-	assert(memcmp(normals.data(), out_header->nrm.get_ptr(), out_header->nrm.length) == 0);
-
-	printf("Texture coord equality...\n");
-	assert(texture_coords.size() == out_header->uvs.num_elements());
-	assert(memcmp(texture_coords.data(), out_header->uvs.get_ptr(), out_header->uvs.length) == 0);
-
-	printf("All good!\n");
-
-	return out;
-}
-
 static std::string input_path;
 static std::string output_path;
 static bool write_output = true;
@@ -286,18 +119,14 @@ static void process()
 	printf("Processing model file: %s\n", input_path.c_str());
 
 	Mesh mesh;
-	if (!loadMesh(mesh, input_path.c_str()))
+	if (!load_mesh(mesh, input_path.c_str()))
+	{
+		fprintf(stderr, "Failed to load model\n");
+		std::exit(-1);
 		return;
+	}
 
 	printf("Num verts (before stripping): %lu, num tris: %lu\n", mesh.vertices.size(), mesh.indices.size() / 3);
-
-	// Mesh copy = mesh;
-	// meshopt_optimizeVertexCache(&copy.indices[0], &copy.indices[0], copy.indices.size(), copy.vertices.size());
-	// meshopt_optimizeVertexFetch(&copy.vertices[0], &copy.indices[0], copy.indices.size(), &copy.vertices[0], copy.vertices.size(), sizeof(Vertex));
-
-	// Mesh copystrip = mesh;
-	// meshopt_optimizeVertexCacheStrip(&copystrip.indices[0], &copystrip.indices[0], copystrip.indices.size(), copystrip.vertices.size());
-	// meshopt_optimizeVertexFetch(&copystrip.vertices[0], &copystrip.indices[0], copystrip.indices.size(), &copystrip.vertices[0], copystrip.vertices.size(), sizeof(Vertex));
 
 	// Stripify it
 	std::vector<unsigned int> strip = stripify(mesh, false, 'S');
@@ -307,17 +136,19 @@ static void process()
 	std::vector<Vector> positions;
 	std::vector<Vector> normals;
 	std::vector<Vector2> texture_coords;
+	std::vector<Vector> colors;
 
 	positions.reserve(strip.size());
 	normals.reserve(strip.size());
 	texture_coords.reserve(strip.size());
+	colors.reserve(strip.size());
 
+	// Reverse winding order
 	std::reverse(strip.begin(), strip.end());
 
 	constexpr unsigned int restart_index = ~0u;
 	for (unsigned int index : strip)
 	{
-		//printf("Index: %u\n", index);
 		if (index == restart_index)
 		{
 			strips++;
@@ -329,6 +160,7 @@ static void process()
 			positions.emplace_back(vertex.px, vertex.py, vertex.pz);
 			normals.emplace_back(vertex.nx, vertex.ny, vertex.nz);
 			texture_coords.emplace_back(vertex.tx, vertex.ty);
+			colors.emplace_back(vertex.r, vertex.g, vertex.b);
 		}
 	}
 
@@ -336,7 +168,7 @@ static void process()
 
 	printf("Num verts (after stripping): %lu, num tris: %lu\n", positions.size(), positions.size() - 2);
 
-	std::vector<std::byte> mesh_data = serialize_mesh(positions, normals, texture_coords);
+	std::vector<std::byte> mesh_data = serialize_mesh(positions, normals, texture_coords, colors);
 
 	if (write_output)
 	{

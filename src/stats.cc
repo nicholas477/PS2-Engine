@@ -46,13 +46,13 @@ void clear_timer_stats()
 	}
 }
 
-scoped_timer::scoped_timer(scoped_timers _timer)
+ScopedTimer::ScopedTimer(scoped_timers _timer)
     : timer(_timer)
 {
 	start_time = Engine::get_cpu_ticks();
 }
 
-scoped_timer::~scoped_timer()
+ScopedTimer::~ScopedTimer()
 {
 	add_timer_stat(timer, Engine::get_cpu_ticks() - start_time);
 }

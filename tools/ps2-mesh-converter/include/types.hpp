@@ -9,7 +9,7 @@ struct Vertex
 	float px, py, pz;
 	float nx, ny, nz;
 	float tx, ty;
-	float r, g, b;
+	float r, g, b, a;
 };
 
 struct Mesh

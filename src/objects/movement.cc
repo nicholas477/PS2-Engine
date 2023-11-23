@@ -13,7 +13,7 @@
 
 void Movement::tick(float delta_time)
 {
-	Stats::scoped_timer movement_stat(Stats::scoped_timers::tick_movement);
+	Stats::ScopedTimer movement_stat(Stats::scoped_timers::tick_movement);
 
 	Vector last_frame_position = updated_location_component->get_location();
 

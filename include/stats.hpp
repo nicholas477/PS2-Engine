@@ -48,10 +48,10 @@ static constexpr const char* lookup_stat_timer_name(size_t timer)
 	return lookup_stat_timer_name(static_cast<scoped_timers>(timer));
 }
 
-struct scoped_timer
+struct ScopedTimer
 {
-	scoped_timer(scoped_timers _timer);
-	~scoped_timer();
+	ScopedTimer(scoped_timers _timer);
+	~ScopedTimer();
 
 	u64 start_time;
 	scoped_timers timer;

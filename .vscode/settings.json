@@ -68,5 +68,6 @@
         "list": "cpp",
         "span": "cpp"
     },
-    "C_Cpp.default.configurationProvider": "ms-vscode.makefile-tools"
+    "C_Cpp.default.configurationProvider": "ms-vscode.makefile-tools",
+    "cmake.sourceDirectory": "/home/nicholas/teapot/tools/ps2-mesh-converter"
 }

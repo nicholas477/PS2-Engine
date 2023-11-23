@@ -74,6 +74,11 @@ void Mesh::compile()
 			glTexCoordPointer(2, GL_FLOAT, 0, mesh->uvs.get_ptr());
 		}
 
+		if (mesh->colors.offset > 0)
+		{
+			glColorPointer(4, GL_FLOAT, 0, mesh->colors.get_ptr());
+		}
+
 		int i = 0;
 		for (const MeshTriangleStripHeader& strip : mesh->strips)
 		{

@@ -128,7 +128,7 @@ static void work()
 
 bool work_song()
 {
-	Stats::scoped_timer audio_timer(Stats::scoped_timers::audio);
+	Stats::ScopedTimer audio_timer(Stats::scoped_timers::audio);
 
 	bool did_work = false;
 	//printf("work_song()");
