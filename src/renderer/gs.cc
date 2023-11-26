@@ -45,12 +45,9 @@ static GSState _gs_state;
 static void init_lights()
 {
 	// lighting
-	GLfloat ambient[] = {0.2, 0.2, 0.2, 1.0};
-
+	GLfloat ambient[]    = {0.0, 0.0, 0.0, 0.0};
 	GLfloat l0_diffuse[] = {1.0f, 1.0f, 1.0f, 0};
 
-	// GLfloat l1_position[] = {0, -1, 1, 0.0};
-	GLfloat l1_diffuse[] = {.6f, .6f, .6f, 0.0f};
 
 	GLfloat black[] = {0, 0, 0, 0};
 
@@ -58,9 +55,8 @@ static void init_lights()
 	glEnable(GL_LIGHT0);
 	//glEnable(GL_LIGHT1);
 
-	glLightfv(GL_LIGHT0, GL_AMBIENT, ambient);
-	glLightfv(GL_LIGHT0, GL_DIFFUSE, l0_diffuse);
-	glLightfv(GL_LIGHT0, GL_SPECULAR, l0_diffuse);
+	//glLightfv(GL_LIGHT0, GL_AMBIENT, ambient);
+	//glLightfv(GL_LIGHT0, GL_DIFFUSE, l0_diffuse);
 
 	// glLightfv(GL_LIGHT1, GL_AMBIENT, black);
 	// glLightfv(GL_LIGHT1, GL_DIFFUSE, l1_diffuse);
@@ -69,15 +65,6 @@ static void init_lights()
 	// glLightf(GL_LIGHT1, GL_CONSTANT_ATTENUATION, 0.0f);
 	// glLightf(GL_LIGHT1, GL_LINEAR_ATTENUATION, 0.005f);
 	// glLightf(GL_LIGHT1, GL_QUADRATIC_ATTENUATION, 0.0f);
-}
-
-static void set_light_positions()
-{
-	GLfloat l0_position[] = {0, 1.0, 1.0, 0.0};
-	GLfloat l1_position[] = {0.0, -20.0, -80.0, 1.0};
-
-	glLightfv(GL_LIGHT0, GL_POSITION, l0_position);
-	//glLightfv(GL_LIGHT1, GL_POSITION, l1_position);
 }
 
 //-----------------------------------------------------------------------------
@@ -109,13 +96,13 @@ static void init_renderer()
 	//glEnable(GL_RESCALE_NORMAL);
 	//glEnable(GL_CULL_FACE);
 	glDepthFunc(GL_LEQUAL); // The Type Of Depth Testing To Do
-	glEnable(GL_COLOR_MATERIAL);
 	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 	pglEnable(PGL_CLIPPING);
 
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glEnableClientState(GL_NORMAL_ARRAY);
-	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	glEnableClientState(GL_COLOR_ARRAY);
+	//glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
 
 	glViewport(0, 0, screen_width, screen_height);
@@ -251,8 +238,6 @@ static int gs_render()
 
 		glMatrixMode(GL_MODELVIEW);
 		//glLoadMatrixf(_gs_state.world_view);
-
-		set_light_positions();
 
 		pglBeginGeometry();
 

@@ -16,7 +16,7 @@ add_executable(egg-ps2-mesh-converter ${Source})
 
 target_include_directories(egg-ps2-mesh-converter PRIVATE include)
 target_include_directories(egg-ps2-mesh-converter PRIVATE "${PS2SDK_DIR}/ports/include")
-target_link_libraries(egg-ps2-mesh-converter PUBLIC meshoptimizer::meshoptimizer)
+target_link_libraries(egg-ps2-mesh-converter PUBLIC meshoptimizer::meshoptimizer assimp)
 
 set_property(TARGET egg-ps2-mesh-converter PROPERTY CXX_STANDARD 20)
 

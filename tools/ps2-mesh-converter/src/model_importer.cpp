@@ -1,5 +1,7 @@
 #include "model_importer.hpp"
 
+#include <algorithm>
+
 #include "meshoptimizer.h"
 #include <filesystem>
 
@@ -8,9 +10,10 @@
 
 const size_t kCacheSize = 16;
 
-static bool parseObj(std::string_view path, Mesh& result)
+static bool parseObj(std::string_view path, std::vector<Mesh>& out_meshes)
 {
-	result = Mesh();
+	// This importer only supports a single mesh
+	out_meshes = {Mesh()};
 
 	fastObjMesh* obj = fast_obj_read(path.data());
 	if (!obj)
@@ -52,6 +55,14 @@ static bool parseObj(std::string_view path, Mesh& result)
 				v.r = obj->colors[gi.p * 3 + 0];
 				v.g = obj->colors[gi.p * 3 + 1];
 				v.b = obj->colors[gi.p * 3 + 2];
+				v.a = 1.f;
+			}
+			else
+			{
+				v.r = 1.f;
+				v.g = 1.f;
+				v.b = 1.f;
+				v.a = 1.f;
 			}
 
 			// triangulate polygon on the fly; offset-3 is always the first polygon vertex
@@ -75,36 +86,42 @@ static bool parseObj(std::string_view path, Mesh& result)
 
 	size_t total_vertices = meshopt_generateVertexRemap(&remap[0], NULL, total_indices, &vertices[0], total_indices, sizeof(Vertex));
 
-	result.indices.resize(total_indices);
-	meshopt_remapIndexBuffer(&result.indices[0], NULL, total_indices, &remap[0]);
+	out_meshes[0].indices.resize(total_indices);
+	meshopt_remapIndexBuffer(&out_meshes[0].indices[0], NULL, total_indices, &remap[0]);
 
-	result.vertices.resize(total_vertices);
-	meshopt_remapVertexBuffer(&result.vertices[0], &vertices[0], total_indices, sizeof(Vertex), &remap[0]);
+	out_meshes[0].vertices.resize(total_vertices);
+	meshopt_remapVertexBuffer(&out_meshes[0].vertices[0], &vertices[0], total_indices, sizeof(Vertex), &remap[0]);
 
 	return true;
 }
 
-bool load_mesh(Mesh& mesh, std::string_view path)
+bool load_mesh(std::vector<Mesh>& out_meshes, std::string_view path)
 {
 	std::filesystem::path p(path);
-	if (p.extension() == ".obj")
+	if (iequals(p.extension(), ".obj"))
 	{
-		if (parseObj(path, mesh) == false)
+		if (parseObj(path, out_meshes) == false)
 		{
-			printf("Couldn't find mesh at path %s\n", path.data());
+			printf("Couldn't find/pase mesh at path %s\n", path.data());
 			return false;
 		}
-
-		if (mesh.vertices.empty())
+	}
+	else if (iequals(p.extension(), ".fbx"))
+	{
+		if (parseFbx(path, out_meshes) == false)
 		{
-			printf("Mesh %s is empty, skipping\n", path.data());
+			printf("Couldn't find/pase mesh at path %s\n", path.data());
 			return false;
 		}
-		return true;
-	}
-	else if (p.extension() == ".fbx")
-	{
 	}
 
-	return false;
+	if (out_meshes.empty() || std::all_of(out_meshes.begin(), out_meshes.end(), [](const Mesh& mesh) {
+		    return mesh.indices.empty();
+	    }))
+	{
+		fprintf(stderr, "Mesh data empty %s\n", path.data());
+		return false;
+	}
+
+	return true;
 }

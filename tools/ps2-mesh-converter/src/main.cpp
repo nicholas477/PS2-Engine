@@ -118,57 +118,64 @@ static void process()
 {
 	printf("Processing model file: %s\n", input_path.c_str());
 
-	Mesh mesh;
-	if (!load_mesh(mesh, input_path.c_str()))
+	std::vector<Mesh> meshes;
+	if (!load_mesh(meshes, input_path.c_str()))
 	{
 		fprintf(stderr, "Failed to load model\n");
 		std::exit(-1);
 		return;
 	}
 
-	printf("Num verts (before stripping): %lu, num tris: %lu\n", mesh.vertices.size(), mesh.indices.size() / 3);
+	printf("Loaded %lu meshes from file\n", meshes.size());
 
-	// Stripify it
-	std::vector<unsigned int> strip = stripify(mesh, false, 'S');
-
-	int strips = 1;
-
-	std::vector<Vector> positions;
-	std::vector<Vector> normals;
-	std::vector<Vector2> texture_coords;
-	std::vector<Vector> colors;
-
-	positions.reserve(strip.size());
-	normals.reserve(strip.size());
-	texture_coords.reserve(strip.size());
-	colors.reserve(strip.size());
-
-	// Reverse winding order
-	std::reverse(strip.begin(), strip.end());
-
-	constexpr unsigned int restart_index = ~0u;
-	for (unsigned int index : strip)
+	std::vector<MeshStrip> strips;
+	for (size_t i = 0; i < meshes.size(); ++i)
 	{
-		if (index == restart_index)
-		{
-			strips++;
-		}
-		else
-		{
-			const Vertex& vertex = mesh.vertices[index];
+		printf("Mesh %lu: Num verts (before stripping): %lu, num tris: %lu\n", i, meshes[i].vertices.size(), meshes[i].indices.size() / 3);
 
-			positions.emplace_back(vertex.px, vertex.py, vertex.pz);
-			normals.emplace_back(vertex.nx, vertex.ny, vertex.nz);
-			texture_coords.emplace_back(vertex.tx, vertex.ty);
-			colors.emplace_back(vertex.r, vertex.g, vertex.b);
+		// Stripify it
+		std::vector<unsigned int> strip = stripify(meshes[i], false, 'S');
+
+		int num_strips = 1;
+
+		MeshStrip& new_strip                 = strips.emplace_back();
+		std::vector<Vector>& positions       = new_strip.positions;
+		std::vector<Vector>& normals         = new_strip.normals;
+		std::vector<Vector2>& texture_coords = new_strip.texture_coords;
+		std::vector<Vector>& colors          = new_strip.colors;
+
+		positions.reserve(strip.size());
+		normals.reserve(strip.size());
+		texture_coords.reserve(strip.size());
+		colors.reserve(strip.size());
+
+		// Reverse winding order
+		std::reverse(strip.begin(), strip.end());
+
+		constexpr unsigned int restart_index = ~0u;
+		for (unsigned int index : strip)
+		{
+			if (index == restart_index)
+			{
+				num_strips++;
+			}
+			else
+			{
+				const Vertex& vertex = meshes[i].vertices[index];
+
+				positions.emplace_back(vertex.px, vertex.py, vertex.pz);
+				normals.emplace_back(vertex.nx, vertex.ny, vertex.nz);
+				texture_coords.emplace_back(vertex.tx, vertex.ty);
+				colors.emplace_back(vertex.r, vertex.g, vertex.b);
+			}
 		}
+
+		printf("Mesh %lu: Num verts (after stripping): %lu, num tris: %lu\n", i, positions.size(), positions.size() - 2);
 	}
 
-	printf("strips: %d\n", strips);
+	printf("Meshes/strips: %lu\n", strips.size());
 
-	printf("Num verts (after stripping): %lu, num tris: %lu\n", positions.size(), positions.size() - 2);
-
-	std::vector<std::byte> mesh_data = serialize_mesh(positions, normals, texture_coords, colors);
+	std::vector<std::byte> mesh_data = serialize_meshes(strips);
 
 	if (write_output)
 	{

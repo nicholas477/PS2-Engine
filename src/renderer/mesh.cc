@@ -59,7 +59,17 @@ void Mesh::compile()
 	check(num_lists <= 4096);
 	glNewList(list, GL_COMPILE);
 	{
+		glEnable(GL_COLOR_MATERIAL);
+		glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
+		//glColorMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE);
+		//static float material_diff_amb[] = {0.5f, 0.5f, 0.5f, 0};
+		//glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, material_diff_amb);
+		//glShadeModel(GL_SMOOTH);
 		glCullFace(GL_BACK);
+		//glDisable(GL_LIGHT0);
+
+		//float material[] = {.5f, .5f, .5f, .5f};
+		//glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, material);
 		//glFrontFace(GL_CCW);
 
 		check((uintptr_t)mesh->pos.get_ptr() % 16 == 0);
@@ -76,6 +86,7 @@ void Mesh::compile()
 
 		if (mesh->colors.offset > 0)
 		{
+			printf("Mesh: %d has colors\n", list);
 			glColorPointer(4, GL_FLOAT, 0, mesh->colors.get_ptr());
 		}
 

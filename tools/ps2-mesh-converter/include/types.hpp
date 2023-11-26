@@ -37,6 +37,21 @@ static bool isMeshValid(const Mesh& mesh)
 
 union Triangle
 {
+	Triangle()
+	{
+	}
 	Vertex v[3];
 	char data[sizeof(Vertex) * 3];
 };
+
+static bool ichar_equals(char a, char b)
+{
+	return std::tolower(static_cast<unsigned char>(a)) ==
+	       std::tolower(static_cast<unsigned char>(b));
+}
+
+// Case insensitive string compare
+static bool iequals(const std::string& a, const std::string& b)
+{
+	return std::equal(a.begin(), a.end(), b.begin(), b.end(), ichar_equals);
+}

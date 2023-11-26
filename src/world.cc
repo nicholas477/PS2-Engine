@@ -41,7 +41,7 @@ public:
 
 	virtual void render(const GS::GSState& gs_state) override
 	{
-		for (int i = 0; i < 7; ++i)
+		for (int i = 0; i < 1; ++i)
 		{
 			const Matrix local_world = transforms[i];
 			ScopedMatrix sm(local_world); // * gs_state.world_view);
