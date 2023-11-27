@@ -1,0 +1,26 @@
+RENDERERS = \
+	vertex_color_renderer
+
+EE_OBJS += $(addsuffix .vo, $(addprefix vu1/, $(RENDERERS)))
+VSM_SOURCES = $(addsuffix _vcl.vsm, $(addprefix vu1/, $(RENDERERS)))
+
+%.vo: %_vcl.vsm
+	dvp-as -o $@ $<
+
+%_vcl.vsm: %_pp4.vcl
+	vcl -o$@ $<
+
+%indexed_pp4.vcl: %indexed_pp3.vcl
+	cat $< | cc -E -P -imacros $(PS2GL_DIR)/vu1/vu1_mem_indexed.h -o $@ -
+
+%_pp4.vcl: %_pp3.vcl
+	cat $< | cc -E -P -imacros $(PS2GL_DIR)/vu1/vu1_mem_linear.h -o $@ -
+
+%_pp3.vcl: %_pp2.vcl
+	cat $< | sed 's/\[\([0-9]\)\]/_\1/g ; s/\[\([w-zW-Z]\)\]/\1/g' - > $@
+
+%_pp2.vcl: %_pp1.vcl
+	masp -c ';' -I$(PS2GL_DIR) -o $@ $<
+
+%_pp1.vcl: %.vcl
+	cat $< | sed 's/#include[ 	]\+.\+// ; s/#define[ 	]\+.\+// ; s|\(\.include[ 	]\+\)"\([^/].\+\)"|\1"$(<D)/\2"|' - > $@

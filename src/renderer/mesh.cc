@@ -1,5 +1,6 @@
 #include "renderer/mesh.hpp"
 #include "renderer/renderable.hpp"
+#include "renderer/ps2gl_renderers/vertex_color_renderer.hpp"
 
 #include "egg/filesystem.hpp"
 #include <egg/mesh_header.hpp>
@@ -7,28 +8,7 @@
 #include <GL/ps2gl.h>
 #include <egg/assert.hpp>
 
-//std::unordered_map<Filesystem::Path, Mesh> Mesh::loaded_meshes;
 static GLint num_lists = 0;
-
-// static class MeshLoader: public renderable
-// {
-// public:
-// 	MeshLoader()
-// 	    : renderable(true)
-// 	{
-// 	}
-
-// 	virtual void on_gs_init() override
-// 	{
-// 		//Mesh::loaded_meshes["/assets/models/kettle.ps2_model"_p] = Mesh("/assets/models/kettle.ps2_model"_p);
-// 		//Mesh::loaded_meshes["/assets/models/shopping_cart.ps2_model"_p] = Mesh("/assets/models/shopping_cart.ps2_model"_p);
-
-// 		for (auto& [path, mesh] : Mesh::loaded_meshes)
-// 		{
-// 			mesh.compile();
-// 		}
-// 	}
-// } mesh_loader;
 
 Mesh::Mesh()
 {
@@ -96,7 +76,7 @@ void Mesh::compile()
 			printf("Compiling mesh strip: %d\n", i);
 			const auto start_index = strip.strip_start_index;
 			const auto count       = strip.strip_end_index - start_index;
-			glDrawArrays(GL_TRIANGLE_STRIP, start_index, count);
+			glDrawArrays(kVCRPrimType, start_index, count);
 
 			++i;
 		}

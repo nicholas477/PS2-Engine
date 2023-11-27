@@ -20,6 +20,9 @@ ISO_FOLDER_DIR = build/iso
 VU_OUTPUT_DIR  = vu
 VU_PROGS = $(addprefix $(OUTPUT_DIR)/$(VU_OUTPUT_DIR)/, $(patsubst %.vcl, %.o, $(VCL_FILES)))
 
+PS2GL_DIR = dependencies/ps2gl
+EE_INCS += -I$(PS2GL_DIR)/vu1
+
 #
 # Vector Unit assembler:
 #
@@ -37,12 +40,14 @@ PS2_VCLPP = vclpp
 #
 # VCL/VU microprograms:
 #
-VCL_PATH  = $(PREFIX)vu1progs
-VCL_FILES =
-
-EE_OBJS := $(VU_PROGS) $(EE_OBJS)
+VCL_PATH  = $(PREFIX)
+VCL_FILES = renderer/ps2gl_renderers/vuprogs/general_pv_diff.vcl
 
 include src/Makefile.iso
+include src/Makefile.vuprogs
+
+VUPROGS: $(addsuffix .vo, $(addprefix vu1/, $(RENDERERS)))
+EE_OBJS := $(VUPROGS) $(EE_OBJS)
 
 .PHONY: compile cleancompile
 compile: $(EE_BIN)
@@ -53,18 +58,10 @@ cleancompile:
 
 clean: cleaniso cleancompile
 
+realclean: clean
+	rm -f  $(VSM_SOURCES)
+
 all: $(ISO_TGT)
-
-#
-# VU microprograms:
-#
-$(VU_PROGS): $(OUTPUT_DIR)/$(VU_OUTPUT_DIR)/%.o: $(OUTPUT_DIR)/$(VU_OUTPUT_DIR)/%.vsm
-	$(PS2_VU_DVP) $< -o $@
-
-$(OUTPUT_DIR)/$(VU_OUTPUT_DIR)/%.vsm:
-	$(MKDIR) -p $(dir $@)
-	$(PS2_VCLPP) $(VCL_PATH)/$*.vcl $(dir $@)$*.pp.vcl -j
-	$(PS2_VCL) -o$@ $(dir $@)$*.pp.vcl
 
 run: $(EE_BIN)
 	cd $(dir $(EE_BIN))

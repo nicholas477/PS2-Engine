@@ -1,6 +1,7 @@
 #include "objects/camera.hpp"
 #include "renderer/gs.hpp"
 #include "renderer/renderable.hpp"
+#include "renderer/ps2gl_renderers/vertex_color_renderer.hpp"
 #include "stats.hpp"
 #include "egg/assert.hpp"
 
@@ -108,6 +109,8 @@ static void init_renderer()
 	glViewport(0, 0, screen_width, screen_height);
 
 	init_lights();
+
+	VertexColorRenderer::Register();
 
 	for (Renderable::TIterator Itr = Renderable::Itr(); Itr; ++Itr)
 	{
