@@ -18,7 +18,7 @@ jobs:
         apk add build-base binutils-dev git cmake xorriso assimp-dev musl-obstack-dev
 
     - name: Install openvcl/MASP
-      run:
+      run: |
         git clone https://github.com/nicholas477/openvcl.git dependencies/openvcl
         cd dependencies/openvcl/contrib/masp
         chmod +x ./configure && ./configure LIBS="-lobstack"
