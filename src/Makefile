@@ -67,7 +67,8 @@ $(OUTPUT_DIR)/$(VU_OUTPUT_DIR)/%.vsm:
 	$(PS2_VCL) -o$@ $(dir $@)$*.pp.vcl
 
 run: $(EE_BIN)
-	ps2client -h $(PS2HOST) execee host:$(EE_BIN)
+	cd $(dir $(EE_BIN))
+	ps2client -h $(PS2HOST) execee host:$(notdir $(EE_BIN))
 
 reset:
 	ps2client -h $(PS2HOST) reset

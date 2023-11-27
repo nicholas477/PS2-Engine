@@ -17,7 +17,7 @@
 			init_scr();                                                           \
 			printf("ERROR! Check failed! file: %s, function: %s, line: %d\n",     \
 			       __FILE__, __func__, __LINE__);                                 \
-			print_stack_trace();                                                  \
+			init_scr();                                                           \
 			scr_printf("ERROR! Check failed! file: %s, function: %s, line: %d\n", \
 			           __FILE__, __func__, __LINE__);                             \
 			SleepThread();                                                        \
@@ -32,7 +32,7 @@
 			printf("ERROR! Check failed! file: %s, function: %s, line: %d\n",     \
 			       __FILE__, __func__, __LINE__);                                 \
 			printf("Check msg: %s\n", (msg));                                     \
-			print_stack_trace();                                                  \
+			init_scr();                                                           \
 			scr_printf("ERROR! Check failed! file: %s, function: %s, line: %d\n", \
 			           __FILE__, __func__, __LINE__);                             \
 			scr_printf("Check msg: %s\n", (msg));                                 \

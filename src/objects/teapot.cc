@@ -25,7 +25,7 @@ public:
 	void on_gs_init()
 	{
 		teapot_mesh = new Mesh("/assets/models/kettle.mdl"_p); //&Mesh::loaded_meshes["/assets/models/kettle.ps2_model"_p];
-		                                                       //teapot_mesh = nullptr;
+		//teapot_mesh = nullptr;
 		teapot_mesh->compile();
 	}
 

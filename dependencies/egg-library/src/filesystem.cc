@@ -5,6 +5,7 @@
 #include <string.h>
 #include <fstream>
 #include <memory>
+#include <filesystem>
 
 #include "egg/assert.hpp"
 
@@ -26,6 +27,41 @@ static constexpr std::size_t constexpr_strlen(const char* s)
 	return std::char_traits<char>::length(s);
 }
 
+static void convert_to_83_path(std::string_view path, char* buffer, size_t len)
+{
+	// Iterate backwards and look for the beginning of the filename
+	size_t filename_begin  = 0;
+	size_t extension_begin = path.size();
+	for (int i = path.size(); i >= 0; --i)
+	{
+		if (path[i] == '.')
+		{
+			extension_begin = i;
+		}
+		else if (path[i] == '/' || path[i] == '\\')
+		{
+			filename_begin = i + 1;
+			break;
+		}
+	}
+
+	// Copy up to the first 8 filename characters over
+	size_t itr_end = std::min(filename_begin + 8, extension_begin);
+	itr_end        = std::min(itr_end, path.size());
+	for (size_t i = 0; i < itr_end; ++i)
+	{
+		buffer[i] = path[i];
+	}
+
+	// Copy the extension over
+	size_t itr_extension_end = std::min(4U, path.size() - extension_begin);
+	for (size_t i = 0; i < itr_extension_end; ++i)
+	{
+		buffer[itr_end + i] = path[extension_begin + i];
+	}
+	buffer[itr_end + itr_extension_end] = '\0';
+}
+
 template <Type type>
 static std::string convert_filepath_to_systempath_impl(std::string_view path)
 {
@@ -35,9 +71,6 @@ static std::string convert_filepath_to_systempath_impl(std::string_view path)
 	check(host_string_length <= 255);
 
 	static char out_path_chars[256];
-
-	// snprintf(out_path_chars, host_string_length + 1, "%s%c%.*s",
-	//          get_filesystem_prefix(type), get_filesystem_separator(type), path.length(), path.data());
 
 	constexpr const char* filesystem_prefix = get_filesystem_prefix(type);
 	constexpr int filesystem_prefix_len     = constexpr_strlen(filesystem_prefix);
@@ -50,39 +83,49 @@ static std::string convert_filepath_to_systempath_impl(std::string_view path)
 
 	int index = filesystem_prefix_len;
 
-	if (path[0] != '\\' || path[0] != '/')
+	int path_start = 0;
+	if constexpr (type != Type::host)
 	{
-		out_path_chars[index] = get_filesystem_separator();
-		index++;
+		if (path[0] != '\\' && path[0] != '/')
+		{
+			out_path_chars[index] = get_filesystem_separator();
+			index++;
+		}
+	}
+	else
+	{
+		// iterate past the start of the path on host filesystem
+		while (path[path_start] == '\\' || path[path_start] == '/')
+		{
+			path_start++;
+		}
 	}
 
-	// Write out the filename
-	int filename_start_index  = -1;
-	int extension_start_index = -1;
-	for (size_t i = 0; i < host_string_length; ++i)
-	{
-		if (path[i] == '\\' || path[i] == '/')
-		{
-			out_path_chars[index + i] = get_filesystem_separator(type);
+	path = std::string_view(path.data() + path_start, path.end());
 
-			filename_start_index = i + 1;
-		}
-		else if (path[i] == '-')
+	if constexpr (type == Type::cdrom)
+	{
+		convert_to_83_path(path, out_path_chars + filesystem_prefix_len, (256 - filesystem_prefix_len) - 1);
+	}
+	else
+	{
+		strncpy(out_path_chars + filesystem_prefix_len, path.data(), (256 - filesystem_prefix_len) - 1);
+	}
+
+	// Convert to uppercase, etc
+	for (size_t i = filesystem_prefix_len - 1; i < host_string_length; ++i)
+	{
+		if (out_path_chars[i] == '\\' || out_path_chars[i] == '/')
 		{
-			out_path_chars[index + i] = '_';
+			out_path_chars[i] = get_filesystem_separator(type);
+		}
+		else if (out_path_chars[i] == '-')
+		{
+			out_path_chars[i] = '_';
 		}
 		else if (get_filesystem_type() == Type::cdrom)
 		{
-			out_path_chars[index + i] = toupper(path[i]);
-		}
-		else
-		{
-			out_path_chars[index + i] = path[i];
-		}
-
-		if (path[i] == '.')
-		{
-			extension_start_index = i + 1;
+			out_path_chars[i] = toupper(out_path_chars[i]);
 		}
 	}
 
@@ -148,6 +191,34 @@ bool load_file(const Path& path, std::unique_ptr<std::byte[]>& out_bytes, size_t
 	}
 
 	return false;
+}
+
+bool file_exists(const Path& path)
+{
+	return std::filesystem::exists(path.c_str());
+}
+
+void iterate_dir(const Path& dir, std::function<void(const Path&)> itr_func, bool recursive)
+{
+	checkf(itr_func, "iterate_dir called with empty itr_func!");
+
+	namespace fs = std::filesystem;
+	if (recursive)
+	{
+		for (const fs::directory_entry& dir_entry :
+		     fs::recursive_directory_iterator(dir.c_str()))
+		{
+			itr_func(Path(dir_entry.path().c_str(), false));
+		}
+	}
+	else
+	{
+		for (const fs::directory_entry& dir_entry :
+		     fs::directory_iterator(dir.c_str()))
+		{
+			itr_func(Path(dir_entry.path().c_str(), false));
+		}
+	}
 }
 
 void run_tests()

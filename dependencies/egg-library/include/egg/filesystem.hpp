@@ -6,6 +6,7 @@
 #include <string>
 #include <string_view>
 #include <memory>
+#include <functional>
 
 namespace Filesystem
 {
@@ -94,12 +95,26 @@ static constexpr const char* constexpr_convert_filepath_to_systempath(std::strin
 // Returns true if the file was loaded succesfully
 bool load_file(const Path& path, std::vector<std::byte>& out_bytes);
 bool load_file(const Path& path, std::unique_ptr<std::byte[]>& out_bytes, size_t& size, size_t alignment = 1);
+bool file_exists(const Path& path);
+void iterate_dir(const Path& dir, std::function<void(const Path&)> itr_func, bool recursive = false);
 
 struct Path
 {
 	Path() = default;
 
 	Path(const std::string& in_path, bool convert_path = true)
+	{
+		if (convert_path)
+		{
+			_path_str = convert_filepath_to_systempath(in_path);
+		}
+		else
+		{
+			_path_str = in_path;
+		}
+	}
+
+	Path(const char* in_path, bool convert_path = true)
 	{
 		if (convert_path)
 		{

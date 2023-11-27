@@ -59,8 +59,8 @@ void Mesh::compile()
 	check(num_lists <= 4096);
 	glNewList(list, GL_COMPILE);
 	{
-		glEnable(GL_COLOR_MATERIAL);
-		glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
+		//glEnable(GL_COLOR_MATERIAL);
+		//glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
 		//glColorMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE);
 		//static float material_diff_amb[] = {0.5f, 0.5f, 0.5f, 0};
 		//glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, material_diff_amb);
@@ -81,13 +81,13 @@ void Mesh::compile()
 
 		if (mesh->uvs.offset > 0)
 		{
-			glTexCoordPointer(2, GL_FLOAT, 0, mesh->uvs.get_ptr());
+			//glTexCoordPointer(2, GL_FLOAT, 0, mesh->uvs.get_ptr());
 		}
 
 		if (mesh->colors.offset > 0)
 		{
 			printf("Mesh: %d has colors\n", list);
-			glColorPointer(4, GL_FLOAT, 0, mesh->colors.get_ptr());
+			//glColorPointer(4, GL_FLOAT, 0, mesh->colors.get_ptr());
 		}
 
 		int i = 0;

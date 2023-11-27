@@ -35,21 +35,24 @@ static u32 frameCounter = 0;
 
 void init()
 {
-	SifExitIopHeap();
-	SifLoadFileExit();
-	SifExitRpc();
+	Filesystem::set_filesystem_type(Filesystem::Type::host);
 
-	SifInitRpc(0);
+	if (Filesystem::get_filesystem_type() != Filesystem::Type::host)
+	{
+		SifExitIopHeap();
+		SifLoadFileExit();
+		SifExitRpc();
 
-	while (!SifIopReset("", 0))
-		;
-	while (!SifIopSync())
-		;
+		SifInitRpc(0);
+
+		while (!SifIopReset("", 0))
+			;
+		while (!SifIopSync())
+			;
+	}
 	SifInitRpc(0);
 	SifLoadFileInit();
 	SifInitIopHeap();
-
-	Filesystem::set_filesystem_type(Filesystem::Type::cdrom);
 
 	check(SifLoadModule("rom0:LIBSD", 0, NULL) > 0);
 	check(SifLoadModule("rom0:SIO2MAN", 0, NULL) > 0);
@@ -72,7 +75,7 @@ void init()
 	Stats::init();
 	Input::init();
 	//Filesystem::run_tests();
-	//sound::init();
+	//Sound::init();
 	GS::init();
 
 	printf("Graph mode (region): ");
