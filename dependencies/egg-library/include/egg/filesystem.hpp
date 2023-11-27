@@ -29,7 +29,7 @@ static constexpr const char* get_filesystem_prefix(Type in_filesystem_type = get
 	switch (in_filesystem_type)
 	{
 		case Type::cdrom:
-			return "cdrom0:";
+			return "cdrom0:\\";
 		case Type::host:
 			return "host0:";
 		case Type::rom:

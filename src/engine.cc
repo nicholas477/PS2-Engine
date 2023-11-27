@@ -35,7 +35,7 @@ static u32 frameCounter = 0;
 
 void init()
 {
-	Filesystem::set_filesystem_type(Filesystem::Type::host);
+	Filesystem::set_filesystem_type(Filesystem::Type::cdrom);
 
 	if (Filesystem::get_filesystem_type() != Filesystem::Type::host)
 	{
@@ -75,7 +75,7 @@ void init()
 	Stats::init();
 	Input::init();
 	//Filesystem::run_tests();
-	//Sound::init();
+	Sound::init();
 	GS::init();
 
 	printf("Graph mode (region): ");
@@ -135,12 +135,13 @@ void run()
 
 		if (Input::get_paddata() & PAD_SELECT)
 		{
-			exit(0);
-			return;
+			//exit(0);
+			//return;
 		}
 
 		if (Input::get_paddata() & PAD_START)
 		{
+			Sound::set_music_volume(50);
 			Stats::print_timer_stats();
 		}
 	}

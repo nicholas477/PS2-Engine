@@ -84,21 +84,10 @@ static std::string convert_filepath_to_systempath_impl(std::string_view path)
 	int index = filesystem_prefix_len;
 
 	int path_start = 0;
-	if constexpr (type != Type::host)
+	// iterate past the start of the path
+	while (path[path_start] == '\\' || path[path_start] == '/')
 	{
-		if (path[0] != '\\' && path[0] != '/')
-		{
-			out_path_chars[index] = get_filesystem_separator();
-			index++;
-		}
-	}
-	else
-	{
-		// iterate past the start of the path on host filesystem
-		while (path[path_start] == '\\' || path[path_start] == '/')
-		{
-			path_start++;
-		}
+		path_start++;
 	}
 
 	path = std::string_view(path.data() + path_start, path.end());

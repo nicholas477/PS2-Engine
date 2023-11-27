@@ -10,6 +10,7 @@
 
 #include "model_importer.hpp"
 #include "model_exporter.hpp"
+#include "model_modifiers.hpp"
 #include <cxxopts.hpp>
 
 #include "meshoptimizer.h"
@@ -127,6 +128,8 @@ static void process()
 	}
 
 	printf("Loaded %lu meshes from file\n", meshes.size());
+
+	apply_gamma_correction(meshes);
 
 	std::vector<MeshStrip> strips;
 	for (size_t i = 0; i < meshes.size(); ++i)

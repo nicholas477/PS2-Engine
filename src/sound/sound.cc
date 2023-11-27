@@ -70,7 +70,7 @@ void init()
 		audsrv_adpcm_set_volume(i, MAX_VOLUME / 10);
 	}
 
-	audsrv_set_volume(50);
+	audsrv_set_volume(0);
 
 	{
 		audsrv_fmt_t format;
@@ -167,6 +167,12 @@ bool work_song()
 
 	return did_work;
 }
+
+void set_music_volume(int volume)
+{
+	audsrv_set_volume(volume);
+}
+
 } // namespace Sound
 
 static void audioThread()
