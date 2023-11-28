@@ -72,9 +72,3 @@ jobs:
     - name: Compile ps2 engine
       run: |
         make clean iso -j$(getconf _NPROCESSORS_ONLN)
-
-    - name: Upload artifacts
-      uses: actions/upload-artifact@v3
-      with:
-        name: iso
-        path: build/test.iso
