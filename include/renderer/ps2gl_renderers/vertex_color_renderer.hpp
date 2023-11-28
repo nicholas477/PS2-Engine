@@ -5,7 +5,7 @@
 #include "ps2gl/linear_renderer.h"
 #include "ps2gl/renderer.h"
 
-static constexpr u32 kVCRPrimType = (((tU32)1 << 31) | GL_TRIANGLE_STRIP);
+static constexpr u64 kVCRPrimType = (((tU64)1 << 32) | GL_TRIANGLE_STRIP);
 static constexpr u64 kVCRPrimTypeFlag((tU64)1 << 32);
 
 class CVertexColorRenderer: public CLinearRenderer
