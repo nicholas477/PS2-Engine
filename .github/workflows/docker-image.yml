@@ -77,5 +77,4 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: iso
-        path: |
-          build/test.iso
+        path: build/test.iso
