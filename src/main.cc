@@ -5,7 +5,7 @@
 
 int main(int argc, char* argv[])
 {
-	Engine::init();
+	Engine::init(argc, argv);
 
 	Engine::run();
 

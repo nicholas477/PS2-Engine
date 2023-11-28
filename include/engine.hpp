@@ -5,7 +5,7 @@ class Tickable;
 
 namespace Engine
 {
-void init();
+void init(int argc, char* argv[]);
 void run();
 
 /// @brief Returns the current frame number. This is incremented after ticking. The first frame is frame 0.

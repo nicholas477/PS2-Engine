@@ -110,7 +110,7 @@ static void init_renderer()
 
 	init_lights();
 
-	VertexColorRenderer::Register();
+	CVertexColorRenderer::Register();
 
 	for (Renderable::TIterator Itr = Renderable::Itr(); Itr; ++Itr)
 	{

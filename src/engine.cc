@@ -33,9 +33,19 @@ static float game_time  = 0.f;
 static float tickrate   = 1.f / 59.93f; // ntsc default
 static u32 frameCounter = 0;
 
-void init()
+void init(int argc, char* argv[])
 {
-	Filesystem::set_filesystem_type(Filesystem::Type::cdrom);
+	// TODO: figure out why this don't work
+	// if (argc == 2 && strcmp(argv[1], "--filesystem=host") == 0)
+	// {
+	// 	printf("Using host filesystem type\n");
+	// 	Filesystem::set_filesystem_type(Filesystem::Type::host);
+	// }
+	// else
+	{
+		printf("Using cdrom filesystem type\n");
+		Filesystem::set_filesystem_type(Filesystem::Type::cdrom);
+	}
 
 	if (Filesystem::get_filesystem_type() != Filesystem::Type::host)
 	{

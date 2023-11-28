@@ -76,6 +76,7 @@ void Mesh::compile()
 			printf("Compiling mesh strip: %d\n", i);
 			const auto start_index = strip.strip_start_index;
 			const auto count       = strip.strip_end_index - start_index;
+
 			glDrawArrays(kVCRPrimType, start_index, count);
 
 			++i;

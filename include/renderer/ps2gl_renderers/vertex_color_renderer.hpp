@@ -5,13 +5,15 @@
 #include "ps2gl/linear_renderer.h"
 #include "ps2gl/renderer.h"
 
-#define kVCRPrimType (((tU32)1 << 31) | 1)
-#define kVCRPrimTypeFlag ((tU64)1 << 32)
+static constexpr u32 kVCRPrimType = (((tU32)1 << 31) | GL_TRIANGLE_STRIP);
+static constexpr u64 kVCRPrimTypeFlag((tU64)1 << 32);
 
-class VertexColorRenderer: public CLinearRenderer
+class CVertexColorRenderer: public CLinearRenderer
 {
 public:
-	VertexColorRenderer();
+	CVertexColorRenderer();
 
-	static VertexColorRenderer* Register();
+	static CVertexColorRenderer* Register();
+	//virtual void InitContext(GLenum primType, tU32 rcChanges, bool userRcChanged) override;
+	virtual void DrawLinearArrays(CGeometryBlock& block) override;
 };
