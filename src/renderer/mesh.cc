@@ -33,7 +33,7 @@ void Mesh::compile()
 
 	printf("Compiling mesh %s, size in bytes: %ld\n", path.c_str(), mesh->pos.length + mesh->nrm.length);
 
-	list = num_lists++;
+	list = ++num_lists;
 	printf("New mesh draw list: %d\n", list);
 
 	check(num_lists <= 4096);
@@ -44,13 +44,14 @@ void Mesh::compile()
 		//glColorMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE);
 		//static float material_diff_amb[] = {0.5f, 0.5f, 0.5f, 0};
 		//glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, material_diff_amb);
-		//glShadeModel(GL_SMOOTH);
+		glShadeModel(GL_SMOOTH);
 		glCullFace(GL_BACK);
 		//glDisable(GL_LIGHT0);
 
 		//float material[] = {.5f, .5f, .5f, .5f};
 		//glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, material);
 		//glFrontFace(GL_CCW);
+		pglEnableCustom(kVCRPrimTypeFlag);
 
 		check((uintptr_t)mesh->pos.get_ptr() % 16 == 0);
 		check((uintptr_t)mesh->nrm.get_ptr() % 16 == 0);

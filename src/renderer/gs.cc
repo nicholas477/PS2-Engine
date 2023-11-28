@@ -97,16 +97,12 @@ static void init_renderer()
 	//glEnable(GL_RESCALE_NORMAL);
 	//glEnable(GL_CULL_FACE);
 	glDepthFunc(GL_LEQUAL); // The Type Of Depth Testing To Do
-	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 	pglEnable(PGL_CLIPPING);
 
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glEnableClientState(GL_NORMAL_ARRAY);
 	glEnableClientState(GL_COLOR_ARRAY);
 	//glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-
-
-	glViewport(0, 0, screen_width, screen_height);
 
 	init_lights();
 
