@@ -34,7 +34,7 @@ jobs:
 
     - name: Install ps2gl
       run: |
-        git clone https://github.com/nicholas477/ps2gl.git dependencies/ps2gl
+        git clone https://github.com/ps2dev/ps2gl.git dependencies/ps2gl
         cd dependencies/ps2gl && make clean all install -j$(getconf _NPROCESSORS_ONLN) DEBUG=1
         cd glut && make clean all install -j$(getconf _NPROCESSORS_ONLN)
 
