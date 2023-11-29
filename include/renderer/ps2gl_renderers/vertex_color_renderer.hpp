@@ -6,7 +6,7 @@
 #include "ps2gl/renderer.h"
 
 // The 31st bit is the custom primitive flag, 1 is the custom renderer type
-static constexpr u32 kVCRPrimType     = ((tU32)1 << 31) | GL_TRIANGLE_STRIP;
+static constexpr u32 kVCRPrimType     = ((tU32)1 << 31) | 1;
 static constexpr u64 kVCRPrimTypeFlag = ((tU64)1 << 32);
 
 //#define kVCRPrimType (((tU32)1 << 31) | 1)

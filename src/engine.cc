@@ -85,7 +85,7 @@ void init(int argc, char* argv[])
 	Stats::init();
 	Input::init();
 	//Filesystem::run_tests();
-	Sound::init();
+	//Sound::init();
 	GS::init();
 
 	printf("Graph mode (region): ");

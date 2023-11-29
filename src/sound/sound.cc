@@ -19,6 +19,8 @@
 
 extern void* _gp;
 
+static bool initialized = false;
+
 static int fillbuffer_sema;
 static constexpr u16 threadStackSize = 2 * 1024;
 static char threadStack[threadStackSize];
@@ -111,11 +113,7 @@ void init()
 	//create_audio_thread();
 
 	printf("sound initialized!\n");
-
-	// Load the song until the buffer is full
-	while (work_song())
-	{
-	}
+	initialized = true;
 }
 
 static void work()
@@ -170,7 +168,10 @@ bool work_song()
 
 void set_music_volume(int volume)
 {
-	audsrv_set_volume(volume);
+	if (initialized)
+	{
+		audsrv_set_volume(volume);
+	}
 }
 
 } // namespace Sound

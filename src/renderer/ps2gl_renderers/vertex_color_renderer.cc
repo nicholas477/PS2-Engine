@@ -1,5 +1,5 @@
 #include "renderer/ps2gl_renderers/vertex_color_renderer.hpp"
-#include "vu1_mem_linear.h"
+#include "vertex_color_renderer_mem_linear.h"
 
 #include "ps2gl/drawcontext.h"
 #include "ps2gl/glcontext.h"
@@ -11,6 +11,8 @@
 #include "ps2gl/texture.h"
 
 #include "ps2gl/renderer.h"
+
+#include "engine.hpp"
 
 #define VU_FUNCTIONS(name)        \
 	void vsm##name##_CodeStart(); \
@@ -73,9 +75,6 @@ void CVertexColorRenderer::InitContext(GLenum primType, tU32 rcChanges, bool use
 {
 	primType = GL_TRIANGLE_STRIP;
 
-	CLinearRenderer::InitContext(primType, rcChanges, userRcChanged);
-	return;
-
 	CGLContext& glContext        = *pGLContext;
 	CVifSCDmaPacket& packet      = glContext.GetVif1Packet();
 	CImmDrawContext& drawContext = glContext.GetImmDrawContext();
@@ -97,8 +96,9 @@ void CVertexColorRenderer::InitContext(GLenum primType, tU32 rcChanges, bool use
 		tGifTag giftag = {NLOOP : 0, EOP : 1, pad0 : 0, id : 0, PRE : 1, PRIM : *(tU64*)&prim, FLG : 0, NREG : nreg, REGS0 : 2, REGS1 : 1, REGS2 : 4};
 
 		packet.Pad96();
-		packet.OpenUnpack(Vifs::UnpackModes::v4_32, kGifTag, Packet::kSingleBuff);
-		packet += giftag;
+
+		packet.OpenUnpack(Vifs::UnpackModes::s_32, kTime, Packet::kSingleBuff);
+		packet += std::sin(Engine::get_game_time()) * 4.f;
 		packet.CloseUnpack(1);
 
 		packet.Mscal(0);
@@ -106,6 +106,8 @@ void CVertexColorRenderer::InitContext(GLenum primType, tU32 rcChanges, bool use
 
 		packet.Base(kDoubleBufBase);
 		packet.Offset(kDoubleBufOffset);
+
+		packet.Pad128();
 	}
 	packet.CloseTag();
 

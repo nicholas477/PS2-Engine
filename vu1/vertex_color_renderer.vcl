@@ -4,7 +4,7 @@
        General Public License Version 2.1. See the file "COPYING" in the
        main directory of this archive for more details.                             */
 
-     #include       "vu1_mem_linear.h"
+     #include       "vertex_color_renderer_mem_linear.h"
 
      .include       "db_in_db_out.i"
      .include       "math.i"
@@ -13,6 +13,8 @@
      .include       "geometry.i"
      .include       "io.i"
      .include       "general.i"
+
+	 .include		"teapot_math.i"
 
 kInputQPerV         .equ           4
 kOutputQPerV        .equ           3
@@ -53,6 +55,20 @@ xform_loop_lid:          --LoopCS 1,3
      ; xform/clip vertex
 
      load_vert      vert
+
+	; wind
+	move.w			vert, vf00
+    lq.xyzw        	time, kTime(vi00)
+    ; add.xyzw		time, time, vert[y]
+	move.xyzw		sincos, vf00
+	AngleSinCos		sincos, time
+	loi 32.0
+	muli			sincos, sincos, i
+    add.y       	vert, vert, time[x]
+
+	--cont
+
+
 
      xform_vert     xformed_vert, vert_xform, vert
      vert_to_gs     gs_vert, xformed_vert
