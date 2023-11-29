@@ -20,8 +20,14 @@ static float normalize_axis(float);
 #else
 #include <sstream>
 
+#ifdef _MSC_VER
+__declspec(align(16)) typedef float VECTOR[4];
+__declspec(align(16)) typedef float MATRIX[16];
+#else
 typedef float VECTOR[4] __attribute__((__aligned__(16)));
 typedef float MATRIX[16] __attribute__((__aligned__(16)));
+#endif
+
 #endif
 
 struct alignas(16) Vector2
@@ -381,6 +387,8 @@ struct alignas(16) Matrix
 		return matrix[col + (row * 4)];
 	}
 
+	std::string to_string() const;
+
 #ifdef _EE
 	static constexpr Matrix UnitMatrix()
 	{
@@ -434,8 +442,6 @@ struct alignas(16) Matrix
 		matrix_inverse(out_matrix.matrix, const_cast<float*>(matrix));
 		return out_matrix;
 	}
-
-	std::string to_string() const;
 #endif
 };
 

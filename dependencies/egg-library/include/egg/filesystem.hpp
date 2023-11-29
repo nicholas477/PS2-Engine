@@ -114,6 +114,27 @@ struct Path
 		}
 	}
 
+#ifdef _MSC_VER
+	Path(const wchar_t* in_path, bool convert_path = true)
+	{
+		static char buffer[256];
+		size_t ret = wcstombs(buffer, in_path, sizeof(buffer));
+		if (ret == sizeof(buffer))
+		{
+			buffer[sizeof(buffer) - 1] = '\0';
+		}
+
+		if (convert_path)
+		{
+			_path_str = convert_filepath_to_systempath(buffer);
+		}
+		else
+		{
+			_path_str = buffer;
+		}
+	}
+#endif
+
 	Path(const char* in_path, bool convert_path = true)
 	{
 		if (convert_path)

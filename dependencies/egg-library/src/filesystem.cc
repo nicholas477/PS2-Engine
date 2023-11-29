@@ -32,7 +32,7 @@ static void convert_to_83_path(std::string_view path, char* buffer, size_t len)
 	// Iterate backwards and look for the beginning of the filename
 	size_t filename_begin  = 0;
 	size_t extension_begin = path.size();
-	for (int i = path.size(); i >= 0; --i)
+	for (size_t i = path.size();; --i)
 	{
 		if (path[i] == '.')
 		{
@@ -41,6 +41,11 @@ static void convert_to_83_path(std::string_view path, char* buffer, size_t len)
 		else if (path[i] == '/' || path[i] == '\\')
 		{
 			filename_begin = i + 1;
+			break;
+		}
+
+		if (i == 0)
+		{
 			break;
 		}
 	}
@@ -54,7 +59,7 @@ static void convert_to_83_path(std::string_view path, char* buffer, size_t len)
 	}
 
 	// Copy the extension over
-	size_t itr_extension_end = std::min(4U, path.size() - extension_begin);
+	size_t itr_extension_end = std::min((size_t)4U, path.size() - extension_begin);
 	for (size_t i = 0; i < itr_extension_end; ++i)
 	{
 		buffer[itr_end + i] = path[extension_begin + i];
@@ -65,7 +70,7 @@ static void convert_to_83_path(std::string_view path, char* buffer, size_t len)
 template <Type type>
 static std::string convert_filepath_to_systempath_impl(std::string_view path)
 {
-	size_t host_string_length = constexpr_strlen(get_filesystem_prefix(type)) + 1; // + 1 for the filesystem separator
+	size_t host_string_length = constexpr_strlen(get_filesystem_prefix(type)) + (size_t)1; // + 1 for the filesystem separator
 	host_string_length += path.length();
 
 	check(host_string_length <= 255);
@@ -83,14 +88,14 @@ static std::string convert_filepath_to_systempath_impl(std::string_view path)
 
 	int index = filesystem_prefix_len;
 
-	int path_start = 0;
+	size_t path_start = 0;
 	// iterate past the start of the path
 	while (path[path_start] == '\\' || path[path_start] == '/')
 	{
 		path_start++;
 	}
 
-	path = std::string_view(path.data() + path_start, path.end());
+	path = std::string_view(path.data() + path_start, path.size() - path_start);
 
 	if constexpr (type == Type::cdrom)
 	{
@@ -170,7 +175,11 @@ bool load_file(const Path& path, std::unique_ptr<std::byte[]>& out_bytes, size_t
 		// Read the file size
 		file.seekg(0, std::ios::end);
 		size      = file.tellg();
+#ifdef _MSC_VER
+		out_bytes = std::unique_ptr<std::byte[]>((std::byte*)operator new[](size, (std::align_val_t)alignment));
+#else
 		out_bytes = std::unique_ptr<std::byte[]>(new (std::align_val_t(alignment)) std::byte[size]);
+#endif
 
 		// Seek back to the beginning
 		file.seekg(0, std::ios::beg);
