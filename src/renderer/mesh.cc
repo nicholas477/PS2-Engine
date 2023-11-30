@@ -22,7 +22,7 @@ Mesh::Mesh(const Filesystem::Path& in_path)
     : Mesh()
 {
 	path = in_path;
-	checkf(Filesystem::load_file(in_path, mesh_bytes, mesh_size, 16), in_path.c_str());
+	checkf(Filesystem::load_file(in_path, mesh_bytes, mesh_size, 16), in_path.data());
 	mesh = reinterpret_cast<MeshFileHeader*>(mesh_bytes.get());
 }
 
@@ -31,7 +31,7 @@ void Mesh::compile()
 	check(!is_valid());
 	check(mesh != nullptr);
 
-	printf("Compiling mesh %s, size in bytes: %ld\n", path.c_str(), mesh->pos.length + mesh->nrm.length);
+	printf("Compiling mesh %s, size in bytes: %ld\n", path.data(), mesh->pos.length + mesh->nrm.length);
 
 	list = ++num_lists;
 	printf("New mesh draw list: %d\n", list);

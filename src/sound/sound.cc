@@ -58,9 +58,9 @@ static void create_audio_thread()
 void init()
 {
 	{
-		int ret = SifLoadModule("AUDSRV.IRX"_p.c_str(), 0, nullptr);
+		int ret = SifLoadModule("AUDSRV.IRX"_p.to_full_filepath(), 0, nullptr);
 		printf("ret: %d\n", ret);
-		checkf(ret >= 0, "AUDSRV.IRX"_p.c_str());
+		checkf(ret >= 0, "AUDSRV.IRX"_p.to_full_filepath());
 	}
 
 	printf("initializing audiosrv...\n");
@@ -104,7 +104,7 @@ void init()
 		}
 	}
 
-	song_file = std::ifstream("/assets/sounds/white_waking.wav"_p.c_str());
+	song_file = std::ifstream("/assets/sounds/white_waking.wav"_p.to_full_filepath());
 	check(song_file.is_open());
 	song_file.seekg(0x30, std::ios_base::beg);
 	chunkReadStatus = -1;

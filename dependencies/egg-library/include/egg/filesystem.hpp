@@ -1,15 +1,27 @@
 #pragma once
 
-#include "assert.hpp"
 #include <cstddef>
 #include <vector>
 #include <string>
 #include <string_view>
 #include <memory>
 #include <functional>
+#include <array>
+#include <string.h>
+
+#include "egg/assert.hpp"
+#include "egg/hashing.hpp"
+#include "egg/string.hpp"
+
+#ifdef _MSC_VER
+#include <stdlib.h> // for WCSTOMBS
+#endif
+
 
 namespace Filesystem
 {
+constexpr size_t max_path_length = 128;
+
 struct Path;
 enum class Type {
 	uninitialized = 0, // default value, if any filesystem functions are run
@@ -21,8 +33,6 @@ enum class Type {
 
 Type get_filesystem_type();
 void set_filesystem_type(Type new_type);
-
-void run_tests();
 
 static constexpr const char* get_filesystem_prefix(Type in_filesystem_type = get_filesystem_type())
 {
@@ -61,123 +71,184 @@ static constexpr char get_filesystem_separator(Type in_filesystem_type = get_fil
 	return '\0';
 }
 
-std::string convert_filepath_to_systempath(std::string_view path, Type in_filesystem_type = get_filesystem_type());
-
-template <Type type>
-static constexpr const char* constexpr_convert_filepath_to_systempath(std::string_view path)
-{
-	size_t host_string_length = std::char_traits<char>::length(get_filesystem_prefix(type)) + 1; // + 1 for the filesystem separator
-	host_string_length += path.length() + 1;
-	char* out_path_chars = new char[host_string_length];
-
-	snprintf(out_path_chars, host_string_length, "%s%c%.*s",
-	         get_filesystem_prefix(type), get_filesystem_separator(type), path.length(), path.data());
-
-	for (size_t i = 0; i < host_string_length; ++i)
-	{
-		if (out_path_chars[i] == '\\' || out_path_chars[i] == '/')
-		{
-			out_path_chars[i] = get_filesystem_separator(type);
-		}
-		else if (i > std::char_traits<char>::length(get_filesystem_prefix(type)))
-		{
-			if (out_path_chars[i] == '-')
-			{
-				out_path_chars[i] = '_';
-			}
-			out_path_chars[i] = toupper(out_path_chars[i]);
-		}
-	}
-
-	return out_path_chars;
-}
-
 // Returns true if the file was loaded succesfully
 bool load_file(const Path& path, std::vector<std::byte>& out_bytes);
 bool load_file(const Path& path, std::unique_ptr<std::byte[]>& out_bytes, size_t& size, size_t alignment = 1);
 bool file_exists(const Path& path);
 void iterate_dir(const Path& dir, std::function<void(const Path&)> itr_func, bool recursive = false);
 
+constexpr struct Path convert_to_iso_path(const char* path);
+
 struct Path
 {
-	Path() = default;
+public:
+	constexpr Path() noexcept
+	    : mem({0})
+	{
+	}
 
-	Path(const std::string& in_path, bool convert_path = true)
+	constexpr Path(const char* in_path, bool convert_path = true)
+	    : mem({0})
 	{
 		if (convert_path)
 		{
-			_path_str = convert_filepath_to_systempath(in_path);
+			*this = convert_to_iso_path(in_path);
 		}
 		else
 		{
-			_path_str = in_path;
+			*this = in_path;
 		}
 	}
 
 #ifdef _MSC_VER
 	Path(const wchar_t* in_path, bool convert_path = true)
 	{
-		static char buffer[256];
-		size_t ret = wcstombs(buffer, in_path, sizeof(buffer));
-		if (ret == sizeof(buffer))
-		{
-			buffer[sizeof(buffer) - 1] = '\0';
-		}
-
+		wcstombs(mem.data(), in_path, max_path_length);
 		if (convert_path)
 		{
-			_path_str = convert_filepath_to_systempath(buffer);
-		}
-		else
-		{
-			_path_str = buffer;
+			*this = convert_to_iso_path(mem.data());
 		}
 	}
 #endif
 
-	Path(const char* in_path, bool convert_path = true)
+	constexpr char& operator[](size_t id) noexcept
 	{
-		if (convert_path)
+		return mem[id];
+	}
+	constexpr const char& operator[](size_t id) const noexcept { return mem[id]; }
+
+	// Returns the raw data contained in mem. This is not a full system filepath
+	constexpr const char* data() const noexcept { return mem.data(); }
+	constexpr size_t max_size() const noexcept { return max_path_length; }
+	constexpr size_t length() const { return constexpr_strlen(mem.data()); }
+
+	constexpr bool operator==(const char* rhs)
+	{
+		return std::string_view(mem.data()) == std::string_view(rhs);
+	}
+
+	const char* to_full_filepath(Type in_filesystem_type = get_filesystem_type()) const
+	{
+		// 9 is the max filesystem prefix length
+		static std::array<char, max_path_length + 9> buffer {'\0'};
+
+		const char* filesystem_prefix   = get_filesystem_prefix(in_filesystem_type);
+		size_t filesystem_prefix_length = constexpr_strlen(filesystem_prefix);
+		strncpy(buffer.data(), filesystem_prefix, filesystem_prefix_length);
+		strncpy(buffer.data() + filesystem_prefix_length, mem.data(), max_path_length);
+
+		return buffer.data();
+	}
+
+	constexpr uint32_t hash() const
+	{
+		return crc32(data(), length());
+	}
+
+	std::array<char, 256> mem;
+
+protected:
+	constexpr Path& operator=(const char* rhs)
+	{
+		const size_t copy_amt = std::min(max_path_length - 1, constexpr_strlen(rhs));
+		for (size_t i = 0; i < copy_amt; ++i)
 		{
-			_path_str = convert_filepath_to_systempath(in_path);
+			mem[i] = rhs[i];
+		}
+
+		return *this;
+	}
+};
+
+// Converts a filepath to semi-ISO 9660 8.3 (PS2 ISO format)
+//
+// 1. The entire path to converted to uppercase, the directory separator ('\') is
+// 	  converted to backslashes.
+// 2.
+// 3. The filename is limited to 8 characters with a 3 character extension limit.
+// 4. Also any prefixed slashes are removed
+//
+// For example: /assets/sounds/vine-boom.adpcm -> ASSETS\SOUNDS\VINE_BOO.ADP
+constexpr Path convert_to_iso_path(const char* path)
+{
+	Path out_path;
+
+	// iterate past the beginning separators
+	while (path[0] == '\\' || path[0] == '/' || path[0] == '.')
+	{
+		path++;
+	}
+
+	// Iterate backwards and look for the beginning of the filename
+	size_t filename_begin  = 0;
+	size_t extension_begin = constexpr_strlen(path);
+	for (size_t i = constexpr_strlen(path);; --i)
+	{
+		if (path[i] == '.')
+		{
+			extension_begin = i;
+		}
+		else if (path[i] == '/' || path[i] == '\\')
+		{
+			filename_begin = i + 1;
+			break;
+		}
+
+		if (i == 0)
+		{
+			break;
+		}
+	}
+
+	// Copy up to the first 8 filename characters over
+	size_t itr_end = std::min(std::min(filename_begin + 8, extension_begin), constexpr_strlen(path));
+	for (size_t i = 0; i < itr_end; ++i)
+	{
+		if (path[i] == '\\' || path[i] == '/')
+		{
+			out_path[i] = get_filesystem_separator(Type::cdrom);
+		}
+		else if (path[i] == '-')
+		{
+			out_path[i] = '_';
 		}
 		else
 		{
-			_path_str = in_path;
+			out_path[i] = charToUpper(path[i]);
 		}
 	}
 
-	inline const char* c_str() const
+	// Copy the extension over
+	size_t itr_extension_end = std::min((size_t)4U, constexpr_strlen(path) - extension_begin);
+	for (size_t i = 0; i < itr_extension_end; ++i)
 	{
-		return _path_str.c_str();
+		if (path[extension_begin + i] == '-')
+		{
+			out_path[itr_end + i] = '_';
+		}
+		else
+		{
+			out_path[itr_end + i] = charToUpper(path[extension_begin + i]);
+		}
 	}
+	out_path[itr_end + itr_extension_end] = '\0';
 
-	operator const std::string &() const
-	{
-		return _path_str;
-	}
+	return out_path;
+}
 
-	operator std::string_view() const
-	{
-		return _path_str;
-	}
-
-	std::string _path_str;
-
-	bool operator==(const Path& other) const
-	{
-		return _path_str == other._path_str;
-	}
-};
+#ifndef _MSC_VER
+static_assert(convert_to_iso_path("/asdf-ggggg/sdkfjs.egg2") == "ASDF_GGGGG\\SDKFJS.EGG");
+#endif
 
 } // namespace Filesystem
 
 // Path literal constructor
 //
-// Converts the path to a system path. I.e: assets/sounds/vine_boom.adpcm -> cdrom0:/ASSETS/SOUNDS/VINE_BOOM.ADPCM
-static Filesystem::Path operator""_p(const char* p, std::size_t)
+// Converts the path to a system path. I.e: assets/sounds/vine-boom.adpcm -> ASSETS\SOUNDS\VINE_BOO.ADP
+// Look at: Filesystem::convert_to_83_path()
+constexpr Filesystem::Path operator""_p(const char* p, std::size_t)
 {
-	return Filesystem::Path(p);
+	return Filesystem::Path(p, true);
 }
 
 template <>
@@ -185,6 +256,6 @@ struct std::hash<Filesystem::Path>
 {
 	std::size_t operator()(const Filesystem::Path& k) const
 	{
-		return std::hash<std::string>()(k._path_str);
+		return k.hash();
 	}
 };

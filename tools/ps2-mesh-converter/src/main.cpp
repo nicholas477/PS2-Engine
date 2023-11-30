@@ -224,7 +224,7 @@ static void parse_args(int argc, char** argv)
 
 	input_path = result["input"].as<std::string>();
 
-	if (result["null"].as<bool>())
+	if (result["null"].count() && result["null"].as<bool>())
 	{
 		write_output = false;
 	}
