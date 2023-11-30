@@ -60,14 +60,14 @@ models: $(OBJ_MODEL_FILES) $(FBX_MODEL_FILES)
 MANIFEST_CC = egg-ps2-manifest-generator
 FORCE: ;
 
-$(ISO_FOLDER_DIR)/manifest.iso: FORCE
+$(ISO_FOLDER_DIR)/MANIFEST.ISO: FORCE
 	$(MANIFEST_CC) -i$(ISO_FOLDER_DIR)/assets -p assets/ -o$@
 
-$(ISO_FOLDER_DIR)/manifest.hst: FORCE
-	$(MANIFEST_CC) -i$(ISO_FOLDER_DIR)/assets -p assets/ -o$@
+$(ISO_FOLDER_DIR)/MANIFEST.HST: FORCE
+	$(MANIFEST_CC) -i$(ISO_FOLDER_DIR)/assets -p assets/ -o$@ --convert_path=false
 
 .PHONY: manifests
-manifests: $(ISO_FOLDER_DIR)/manifest.iso $(ISO_FOLDER_DIR)/manifest.hst
+manifests: $(ISO_FOLDER_DIR)/MANIFEST.ISO $(ISO_FOLDER_DIR)/MANIFEST.HST
 
 .PHONY: isoassets
 isoassets: $(ISO_FOLDER_DIR)/SYSTEM.CNF copy_libs $(SOUND_ISO_FILES) models manifests
