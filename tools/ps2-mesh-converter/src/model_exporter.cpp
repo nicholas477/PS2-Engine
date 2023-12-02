@@ -39,13 +39,19 @@ std::vector<std::byte> serialize_meshes(const std::vector<MeshStrip>& strips)
 		colors.insert(colors.end(), strip.colors.begin(), strip.colors.end());
 	}
 
+	mesh_header.pos.set(positions);
+	mesh_header.nrm.set(normals);
+	mesh_header.uvs.set(texture_coords);
+	mesh_header.colors.set(colors);
+	mesh_header.strips.set(strip_header);
+
 	{
 		Serializer mesh_serializer(out);
-		serialize(mesh_serializer, mesh_header.pos, positions);
-		serialize(mesh_serializer, mesh_header.nrm, normals);
-		serialize(mesh_serializer, mesh_header.uvs, texture_coords);
-		serialize(mesh_serializer, mesh_header.colors, colors);
-		serialize(mesh_serializer, mesh_header.strips, strip_header);
+		serialize(mesh_serializer, mesh_header.pos);
+		serialize(mesh_serializer, mesh_header.nrm);
+		serialize(mesh_serializer, mesh_header.uvs);
+		serialize(mesh_serializer, mesh_header.colors);
+		serialize(mesh_serializer, mesh_header.strips);
 		mesh_serializer.finish_serialization();
 	}
 

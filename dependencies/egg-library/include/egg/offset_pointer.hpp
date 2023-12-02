@@ -32,7 +32,15 @@ struct OffsetArray
 {
 	// Offset (in bytes)
 	// This is generally an offset from the first byte of THIS OffsetPointer
-	int32_t offset;
+	union
+	{
+#if INTPTR_MAX == INT32_MAX
+		int32_t offset;
+		int64_t offset_64;
+#else
+		ptrdiff_t offset;
+#endif
+	};
 
 	// Length of the array (in bytes)
 	int32_t length;
@@ -68,6 +76,23 @@ struct OffsetArray
 
 	const T* end() const { return &get_array()[num_elements()]; }
 
+	void set(intptr_t data, size_t in_length)
+	{
+		ptrdiff_t new_offset = data - (intptr_t)this;
+		offset               = new_offset;
+		assert(offset == new_offset);
+		length = in_length;
+		assert(length == in_length);
+	}
+
+	// Points this offset pointer to this array
+	// Does not take ownership of the array's data!
+	template <typename vecT>
+	void set(const std::vector<vecT>& vec)
+	{
+		set((intptr_t)vec.data(), vec.size() * sizeof(vecT));
+	}
+
 #ifdef __cpp_lib_span
 	std::span<T> get_span()
 	{
@@ -87,7 +112,7 @@ struct OffsetArray
 };
 
 template <typename T>
-static size_t serialize(Serializer& serializer, const OffsetArray<T>& val, const std::vector<T>& data, size_t alignment = 1)
+static size_t serialize(Serializer& serializer, const OffsetArray<T>& val, size_t alignment = 1)
 {
 	const size_t offset_array_start = serializer.add_data(val, alignment);
 
@@ -95,28 +120,31 @@ static size_t serialize(Serializer& serializer, const OffsetArray<T>& val, const
 	{
 	public:
 		OffsetArrayHeapSerializer(size_t in_offset_array_start,
-		                          const std::vector<T>& in_data)
+		                          const OffsetArray<T>& in_arr)
 		    : offset_array_start(in_offset_array_start)
-		    , data(in_data)
+		    , arr(in_arr)
 		{
 		}
 
 		size_t offset_array_start;
-		const std::vector<T>& data;
+		const OffsetArray<T>& arr;
 
 		virtual void heap_serialize(Serializer& serializer) override
 		{
-			const size_t data_index = serializer.add_data(&data[0], data.size() * sizeof(T), alignof(T));
+			size_t data_index = serializer.align_current_byte_to(alignof(T));
+			for (const T& val : arr)
+			{
+				serialize(serializer, val, 1);
+			}
 
 			OffsetArray<T>* offset_array = (OffsetArray<T>*)&serializer.archive->at(offset_array_start);
-			offset_array->set_num_elements(data.size());
-			offset_array->offset = data_index - offset_array_start;
+			offset_array->offset         = data_index - offset_array_start;
+			offset_array->length         = arr.length;
 
-			assert(memcmp(&data[0], offset_array->get_ptr(), offset_array->length) == 0);
+			assert(memcmp(arr.get_ptr(), offset_array->get_ptr(), offset_array->length) == 0);
 		}
 	};
 
-	serializer.heap_data_serializer.push(
-	    new OffsetArrayHeapSerializer(offset_array_start, data));
+	serializer.heap_data_serializer.push(new OffsetArrayHeapSerializer(offset_array_start, val));
 	return offset_array_start;
 }

@@ -12,7 +12,10 @@ static constexpr size_t pad_to_alignment(size_t current_index,
                                          size_t alignment = 16)
 {
 	ptrdiff_t mask = alignment - 1;
-	return current_index + (-current_index & mask);
+
+	const size_t out = current_index + (-current_index & mask);
+	assert(out % alignment == 0);
+	return out;
 }
 
 static_assert(pad_to_alignment(3, 8) == 8);
@@ -63,6 +66,15 @@ public:
 		}
 	}
 
+	// Pads the archive up to the next aligned value. Resizes the archive to
+	// that size. Returns the value of current_byte
+	size_t align_current_byte_to(size_t alignment)
+	{
+		current_byte = pad_to_alignment(current_byte, alignment);
+		archive->resize(current_byte);
+		return current_byte;
+	}
+
 	std::vector<std::byte>* archive;
 
 	size_t current_byte;
@@ -93,7 +105,8 @@ public:
 	}
 };
 
-static size_t serialize(Serializer& serializer, const float& val)
+template <typename T>
+static size_t serialize(Serializer& serializer, const T& val, size_t alignment = alignof(T))
 {
-	return serializer.add_data(val);
+	return serializer.add_data(val, alignment);
 }
