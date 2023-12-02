@@ -57,21 +57,24 @@ $(FBX_MODEL_FILES): $(ISO_FOLDER_DIR)/assets/%.mdl: assets/%.fbx
 .PHONY: models
 models: $(OBJ_MODEL_FILES) $(FBX_MODEL_FILES)
 
-# Manifest compilation
+.PHONY: manifestassets
+manifestassets: sounds models
+
+# Asset Manifest compilation
 MANIFEST_CC = egg-ps2-manifest-generator
 FORCE: ;
 
-$(ISO_FOLDER_DIR)/MANIFEST.ISO: FORCE
+$(ISO_FOLDER_DIR)/MANIFEST.ISO: manifestassets
 	$(MANIFEST_CC) -i$(ISO_FOLDER_DIR)/assets -p assets/ -o$@
 
-$(ISO_FOLDER_DIR)/MANIFEST.HST: FORCE
+$(ISO_FOLDER_DIR)/MANIFEST.HST: manifestassets
 	$(MANIFEST_CC) -i$(ISO_FOLDER_DIR)/assets -p assets/ -o$@ --convert_path=false
 
 .PHONY: manifests
 manifests: $(ISO_FOLDER_DIR)/MANIFEST.ISO $(ISO_FOLDER_DIR)/MANIFEST.HST
 
 .PHONY: isoassets
-isoassets: $(ISO_FOLDER_DIR)/SYSTEM.CNF copy_libs $(SOUND_ISO_FILES) models manifests
+isoassets: $(ISO_FOLDER_DIR)/SYSTEM.CNF copy_libs sounds models manifests
 
 GREEN='\033[0;32m'
 NC='\033[0m'

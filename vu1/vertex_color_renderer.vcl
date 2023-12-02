@@ -57,16 +57,16 @@ xform_loop_lid:          --LoopCS 1,3
      load_vert      vert
 
 	; wind
-	move.w			vert, vf00
-    lq.xyzw        	time, kTime(vi00)
-    ; add.xyzw		time, time, vert[y]
-	move.xyzw		sincos, vf00
-	AngleSinCos		sincos, time
-	loi 32.0
-	muli			sincos, sincos, i
-    add.y       	vert, vert, time[x]
+	;move.w			vert, vf00
+     ;lq.xyzw        	time, kTime(vi00)
+     ;add.xyzw		time, time, vert[y]
+	;move.xyzw		sincos, vf00
+	;AngleSinCos		sincos, time
+	;loi 32.0
+	;muli			sincos, sincos, i
+     ;add.y       	vert, vert, time[x]
 
-	--cont
+	;--cont
 
 
 

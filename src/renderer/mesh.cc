@@ -58,7 +58,7 @@ void Mesh::compile()
 		check((uintptr_t)mesh->uvs.get_ptr() % 16 == 0);
 
 		glVertexPointer(4, GL_FLOAT, 0, mesh->pos.get_ptr());
-		pglNormalPointer(4, GL_FLOAT, 0, mesh->nrm.get_ptr());
+		//pglNormalPointer(4, GL_FLOAT, 0, mesh->nrm.get_ptr());
 
 		if (mesh->uvs.offset > 0)
 		{

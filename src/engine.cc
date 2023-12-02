@@ -10,6 +10,8 @@
 #include "egg/filesystem.hpp"
 #include "threading.hpp"
 
+#include "egg/asset.hpp"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <vector>
@@ -32,6 +34,22 @@ namespace Engine
 static float game_time  = 0.f;
 static float tickrate   = 1.f / 59.93f; // ntsc default
 static u32 frameCounter = 0;
+
+static void load_asset_manifest()
+{
+	if (Filesystem::get_filesystem_type() == Filesystem::Type::cdrom)
+	{
+		size_t manifest_size;
+		std::unique_ptr<std::byte[]> asset_manifest_data;
+
+		Filesystem::load_file("MANIFEST.ISO"_p, asset_manifest_data, manifest_size);
+		Asset::load_asset_table(asset_manifest_data.get(), manifest_size);
+
+		return;
+	}
+
+	check(false);
+}
 
 void init(int argc, char* argv[])
 {
@@ -82,10 +100,12 @@ void init(int argc, char* argv[])
 		//net::init();
 	}
 
+	load_asset_manifest();
+
 	Stats::init();
 	Input::init();
 	//Filesystem::run_tests();
-	Sound::init();
+	//Sound::init();
 	GS::init();
 
 	printf("Graph mode (region): ");

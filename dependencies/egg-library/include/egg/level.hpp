@@ -18,6 +18,14 @@ static void collect_references(std::unordered_set<Asset::Reference>& references,
 	collect_references(references, meshes.mesh_files);
 }
 
+static size_t serialize(Serializer& serializer, const LevelMeshes& meshes, size_t alignment)
+{
+	size_t base = serialize(serializer, meshes.mesh_transforms, alignment);
+	serialize(serializer, meshes.mesh_files, alignment);
+
+	return base;
+}
+
 struct LevelFileHeader
 {
 	LevelMeshes meshes;
@@ -27,5 +35,11 @@ static void collect_references(std::unordered_set<Asset::Reference>& references,
 {
 	collect_references(references, level.meshes);
 }
+
+static size_t serialize(Serializer& serializer, const LevelFileHeader& level, size_t alignment)
+{
+	return serialize(serializer, level.meshes, alignment);
+}
+
 
 #pragma pack(pop)
