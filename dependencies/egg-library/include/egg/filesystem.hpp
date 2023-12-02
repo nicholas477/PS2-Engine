@@ -164,7 +164,7 @@ protected:
 //
 // 1. The entire path to converted to uppercase, the directory separator ('\') is
 // 	  converted to backslashes.
-// 2.
+// 2. The directories are limited to 8 characters
 // 3. The filename is limited to 8 characters with a 3 character extension limit.
 // 4. Also any prefixed slashes are removed
 //

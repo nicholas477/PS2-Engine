@@ -2,10 +2,11 @@
 
 #include <cstdint>
 #include <vector>
+#include <unordered_set>
 
-#include "egg/hashmap.hpp"
 #include "egg/filesystem.hpp"
 #include "egg/hashmap.hpp"
+#include "egg/offset_pointer.hpp"
 
 namespace Asset
 {
@@ -35,6 +36,11 @@ struct Reference
 	    : hash(0)
 	{
 		hash = Filesystem::Path(path, convert_to_iso_path).hash();
+	}
+
+	constexpr bool operator==(const Reference& other) const
+	{
+		return hash == other.hash;
 	}
 };
 
@@ -71,3 +77,12 @@ struct std::hash<Asset::Reference>
 		return k.hash;
 	}
 };
+
+// Overload this to add reference collection to your own types
+static void collect_references(std::unordered_set<Asset::Reference>& references, const ::OffsetArray<Asset::Reference>& arr)
+{
+	for (Asset::Reference ref : arr)
+	{
+		references.insert(ref);
+	}
+}

@@ -14,7 +14,7 @@ public class PS2LevelEditingToolsLibrary : ModuleRules
 		if (Target.Platform == UnrealTargetPlatform.Win64)
 		{
 			// Add the import library
-			PublicAdditionalLibraries.Add(Path.Combine(ModuleDirectory, "build", "Debug", "ps2-egg.lib"));
+			PublicAdditionalLibraries.Add(Path.Combine(ModuleDirectory, "build", "Release", "ps2-egg.lib"));
 		}
 	}
 }

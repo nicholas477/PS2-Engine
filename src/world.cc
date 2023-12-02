@@ -89,9 +89,13 @@ void init()
 	static Teapot teapot4;
 	teapot4.transform.set_location(Vector(0.f, 0.f, 0.f));
 
+	static MeshObject haid_mesh("assets/models/haid_mes/Brick_WallBake.mdl"_p);
+	haid_mesh.mesh->compile();
+
 
 	// Camera parent component
-	static struct camera_transform_component: public TransformComponent, public Tickable
+	static struct camera_transform_component: public TransformComponent,
+	                                          public Tickable
 	{
 		virtual void tick(float deltatime) override
 		{

@@ -46,7 +46,8 @@ $(OBJ_MODEL_FILES): $(ISO_FOLDER_DIR)/assets/%.mdl: assets/%.obj
 	$(MKDIR) -p $(dir $@)
 	$(MODEL_CC) $< $@
 
-FBX_MODEL_SRC_FILES = $(wildcard assets/*.fbx) $(wildcard assets/**/*.fbx)
+#FBX_MODEL_SRC_FILES = $(wildcard assets/*.fbx) $(wildcard assets/**/*.fbx)
+FBX_MODEL_SRC_FILES = $(shell find assets/ -name "*.fbx")
 FBX_MODEL_FILES := $(FBX_MODEL_SRC_FILES:%.fbx=$(ISO_FOLDER_DIR)/%.mdl)
 
 $(FBX_MODEL_FILES): $(ISO_FOLDER_DIR)/assets/%.mdl: assets/%.fbx
