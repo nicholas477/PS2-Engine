@@ -11,7 +11,7 @@ EE_LDFLAGS  += -L$(PS2SDK)/ports/lib
 EE_LIBS = -ldebug -lpatches -lxcdvd -lnetman -lps2gl -lps2stuff -legg -lps2ip -ldraw -lgraph -lmath3d -ldma -lpad -lc -lstdc++ -lgs -ldebug -leedebug -laudsrv -lcdvd -lxcdvd
 EE_OPTFLAGS = -O3 -g -std=gnu++20
 EE_CFLAGS += -DNO_VU0_VECTORS -DNO_ASM
-EE_CXXFLAGS += -DNO_VU0_VECTORS -DNO_ASM
+EE_CXXFLAGS += -DNO_VU0_VECTORS -DNO_ASM -frtti
 EE_WARNFLAGS = -Wall -Wno-unused-function -Wno-unused-variable -Wno-strict-aliasing -Wno-conversion-null 
 LINKFLAGS	= -O3 -g -Wl,-zmax-page-size=128
 

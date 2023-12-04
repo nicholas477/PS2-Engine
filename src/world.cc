@@ -9,6 +9,7 @@
 
 #include "egg/level.hpp"
 #include "egg/mesh_header.hpp"
+#include "egg/asset.hpp"
 
 #include "timer.h"
 
@@ -22,24 +23,24 @@ static void make_teapot()
 	new_teapot->transform.add_location(Vector(((double)rand() / (double)RAND_MAX) * 256.f, 0.f, ((double)rand() / (double)RAND_MAX) * 256.f));
 }
 
-class WorldMesh: public Renderable
+class WorldMesh: public Renderable, public Debuggable
 {
 public:
-	WorldMesh(const Filesystem::Path& p)
+	WorldMesh(Asset::Reference world_reference)
 	{
-		Filesystem::load_file(p, level_data, level_size);
-		level = (LevelFileHeader*)level_data.get();
+		checkf(Filesystem::load_file(world_reference, level_data, level_size), "unable to load level!");
+		debug_name = Asset::lookup_path(world_reference).data();
+		level      = (LevelFileHeader*)level_data.get();
 
 		collect_references(level_references, level->meshes);
 
 		for (Asset::Reference ref : level_references)
 		{
-			const Filesystem::Path& p = Asset::lookup_path(ref);
+			meshes[ref] = Mesh(ref);
 
-			printf("Loading mesh: %s\n", p.data());
+			checkf(meshes[ref].is_valid(), "Mesh invalid!");
 
-			meshes[p] = Mesh(p);
-			meshes[p].compile();
+			printf("\n");
 		}
 	}
 
@@ -58,20 +59,20 @@ public:
 
 	std::unordered_set<Asset::Reference> level_references;
 	std::unordered_map<Asset::Reference, Mesh> meshes;
+
+	virtual const char* get_type_name() const { return typeid(WorldMesh).name(); }
 };
 
 namespace World
 {
 void init()
 {
-	static WorldMesh world("assets/new_level.lvl"_p);
+	printf("Initializing world\n");
+	static WorldMesh world("assets/levels/new_level.lvl"_asset);
 
 	// Player teapot
 	static Teapot teapot4;
 	teapot4.transform.set_location(Vector(0.f, 0.f, 0.f));
-
-	//static MeshObject haid_mesh("assets/models/haid_mes/Brick_WallBake.mdl"_p);
-	//haid_mesh.mesh->compile();
 
 
 	// Camera parent component
@@ -101,5 +102,7 @@ void init()
 	movement.updated_rotation_component = &scene;
 	movement.updated_location_component = &teapot4.transform;
 	movement.collision_component        = &teapot4.collision;
+
+	printf("World initialized!\n");
 }
 } // namespace World

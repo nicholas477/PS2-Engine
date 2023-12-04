@@ -1,17 +1,21 @@
 #pragma once
 
 #include <egg/filesystem.hpp>
+#include <egg/asset.hpp>
 #include "egg/math_types.hpp"
+#include "renderer/renderable.hpp"
+#include "utils/debuggable.hpp"
 #include <unordered_map>
 #include <vector>
 #include <memory>
 
-class Mesh
+class Mesh: public Renderable, public Debuggable
 {
 public:
 	Mesh();
 
-	Mesh(const Filesystem::Path& path);
+	Mesh(const Filesystem::Path& path, bool in_auto_compile = true);
+	Mesh(Asset::Reference mesh_asset, bool in_auto_compile = true);
 
 	int list;
 	class MeshFileHeader* mesh;
@@ -21,11 +25,13 @@ public:
 	void compile();
 	void draw(bool flush = false);
 
-	bool is_valid() const { return list >= 0; }
+	bool is_valid() const { return mesh != nullptr && list >= 0; }
 	int get_triangle_count() const;
 
-	//static std::unordered_map<Filesystem::Path, Mesh> loaded_meshes;
+	virtual void on_gs_init() override;
 
 	// for debug
-	Filesystem::Path path;
+	const Filesystem::Path* path;
+	bool auto_compile;
+	virtual const char* get_type_name() const { return typeid(Mesh).name(); }
 };

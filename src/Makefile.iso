@@ -57,10 +57,22 @@ $(FBX_MODEL_FILES): $(ISO_FOLDER_DIR)/assets/%.mdl: assets/%.fbx
 .PHONY: models
 models: $(OBJ_MODEL_FILES) $(FBX_MODEL_FILES)
 
-.PHONY: manifestassets
-manifestassets: sounds models
+# Level files
+LEVEL_SRC_FILES = $(shell find assets/ -name "*.lvl")
+LVL_DEST_FILES := $(LEVEL_SRC_FILES:%.lvl=$(ISO_FOLDER_DIR)/%.lvl)
+
+$(LVL_DEST_FILES): $(ISO_FOLDER_DIR)/assets/%.lvl: assets/%.lvl
+	$(MKDIR) -p $(dir $@)
+	cp $< $@
+
+.PHONY: levels
+levels: $(LVL_DEST_FILES)
+
 
 # Asset Manifest compilation
+.PHONY: manifestassets
+manifestassets: sounds models levels
+
 MANIFEST_CC = egg-ps2-manifest-generator
 FORCE: ;
 
@@ -74,7 +86,7 @@ $(ISO_FOLDER_DIR)/MANIFEST.HST: manifestassets
 manifests: $(ISO_FOLDER_DIR)/MANIFEST.ISO $(ISO_FOLDER_DIR)/MANIFEST.HST
 
 .PHONY: isoassets
-isoassets: $(ISO_FOLDER_DIR)/SYSTEM.CNF copy_libs sounds models manifests
+isoassets: $(ISO_FOLDER_DIR)/SYSTEM.CNF copy_libs sounds models levels manifests
 
 GREEN='\033[0;32m'
 NC='\033[0m'

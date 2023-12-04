@@ -1,3 +1,4 @@
+#include "egg/asset.hpp"
 #include "objects/teapot.hpp"
 #include "utils/rendering.hpp"
 #include "renderer/mesh.hpp"
@@ -15,31 +16,33 @@
 #include <GL/gl.h> // The GL Header File
 #include <dma.h>
 
-static class teapot_render_proxy
+static class teapot_render_proxy: public Renderable, public Debuggable
 {
 public:
 	teapot_render_proxy()
+	    : Renderable(true)
 	{
+		teapot_mesh = nullptr;
+		debug_name  = "teapot render proxy (singleton)";
 	}
 
-	void on_gs_init()
+	virtual void on_gs_init() override
 	{
-		teapot_mesh = new Mesh("/assets/models/kettle.mdl"_p); //&Mesh::loaded_meshes["/assets/models/kettle.ps2_model"_p];
-		//teapot_mesh = nullptr;
-		teapot_mesh->compile();
+		teapot_mesh = new Mesh("assets/models/kettle.mdl"_asset);
 	}
 
-	void render(const GS::GSState& gs_state, const TransformComponent& transform)
+	virtual void render(const GS::GSState& gs_state) override
+	{
+		//printf("teapot render proxy rendering. what the fuck is the deal?\n");
+	}
+
+	void teapot_render(const GS::GSState& gs_state, const TransformComponent& transform)
 	{
 		const Matrix local_world = Matrix::from_location_and_rotation(transform.get_location(), transform.get_rotation());
 
-		ScopedMatrix sm(local_world); // * gs_state.world_view);
+		ScopedMatrix sm(local_world);
 
-		static float ps2_diffuse[] = {1.0f, 1.0f, 1.0f, 1.0f};
-		static float black[]       = {0, 0, 0, 0};
-		glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, ps2_diffuse);
-		glMaterialfv(GL_FRONT, GL_EMISSION, black);
-
+		//printf("Drawing teapot\n");
 		teapot_mesh->draw(false);
 	}
 
@@ -49,6 +52,9 @@ public:
 		static AABB out = compute_bounds();
 		return out;
 	}
+
+
+	virtual const char* get_type_name() const { return typeid(teapot_render_proxy).name(); }
 
 protected:
 	AABB compute_bounds() const
@@ -73,20 +79,6 @@ protected:
 	Mesh* teapot_mesh;
 } _teapot_render_proxy;
 
-static class teapot_render_proxy_initializer: public Renderable
-{
-public:
-	teapot_render_proxy_initializer()
-	{
-	}
-
-	virtual void on_gs_init() override
-	{
-		_teapot_render_proxy.on_gs_init();
-	}
-
-} _teapot_render_proxy_initializer;
-
 Teapot::Teapot()
     : collision(&transform)
 {
@@ -97,14 +89,5 @@ Teapot::Teapot()
 
 void Teapot::render(const GS::GSState& gs_state)
 {
-	render_proxy->render(gs_state, transform);
-
-	// color_t color;
-	// color.r = 32;
-	// color.g = 32;
-	// color.b = 32;
-	// color.a = 128.f;
-	// color.q = 1.f;
-
-	// collision.render(gs_state, color);
+	render_proxy->teapot_render(gs_state, transform);
 }

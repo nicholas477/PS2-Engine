@@ -47,8 +47,39 @@ static void load_asset_manifest()
 
 		return;
 	}
+	else if (Filesystem::get_filesystem_type() == Filesystem::Type::host)
+	{
+		size_t manifest_size;
+		std::unique_ptr<std::byte[]> asset_manifest_data;
+
+		Filesystem::load_file("MANIFEST.HST"_p, asset_manifest_data, manifest_size);
+		Asset::load_asset_table(asset_manifest_data.get(), manifest_size);
+
+		return;
+	}
 
 	check(false);
+}
+
+static void set_filesystem_type(Filesystem::Type t)
+{
+	Filesystem::set_filesystem_type(t);
+
+	printf("Using ");
+	switch (t)
+	{
+		case Filesystem::Type::host:
+			printf("host");
+			break;
+
+		case Filesystem::Type::cdrom:
+			printf("cdrom");
+			break;
+
+		default:
+			break;
+	}
+	printf(" filesystem type\n");
 }
 
 void init(int argc, char* argv[])
@@ -60,10 +91,8 @@ void init(int argc, char* argv[])
 	// 	Filesystem::set_filesystem_type(Filesystem::Type::host);
 	// }
 	// else
-	{
-		printf("Using cdrom filesystem type\n");
-		Filesystem::set_filesystem_type(Filesystem::Type::cdrom);
-	}
+
+	Engine::set_filesystem_type(Filesystem::Type::host);
 
 	if (Filesystem::get_filesystem_type() != Filesystem::Type::host)
 	{

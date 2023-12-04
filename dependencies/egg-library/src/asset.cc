@@ -1,9 +1,11 @@
 #include "egg/asset.hpp"
 
+static bool hashmap_loaded = false;
 static HashMap<Asset::asset_hashmap_size, Asset::Reference, Filesystem::Path> asset_paths;
 
 const Filesystem::Path& Asset::lookup_path(Reference reference)
 {
+	check(hashmap_loaded);
 	return asset_paths[reference];
 }
 
@@ -29,10 +31,12 @@ void Asset::load_asset_table(std::byte* bytes, size_t length)
 	check(sizeof(AssetHashMapT) == length);
 
 	memcpy(&asset_paths, bytes, sizeof(AssetHashMapT));
+	hashmap_loaded = true;
 }
 
 void Asset::serialize_asset_table(std::vector<std::byte>& out_bytes)
 {
+	check(hashmap_loaded);
 	out_bytes.resize(sizeof(AssetHashMapT));
 
 	memcpy(out_bytes.data(), &asset_paths, sizeof(AssetHashMapT));
@@ -40,5 +44,6 @@ void Asset::serialize_asset_table(std::vector<std::byte>& out_bytes)
 
 Asset::AssetHashMapT& Asset::get_asset_table()
 {
+	check(hashmap_loaded);
 	return asset_paths;
 }

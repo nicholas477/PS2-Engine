@@ -4,6 +4,7 @@
 #include "renderer/ps2gl_renderers/vertex_color_renderer.hpp"
 #include "stats.hpp"
 #include "egg/assert.hpp"
+#include "utils/debuggable.hpp"
 
 /* libc */
 #include <stdio.h>
@@ -90,6 +91,7 @@ static bool has_initialized = false;
 
 static void init_renderer()
 {
+	printf("Initializing graphics synthesizer: renderer\n");
 	glShadeModel(GL_SMOOTH);              // Enable Smooth Shading
 	glClearColor(0.5f, 0.5f, 0.5f, 0.5f); // Black Background
 	//glClearDepth(1.0f);                   // Depth Buffer Setup
@@ -108,12 +110,15 @@ static void init_renderer()
 
 	CVertexColorRenderer::Register();
 
+	has_initialized = true;
+
+	printf("Initializing graphics synthesizer: calling on_gs_init\n");
 	for (Renderable::TIterator Itr = Renderable::Itr(); Itr; ++Itr)
 	{
 		Itr->on_gs_init();
 	}
 
-	has_initialized = true;
+	printf("Succesfully initialized GS\n");
 }
 
 bool has_gs_initialized()
@@ -215,6 +220,7 @@ static void draw_objects(const GSState& gs_state)
 {
 	for (Renderable::TIterator Itr = Renderable::Itr(); Itr; ++Itr)
 	{
+		//Debuggable::print_debug_object(&(*Itr));
 		Itr->render(gs_state);
 	}
 }
@@ -244,15 +250,27 @@ static int gs_render()
 
 		draw_objects(_gs_state);
 
+		//printf("Done drawing objects! flushing\n");
+
 		glFlush();
+
+		//printf("Ending geometry\n");
 
 		pglEndGeometry();
 
+		//printf("done\n");
+
 		if (!firstTime)
+		{
+			//printf("Waiting for rendering to finish\n");
+			// This waits for rendering to finish
 			pglFinishRenderingGeometry(PGL_DONT_FORCE_IMMEDIATE_STOP);
+		}
 		else
 			firstTime = false;
 	}
+
+	//printf("Waiting for vsync\n");
 
 	// Either block until a vsync, or keep rendering until there's one
 	// available.

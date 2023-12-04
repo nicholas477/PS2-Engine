@@ -13,10 +13,10 @@
 	{                                                                             \
 		if (!(expr))                                                              \
 		{                                                                         \
-			init_scr();                                                           \
 			printf("ERROR! Check failed! file: %s, function: %s, line: %d\n",     \
 			       __FILE__, __func__, __LINE__);                                 \
 			init_scr();                                                           \
+			print_stack_trace();                                                  \
 			scr_printf("ERROR! Check failed! file: %s, function: %s, line: %d\n", \
 			           __FILE__, __func__, __LINE__);                             \
 			SleepThread();                                                        \
@@ -27,11 +27,11 @@
 	{                                                                             \
 		if (!(expr))                                                              \
 		{                                                                         \
-			init_scr();                                                           \
 			printf("ERROR! Check failed! file: %s, function: %s, line: %d\n",     \
 			       __FILE__, __func__, __LINE__);                                 \
 			printf("Check msg: %s\n", (msg));                                     \
 			init_scr();                                                           \
+			print_stack_trace();                                                  \
 			scr_printf("ERROR! Check failed! file: %s, function: %s, line: %d\n", \
 			           __FILE__, __func__, __LINE__);                             \
 			scr_printf("Check msg: %s\n", (msg));                                 \
@@ -46,14 +46,12 @@
 	}
 
 #define checkf(expr, msg) \
-	{               \
-		expr;       \
+	{                     \
+		expr;             \
 	}
 #endif
 static void print_stack_trace()
 {
-	return;
-
 	unsigned int* stackTrace[256];
 	int i = 0;
 
@@ -82,15 +80,15 @@ static void print_stack_trace()
 		}                                                                                                    \
 	}
 
-#define checkf(expr, msg)                                                         \
-	{                                                                             \
-		if (!(expr))                                                              \
-		{                                                                         \
-			printf("ERROR! Check failed! file: %s, function: %s, line: %d\n",     \
-			       __FILE__, __func__, __LINE__);                                 \
-			printf("Check msg: %s\n", (msg));                                     \
-			throw std::runtime_error("Check failed!\n");                          \
-		}                                                                         \
+#define checkf(expr, msg)                                                     \
+	{                                                                         \
+		if (!(expr))                                                          \
+		{                                                                     \
+			printf("ERROR! Check failed! file: %s, function: %s, line: %d\n", \
+			       __FILE__, __func__, __LINE__);                             \
+			printf("Check msg: %s\n", (msg));                                 \
+			throw std::runtime_error("Check failed!\n");                      \
+		}                                                                     \
 	}
 #else
 #define check(expr) \
