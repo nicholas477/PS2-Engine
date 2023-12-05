@@ -198,6 +198,10 @@ int main(int argc, char** argv)
 {
 	Filesystem::set_filesystem_type(Filesystem::Type::cdrom);
 	parse_args(argc, argv);
+
+	// Call this to prevent errors about the asset table not being loaded
+	Asset::set_asset_table_loaded(true);
+
 	generate_manifest();
 
 	if (write_output)

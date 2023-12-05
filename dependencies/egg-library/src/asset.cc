@@ -47,3 +47,8 @@ Asset::AssetHashMapT& Asset::get_asset_table()
 	check(hashmap_loaded);
 	return asset_paths;
 }
+
+void Asset::set_asset_table_loaded(bool loaded)
+{
+	hashmap_loaded = loaded;
+}

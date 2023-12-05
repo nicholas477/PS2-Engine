@@ -323,6 +323,8 @@ void load_asset_table(std::byte* bytes, size_t length);
 void serialize_asset_table(std::vector<std::byte>& out_bytes);
 
 AssetHashMapT& get_asset_table();
+
+void set_asset_table_loaded(bool loaded);
 } // namespace Asset
 
 template <>

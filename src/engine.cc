@@ -29,6 +29,10 @@
 
 #include "graph.h"
 
+#ifndef FILESYSTEM_TYPE
+#define FILESYSTEM_TYPE Filesystem::Type::cdrom
+#endif
+
 namespace Engine
 {
 static float game_time  = 0.f;
@@ -92,7 +96,7 @@ void init(int argc, char* argv[])
 	// }
 	// else
 
-	Engine::set_filesystem_type(Filesystem::Type::host);
+	Engine::set_filesystem_type(FILESYSTEM_TYPE);
 
 	if (Filesystem::get_filesystem_type() != Filesystem::Type::host)
 	{

@@ -65,7 +65,7 @@ all: $(ISO_TGT)
 
 run: $(EE_BIN)
 	cd $(dir $(EE_BIN))
-	ps2client -h $(PS2HOST) execee host:$(notdir $(EE_BIN)) --filesystem=host
+	ps2client -h $(PS2HOST) execee host:$(notdir $(EE_BIN))
 
 reset:
 	ps2client -h $(PS2HOST) reset
