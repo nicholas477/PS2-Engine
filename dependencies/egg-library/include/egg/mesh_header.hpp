@@ -23,6 +23,8 @@ struct MeshFileHeader
 
 	// The strips are start/end indicies into pos/nrm/uvs
 	OffsetArray<MeshTriangleStripHeader> strips;
+
+	uint32_t prim_type;
 };
 
 static_assert(std::is_standard_layout_v<Vector> == true);
@@ -32,3 +34,15 @@ static_assert(std::is_standard_layout_v<OffsetArray<MeshTriangleStripHeader>> ==
 static_assert(std::is_standard_layout_v<MeshFileHeader> == true);
 
 #pragma pack(pop)
+
+static size_t serialize(Serializer& serializer, const MeshFileHeader& mesh_header, size_t alignment = 1)
+{
+	const size_t begin = serialize(serializer, mesh_header.pos);
+	serialize(serializer, mesh_header.nrm);
+	serialize(serializer, mesh_header.uvs);
+	serialize(serializer, mesh_header.colors);
+	serialize(serializer, mesh_header.strips);
+	serialize(serializer, mesh_header.prim_type);
+
+	return begin;
+}

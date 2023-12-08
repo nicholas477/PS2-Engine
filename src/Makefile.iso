@@ -39,23 +39,15 @@ sounds: $(SOUND_ISO_FILES)
 
 # Model compilation
 MODEL_CC = egg-ps2-mesh-converter
-OBJ_MODEL_SRC_FILES = $(wildcard assets/*.obj) $(wildcard assets/**/*.obj)
-OBJ_MODEL_FILES := $(OBJ_MODEL_SRC_FILES:%.obj=$(ISO_FOLDER_DIR)/%.mdl)
+JSON_MODEL_SRC_FILES = $(wildcard assets/*.json) $(wildcard assets/**/*.json)
+JSON_MODEL_FILES := $(JSON_MODEL_SRC_FILES:%.json=$(ISO_FOLDER_DIR)/%.mdl)
 
-$(OBJ_MODEL_FILES): $(ISO_FOLDER_DIR)/assets/%.mdl: assets/%.obj
-	$(MKDIR) -p $(dir $@)
-	$(MODEL_CC) $< $@
-
-#FBX_MODEL_SRC_FILES = $(wildcard assets/*.fbx) $(wildcard assets/**/*.fbx)
-FBX_MODEL_SRC_FILES = $(shell find assets/ -name "*.fbx")
-FBX_MODEL_FILES := $(FBX_MODEL_SRC_FILES:%.fbx=$(ISO_FOLDER_DIR)/%.mdl)
-
-$(FBX_MODEL_FILES): $(ISO_FOLDER_DIR)/assets/%.mdl: assets/%.fbx
+$(JSON_MODEL_FILES): $(ISO_FOLDER_DIR)/assets/%.mdl: assets/%.json
 	$(MKDIR) -p $(dir $@)
 	$(MODEL_CC) $< $@
 
 .PHONY: models
-models: $(OBJ_MODEL_FILES) $(FBX_MODEL_FILES)
+models: $(JSON_MODEL_FILES)
 
 # Level files
 LEVEL_SRC_FILES = $(shell find assets/ -name "*.lvl")

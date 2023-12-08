@@ -37,8 +37,7 @@ static pad_data& get_pad_data()
 /*
  * loadModules()
  */
-static void
-loadModules(void)
+static void loadModules(void)
 {
 	int ret;
 

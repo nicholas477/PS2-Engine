@@ -10,7 +10,7 @@
 
 const size_t kCacheSize = 16;
 
-static bool parseObj(std::string_view path, std::vector<Mesh>& out_meshes)
+bool parseObj(std::string_view path, std::vector<Mesh>& out_meshes)
 {
 	// This importer only supports a single mesh
 	out_meshes = {Mesh()};
@@ -86,6 +86,8 @@ static bool parseObj(std::string_view path, std::vector<Mesh>& out_meshes)
 
 	size_t total_vertices = meshopt_generateVertexRemap(&remap[0], NULL, total_indices, &vertices[0], total_indices, sizeof(Vertex));
 
+	out_meshes[0].primitive_type = 4; // GL_TRIANGLE_STRIPS
+
 	out_meshes[0].indices.resize(total_indices);
 	meshopt_remapIndexBuffer(&out_meshes[0].indices[0], NULL, total_indices, &remap[0]);
 
@@ -98,21 +100,25 @@ static bool parseObj(std::string_view path, std::vector<Mesh>& out_meshes)
 bool load_mesh(std::vector<Mesh>& out_meshes, std::string_view path)
 {
 	std::filesystem::path p(path);
+
+	bool parsed = false;
 	if (iequals(p.extension(), ".obj"))
 	{
-		if (parseObj(path, out_meshes) == false)
-		{
-			printf("Couldn't find/pase mesh at path %s\n", path.data());
-			return false;
-		}
+		parsed = parseObj(path, out_meshes);
 	}
 	else if (iequals(p.extension(), ".fbx"))
 	{
-		if (parseFbx(path, out_meshes) == false)
-		{
-			printf("Couldn't find/pase mesh at path %s\n", path.data());
-			return false;
-		}
+		parsed = parseFbx(path, out_meshes);
+	}
+	else if (iequals(p.extension(), ".json"))
+	{
+		parsed = parseJson(path, out_meshes);
+	}
+
+	if (parsed == false)
+	{
+		printf("Couldn't find/parse mesh at path %s\n", path.data());
+		return false;
 	}
 
 	if (out_meshes.empty() || std::all_of(out_meshes.begin(), out_meshes.end(), [](const Mesh& mesh) {

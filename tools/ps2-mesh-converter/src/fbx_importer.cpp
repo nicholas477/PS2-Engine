@@ -7,9 +7,11 @@
 #include <assimp/scene.h>       // Output data structure
 #include <assimp/postprocess.h> // Post processing flags
 
-static Mesh fbxProcessMesh(aiMesh* mesh, const aiScene* scene)
+static Mesh fbxProcessMesh(aiNode* node, aiMesh* mesh, const aiScene* scene)
 {
 	Mesh out;
+
+	out.primitive_type = 4; // GL_TRIANGLE_STRIP
 
 	printf("Processing fbx mesh \"%s\"\n", mesh->mName.C_Str());
 	if (mesh->HasVertexColors(0))
@@ -82,7 +84,7 @@ static void fbxProcessNode(aiNode* node, const aiScene* scene, std::vector<Mesh>
 	for (unsigned int i = 0; i < node->mNumMeshes; i++)
 	{
 		aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-		meshes.push_back(fbxProcessMesh(mesh, scene));
+		meshes.push_back(fbxProcessMesh(node, mesh, scene));
 	}
 
 	// then do the same for each of its children

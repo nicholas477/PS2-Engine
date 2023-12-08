@@ -14,6 +14,7 @@ struct Vertex
 
 struct Mesh
 {
+	uint32_t primitive_type;
 	std::vector<Vertex> vertices;
 	std::vector<unsigned int> indices;
 };

@@ -10,13 +10,14 @@ set(PS2SDK_DIR "$ENV{PS2SDK}")
 find_package(PkgConfig)
 find_package(meshoptimizer REQUIRED CONFIG)
 find_package(ps2-egg REQUIRED CONFIG)
+pkg_check_modules(JSONCPP jsoncpp)
 
 FILE(GLOB Source "src/**.cpp")
 
 add_executable(egg-ps2-mesh-converter ${Source})
 
 target_include_directories(egg-ps2-mesh-converter PRIVATE include)
-target_link_libraries(egg-ps2-mesh-converter PUBLIC meshoptimizer::meshoptimizer assimp ps2-egg)
+target_link_libraries(egg-ps2-mesh-converter PUBLIC meshoptimizer::meshoptimizer assimp ps2-egg ${JSONCPP_LIBRARIES})
 
 set_property(TARGET egg-ps2-mesh-converter PROPERTY CXX_STANDARD 20)
 

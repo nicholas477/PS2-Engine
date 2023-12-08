@@ -7,6 +7,7 @@
 #include <cstddef>
 #include <algorithm>
 #include "types.hpp"
+#include "utils.hpp"
 
 #include "model_importer.hpp"
 #include "model_exporter.hpp"
@@ -117,6 +118,8 @@ static bool write_output = true;
 
 static void process()
 {
+	printf(ANSI_COLOR_GREEN "[PS2-Mesh-Converter]: Starting\n" ANSI_COLOR_RESET);
+	printf(ANSI_COLOR_MAGENTA "[PS2-Mesh-Converter]: Loading file\n" ANSI_COLOR_RESET);
 	printf("Processing model file: %s\n", input_path.c_str());
 
 	std::vector<Mesh> meshes;
@@ -129,12 +132,13 @@ static void process()
 
 	printf("Loaded %lu meshes from file\n", meshes.size());
 
+	printf(ANSI_COLOR_MAGENTA "[PS2-Mesh-Converter]: Applying modifications\n" ANSI_COLOR_RESET);
 	apply_gamma_correction(meshes);
 
 	std::vector<MeshStrip> strips;
 	for (size_t i = 0; i < meshes.size(); ++i)
 	{
-		printf("Mesh %lu: Num verts (before stripping): %lu, num tris: %lu\n", i, meshes[i].vertices.size(), meshes[i].indices.size() / 3);
+		//printf("Mesh %lu: Num verts (before stripping): %lu, num tris: %lu\n", i, meshes[i].vertices.size(), meshes[i].indices.size() / 3);
 
 		// Stripify it
 		std::vector<unsigned int> strip = stripify(meshes[i], false, 'S');
@@ -169,16 +173,17 @@ static void process()
 				positions.emplace_back(vertex.px, vertex.py, vertex.pz);
 				normals.emplace_back(vertex.nx, vertex.ny, vertex.nz);
 				texture_coords.emplace_back(vertex.tx, vertex.ty);
-				colors.emplace_back(vertex.r, vertex.g, vertex.b);
+				colors.emplace_back(vertex.r, vertex.g, vertex.b, vertex.a);
 			}
 		}
 
-		printf("Mesh %lu: Num verts (after stripping): %lu, num tris: %lu\n", i, positions.size(), positions.size() - 2);
+		//printf("Mesh %lu: Num verts (after stripping): %lu, num tris: %lu\n", i, positions.size(), positions.size() - 2);
 	}
 
-	printf("Meshes/strips: %lu\n", strips.size());
+	//printf("Meshes/strips: %lu\n", strips.size());
 
-	std::vector<std::byte> mesh_data = serialize_meshes(strips);
+	printf(ANSI_COLOR_MAGENTA "[PS2-Mesh-Converter]: Serializing mesh to file\n" ANSI_COLOR_RESET);
+	std::vector<std::byte> mesh_data = serialize_meshes(meshes[0].primitive_type, strips); // 0x0004 = GL_TRIANGLE_STRIPS
 
 	if (write_output)
 	{
@@ -189,6 +194,8 @@ static void process()
 		fout.write((const char*)mesh_data.data(), mesh_data.size());
 		fout.close();
 	}
+
+	printf(ANSI_COLOR_GREEN "[PS2-Mesh-Converter]: Done\n" ANSI_COLOR_RESET);
 }
 
 static void parse_args(int argc, char** argv)

@@ -9,7 +9,7 @@ static int pad_to_alignment(int current_index, int alignment = 16)
 	return current_index + (-current_index & mask);
 }
 
-std::vector<std::byte> serialize_meshes(const std::vector<MeshStrip>& strips)
+std::vector<std::byte> serialize_meshes(uint32_t prim_type, const std::vector<MeshStrip>& strips)
 {
 	std::vector<std::byte> out;
 
@@ -44,14 +44,11 @@ std::vector<std::byte> serialize_meshes(const std::vector<MeshStrip>& strips)
 	mesh_header.uvs.set(texture_coords);
 	mesh_header.colors.set(colors);
 	mesh_header.strips.set(strip_header);
+	mesh_header.prim_type = prim_type;
 
 	{
 		Serializer mesh_serializer(out);
-		serialize(mesh_serializer, mesh_header.pos);
-		serialize(mesh_serializer, mesh_header.nrm);
-		serialize(mesh_serializer, mesh_header.uvs);
-		serialize(mesh_serializer, mesh_header.colors);
-		serialize(mesh_serializer, mesh_header.strips);
+		serialize(mesh_serializer, mesh_header);
 		mesh_serializer.finish_serialization();
 	}
 

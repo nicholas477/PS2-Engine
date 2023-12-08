@@ -10,4 +10,4 @@ struct MeshStrip
 	std::vector<Vector> colors;
 };
 
-std::vector<std::byte> serialize_meshes(const std::vector<MeshStrip>& strips);
+std::vector<std::byte> serialize_meshes(uint32_t prim_type, const std::vector<MeshStrip>& strips);

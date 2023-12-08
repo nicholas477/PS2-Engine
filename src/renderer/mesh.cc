@@ -108,7 +108,7 @@ void Mesh::compile()
 			const auto start_index = strip.strip_start_index;
 			const auto count       = strip.strip_end_index - start_index;
 
-			glDrawArrays(kVCRPrimType, start_index, count);
+			glDrawArrays(mesh->prim_type, start_index, count);
 
 			++i;
 		}
