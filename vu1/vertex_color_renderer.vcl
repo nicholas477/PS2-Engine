@@ -45,9 +45,6 @@ main_loop_lid:
 
      set_strip_adcs
 
-     ; const_color = material emissive + global ambient
-     get_cnst_color const_color
-
      init_bfc_strip
 
 xform_loop_lid:          --LoopCS 1,3
@@ -57,7 +54,7 @@ xform_loop_lid:          --LoopCS 1,3
 
      ; Vert colors
      load_pvcolor vert_color
-     move.xyzw    vert_color_old, vert_color
+     move.xyzw     vert_color_old, vert_color
      ;move.xyzw    vert_color, vf00
      ;maxw.xyzw    vert_color, vf00, vert_color_old[w] ; w is AO
      
@@ -67,23 +64,23 @@ xform_loop_lid:          --LoopCS 1,3
      muli.xyzw    vert_color, vert_color, i
      store_rgba   vert_color 
 
+     ; Skip the vegetation stuff if this isn't rendering vegetation
+     ilw.x               is_vegetation, kIsVegetation(vi00)
+     ibeq                is_vegetation, vi00, project_lid
+
 	; Wind
+     ; Lookup the leaf index from the vertex color
+     ilw.x               leaf_index, 3(next_input)
+
+     ; Lookup the sine(time) from leaf index
      move.xyzw           time, vf00
-     lq.xyzw        	time, kTime(vi00)
-
-     ; Add the time offset from the vert color
-     ; and calculate the sin value
-     loi                 3.14159
-     muli.x              vert_color_old, vert_color_old, i
-
-     ; Add a per-leaf time offset from the red channel
-     addx.xyzw           time, time, vert_color_old[x]
-     esin                p, time.y
-     mfp.xyzw            time, p
+     lq.xyzw        	time, kVegetationParams(leaf_index)
 
      ; Modulate leaf wind by the blue channel of the vertex color
      mulz.xyzw           time, time, vert_color_old[z]
      add.y       	     vert, vert, time
+
+project_lid:
 
      xform_vert     xformed_vert, vert_xform, vert
      vert_to_gs     gs_vert, xformed_vert

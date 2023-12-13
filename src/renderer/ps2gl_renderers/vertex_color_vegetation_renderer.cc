@@ -53,6 +53,11 @@ CVertexColorVegetationRenderer* CVertexColorVegetationRenderer::Register()
 	return renderer;
 }
 
+static float get_veg_p(float offset)
+{
+	return sinf(Engine::get_game_time() + offset);
+}
+
 void CVertexColorVegetationRenderer::InitContext(GLenum primType, tU32 rcChanges, bool userRcChanged)
 {
 	primType = GL_TRIANGLE_STRIP;
@@ -79,9 +84,18 @@ void CVertexColorVegetationRenderer::InitContext(GLenum primType, tU32 rcChanges
 
 		packet.Pad96();
 
-		packet.OpenUnpack(Vifs::UnpackModes::s_32, kTime, Packet::kSingleBuff);
-		packet += (float)(fmodf(Engine::get_game_time(), (M_PI * 2)) - M_PI);
+		packet.OpenUnpack(Vifs::UnpackModes::s_32, kIsVegetation, Packet::kSingleBuff);
+		packet += (s32)1;
 		packet.CloseUnpack(1);
+
+		packet.OpenUnpack(Vifs::UnpackModes::s_32, kVegetationParams, Packet::kSingleBuff);
+		packet += get_veg_p(0.f);
+		packet += get_veg_p(M_PI / 6.f);
+		packet += get_veg_p((2.f * M_PI) / 6.f);
+		packet += get_veg_p((3.f * M_PI) / 6.f);
+		packet += get_veg_p((4.f * M_PI) / 6.f);
+		packet += get_veg_p((5.f * M_PI) / 6.f);
+		packet.CloseUnpack(6);
 
 		packet.Mscal(0);
 		packet.Flushe();

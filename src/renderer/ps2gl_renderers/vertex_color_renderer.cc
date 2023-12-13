@@ -79,8 +79,8 @@ void CVertexColorRenderer::InitContext(GLenum primType, tU32 rcChanges, bool use
 
 		packet.Pad96();
 
-		packet.OpenUnpack(Vifs::UnpackModes::s_32, kTime, Packet::kSingleBuff);
-		packet += 0.f;
+		packet.OpenUnpack(Vifs::UnpackModes::s_32, kIsVegetation, Packet::kSingleBuff);
+		packet += (s32)0;
 		packet.CloseUnpack(1);
 
 		packet.Mscal(0);

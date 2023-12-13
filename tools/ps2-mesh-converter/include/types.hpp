@@ -17,6 +17,8 @@ struct Mesh
 	uint32_t primitive_type;
 	std::vector<Vertex> vertices;
 	std::vector<unsigned int> indices;
+
+	std::vector<std::string> modifiers;
 };
 
 static bool isMeshValid(const Mesh& mesh)

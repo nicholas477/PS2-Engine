@@ -132,13 +132,13 @@ static void process()
 
 	printf("Loaded %lu meshes from file\n", meshes.size());
 
-	printf(ANSI_COLOR_MAGENTA "[PS2-Mesh-Converter]: Applying modifications\n" ANSI_COLOR_RESET);
-	apply_gamma_correction(meshes);
-
 	std::vector<MeshStrip> strips;
 	for (size_t i = 0; i < meshes.size(); ++i)
 	{
-		//printf("Mesh %lu: Num verts (before stripping): %lu, num tris: %lu\n", i, meshes[i].vertices.size(), meshes[i].indices.size() / 3);
+		for (const std::string& modifier : meshes[i].modifiers)
+		{
+			apply_modification(modifier, meshes[i]);
+		}
 
 		// Stripify it
 		std::vector<unsigned int> strip = stripify(meshes[i], false, 'S');

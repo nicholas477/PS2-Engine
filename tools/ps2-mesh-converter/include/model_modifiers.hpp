@@ -3,4 +3,4 @@
 #include <vector>
 #include "types.hpp"
 
-void apply_gamma_correction(std::vector<Mesh>& meshes);
+bool apply_modification(const std::string& mod, Mesh& mesh);

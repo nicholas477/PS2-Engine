@@ -65,6 +65,8 @@ typedef struct
 
 #define kClipInfo (kGifTag + 1)
 
-#define kTime (kClipInfo + 1)
+#define kIsVegetation (kClipInfo + 1)
 
-#define kContextLength (kTime - kContextStart + 1)
+#define kVegetationParams (kIsVegetation + 1)
+
+#define kContextLength (kVegetationParams - kContextStart + 6)

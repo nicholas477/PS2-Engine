@@ -1,4 +1,8 @@
 {
 	"mesh_file": "plant.fbx",
-	"primitive_type": 2147483650
+	"primitive_type": 2147483650,
+	"modifiers": [
+		"vegetation",
+		"gamma_correct_alpha"
+	]
 }

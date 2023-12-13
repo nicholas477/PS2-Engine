@@ -49,5 +49,14 @@ bool parseJson(std::string_view path, std::vector<Mesh>& meshes)
 		meshes[0].primitive_type = obj["primitive_type"].asUInt();
 	}
 
+	meshes[0].modifiers.clear();
+	if (obj.isMember("modifiers"))
+	{
+		for (auto val : obj["modifiers"])
+		{
+			meshes[0].modifiers.push_back(val.asString());
+		}
+	}
+
 	return true;
 }
