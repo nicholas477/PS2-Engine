@@ -27,6 +27,9 @@ CVertexColorVegetationRenderer::CVertexColorVegetationRenderer()
 	CustomPrimType     = VCVRPrimType;
 	CustomPrimTypeFlag = VCVRPrimTypeFlag;
 
+	Requirements = 0;
+	Capabilities = CustomPrimTypeFlag;
+
 	ContextStart    = kContextStart;
 	DoubleBufBase   = kDoubleBufBase;
 	DoubleBufOffset = kDoubleBufOffset;

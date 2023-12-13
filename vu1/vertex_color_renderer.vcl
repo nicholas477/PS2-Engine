@@ -56,17 +56,18 @@ xform_loop_lid:          --LoopCS 1,3
 
      load_vert      vert
 
-	; wind
-	;move.w			vert, vf00
-     ;lq.xyzw        	time, kTime(vi00)
-     ;add.xyzw		time, time, vert[y]
-	;move.xyzw		sincos, vf00
-	;AngleSinCos		sincos, time
-	;loi 32.0
-	;muli			sincos, sincos, i
-     ;add.y       	vert, vert, time[x]
+     load_pvcolor vert_color
+     loi 255.0
+     muli.xyz vert_color, vert_color, i
+     store_rgba vert_color
 
-	;--cont
+	; wind
+	move.w			vert, vf00
+     lq.xyzw        	time, kTime(vi00)
+     mul.xyzw            time, time[x], vert_color[x]  
+     add.y       	     vert, vert, time[x]
+
+	--cont
 
 
 
@@ -85,11 +86,7 @@ xform_loop_lid:          --LoopCS 1,3
      ; constant color
 
      ; const_color = material emissive + global ambient
-     load_pvcolor vert_color
-     loi 255.0
-     addi.w vert_color, vf00, i
-     muli.xyz vert_color, vert_color, i
-     store_rgba vert_color
+     ;load_pvcolor vert_color
 
      ;store_rgb const_color
 
