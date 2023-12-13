@@ -2,6 +2,7 @@
 #include "renderer/gs.hpp"
 #include "renderer/renderable.hpp"
 #include "renderer/ps2gl_renderers/vertex_color_renderer.hpp"
+#include "renderer/ps2gl_renderers/vertex_color_vegetation_renderer.hpp"
 #include "stats.hpp"
 #include "egg/assert.hpp"
 #include "utils/debuggable.hpp"
@@ -109,6 +110,7 @@ static void init_renderer()
 	init_lights();
 
 	CVertexColorRenderer::Register();
+	CVertexColorVegetationRenderer::Register();
 
 	has_initialized = true;
 

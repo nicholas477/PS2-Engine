@@ -1,4 +1,4 @@
-#include "renderer/ps2gl_renderers/vertex_color_renderer.hpp"
+#include "renderer/ps2gl_renderers/vertex_color_vegetation_renderer.hpp"
 #include "vertex_color_renderer_mem_linear.h"
 
 #include "ps2gl/drawcontext.h"
@@ -18,17 +18,14 @@ extern "C" {
 VU_FUNCTIONS(VertexColorRenderer);
 }
 
-CVertexColorRenderer::CVertexColorRenderer()
+CVertexColorVegetationRenderer::CVertexColorVegetationRenderer()
     : CCustomRendererBase(mVsmAddr(VertexColorRenderer), mVsmSize(VertexColorRenderer), 4, 3,
                           kInputStart,
                           kInputBufSize - kInputStart,
-                          "Vertex color renderer")
+                          "Vertex color vegetation renderer")
 {
-	CustomPrimType     = VCRPrimType;
-	CustomPrimTypeFlag = VCRPrimTypeFlag;
-
-	Requirements = 0;
-	Capabilities = CustomPrimTypeFlag;
+	CustomPrimType     = VCVRPrimType;
+	CustomPrimTypeFlag = VCVRPrimTypeFlag;
 
 	ContextStart    = kContextStart;
 	DoubleBufBase   = kDoubleBufBase;
@@ -36,24 +33,24 @@ CVertexColorRenderer::CVertexColorRenderer()
 	DoubleBufSize   = kDoubleBufSize;
 }
 
-CVertexColorRenderer* CVertexColorRenderer::Register()
+CVertexColorVegetationRenderer* CVertexColorVegetationRenderer::Register()
 {
 	// create a renderer and register it
 
-	CVertexColorRenderer* renderer = new CVertexColorRenderer;
+	CVertexColorVegetationRenderer* renderer = new CVertexColorVegetationRenderer;
 	pglRegisterRenderer(renderer);
 
 	// register the prim type
 
-	pglRegisterCustomPrimType(VCRPrimType,       // the prim type we will pass to ps2gl (glBegin...)
-	                          VCRPrimTypeFlag,   // the corresponding renderer requirement
+	pglRegisterCustomPrimType(VCVRPrimType,      // the prim type we will pass to ps2gl (glBegin...)
+	                          VCVRPrimTypeFlag,  // the corresponding renderer requirement
 	                          ~(tU64)0xffffffff, // we only care about the custom stuff (upper 32 bits)
 	                          true);             // ok to merge multiple calls when possible
 
 	return renderer;
 }
 
-void CVertexColorRenderer::InitContext(GLenum primType, tU32 rcChanges, bool userRcChanged)
+void CVertexColorVegetationRenderer::InitContext(GLenum primType, tU32 rcChanges, bool userRcChanged)
 {
 	primType = GL_TRIANGLE_STRIP;
 
@@ -80,7 +77,7 @@ void CVertexColorRenderer::InitContext(GLenum primType, tU32 rcChanges, bool use
 		packet.Pad96();
 
 		packet.OpenUnpack(Vifs::UnpackModes::s_32, kTime, Packet::kSingleBuff);
-		packet += 0.f;
+		packet += std::sin(Engine::get_game_time()) * 4.f;
 		packet.CloseUnpack(1);
 
 		packet.Mscal(0);
