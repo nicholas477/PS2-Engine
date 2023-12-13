@@ -80,7 +80,7 @@ void CVertexColorVegetationRenderer::InitContext(GLenum primType, tU32 rcChanges
 		packet.Pad96();
 
 		packet.OpenUnpack(Vifs::UnpackModes::s_32, kTime, Packet::kSingleBuff);
-		packet += std::sin(Engine::get_game_time()) * 4.f;
+		packet += (float)(fmodf(Engine::get_game_time(), (M_PI * 2)) - M_PI);
 		packet.CloseUnpack(1);
 
 		packet.Mscal(0);

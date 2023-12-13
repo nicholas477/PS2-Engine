@@ -14,7 +14,7 @@
      .include       "io.i"
      .include       "general.i"
 
-	 .include		"teapot_math.i"
+	.include		"teapot_math.i"
 
 kInputQPerV         .equ           4
 kOutputQPerV        .equ           3
@@ -53,23 +53,37 @@ main_loop_lid:
 xform_loop_lid:          --LoopCS 1,3
 
      ; xform/clip vertex
-
      load_vert      vert
 
+     ; Vert colors
      load_pvcolor vert_color
-     loi 255.0
-     muli.xyz vert_color, vert_color, i
-     store_rgba vert_color
+     move.xyzw    vert_color_old, vert_color
+     ;move.xyzw    vert_color, vf00
+     ;maxw.xyzw    vert_color, vf00, vert_color_old[w] ; w is AO
+     
+     ; Multiply diff by AO
+     mulw.xyzw     vert_color, vert_color, vert_color_old[w]
+     loi          255.0
+     muli.xyzw    vert_color, vert_color, i
+     store_rgba   vert_color 
 
-	; wind
-	move.w			vert, vf00
+	; Wind
+     move.xyzw           time, vf00
      lq.xyzw        	time, kTime(vi00)
-     mul.xyzw            time, time[x], vert_color[x]  
-     add.y       	     vert, vert, time[x]
 
-	--cont
+     ; Add the time offset from the vert color
+     ; and calculate the sin value
+     loi                 3.14159
+     muli.x              vert_color_old, vert_color_old, i
 
+     ; Add a per-leaf time offset from the red channel
+     addx.xyzw           time, time, vert_color_old[x]
+     esin                p, time.y
+     mfp.xyzw            time, p
 
+     ; Modulate leaf wind by the blue channel of the vertex color
+     mulz.xyzw           time, time, vert_color_old[z]
+     add.y       	     vert, vert, time
 
      xform_vert     xformed_vert, vert_xform, vert
      vert_to_gs     gs_vert, xformed_vert
@@ -82,13 +96,6 @@ xform_loop_lid:          --LoopCS 1,3
      set_adc_fbs    gs_vert, strip_adc
 
      store_xyzf     gs_vert
-
-     ; constant color
-
-     ; const_color = material emissive + global ambient
-     ;load_pvcolor vert_color
-
-     ;store_rgb const_color
 
      ; texture coords
 
