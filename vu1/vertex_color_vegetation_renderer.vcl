@@ -22,7 +22,7 @@ kOutputQPerV        .equ           3
      .init_vf_all
      .init_vi_all
 
-     .name          vsmVertexColorRenderer
+     .name          vsmVertexColorVegetationRenderer
 
      --enter
      --endenter
@@ -65,11 +65,6 @@ xform_loop_lid:          --LoopCS 1,3
      store_rgba   vert_color 
 
 ; Wind
-     ; Skip the vegetation stuff if this isn't rendering vegetation
-     ;ilw.x               is_vegetation, kIsVegetation(vi00)
-     ;ibeq                is_vegetation, vi00, project_lid
-
-	; Wind
      ; Lookup the leaf index from the vertex color
      ilw.x               leaf_index, 3(next_input)
 

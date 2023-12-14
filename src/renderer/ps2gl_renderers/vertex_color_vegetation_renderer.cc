@@ -16,11 +16,11 @@
 #include "engine.hpp"
 
 extern "C" {
-VU_FUNCTIONS(VertexColorRenderer);
+VU_FUNCTIONS(VertexColorVegetationRenderer);
 }
 
 CVertexColorVegetationRenderer::CVertexColorVegetationRenderer()
-    : CCustomRendererBase(mVsmAddr(VertexColorRenderer), mVsmSize(VertexColorRenderer), 4, 3,
+    : CCustomRendererBase(mVsmAddr(VertexColorVegetationRenderer), mVsmSize(VertexColorVegetationRenderer), 4, 3,
                           kInputStart,
                           kInputBufSize - kInputStart,
                           "Vertex color vegetation renderer")
@@ -67,8 +67,6 @@ void CVertexColorVegetationRenderer::InitContext(GLenum primType, tU32 rcChanges
 	CVifSCDmaPacket& packet      = glContext.GetVif1Packet();
 	CImmDrawContext& drawContext = glContext.GetImmDrawContext();
 
-	drawContext.DrawEnv->SetFogColor(128, 128, 128);
-
 	packet.Cnt();
 	{
 		AddVu1RendererContext(packet, primType, kContextStart);
@@ -81,14 +79,10 @@ void CVertexColorVegetationRenderer::InitContext(GLenum primType, tU32 rcChanges
 		bool alpha         = drawContext.GetBlendEnabled();
 		unsigned int nreg  = OutputQuadsPerVert;
 
-		GS::tPrim prim = {prim_type : primType, iip : smoothShading, tme : useTexture, fge : 1, abe : alpha, aa1 : 0, fst : 0, ctxt : 0, fix : 0};
+		GS::tPrim prim = {prim_type : primType, iip : smoothShading, tme : useTexture, fge : 0, abe : alpha, aa1 : 0, fst : 0, ctxt : 0, fix : 0};
 		tGifTag giftag = {NLOOP : 0, EOP : 1, pad0 : 0, id : 0, PRE : 1, PRIM : *(tU64*)&prim, FLG : 0, NREG : nreg, REGS0 : 2, REGS1 : 1, REGS2 : 4};
 
 		packet.Pad96();
-
-		packet.OpenUnpack(Vifs::UnpackModes::s_32, kIsVegetation, Packet::kSingleBuff);
-		packet += (s32)1;
-		packet.CloseUnpack(1);
 
 		packet.OpenUnpack(Vifs::UnpackModes::s_32, kVegetationParams, Packet::kSingleBuff);
 		packet += get_veg_p(0.f);

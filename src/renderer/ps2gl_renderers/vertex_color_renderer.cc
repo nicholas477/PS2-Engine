@@ -77,12 +77,6 @@ void CVertexColorRenderer::InitContext(GLenum primType, tU32 rcChanges, bool use
 		GS::tPrim prim = {prim_type : primType, iip : smoothShading, tme : useTexture, fge : 0, abe : alpha, aa1 : 0, fst : 0, ctxt : 0, fix : 0};
 		tGifTag giftag = {NLOOP : 0, EOP : 1, pad0 : 0, id : 0, PRE : 1, PRIM : *(tU64*)&prim, FLG : 0, NREG : nreg, REGS0 : 2, REGS1 : 1, REGS2 : 4};
 
-		packet.Pad96();
-
-		packet.OpenUnpack(Vifs::UnpackModes::s_32, kIsVegetation, Packet::kSingleBuff);
-		packet += (s32)0;
-		packet.CloseUnpack(1);
-
 		packet.Mscal(0);
 		packet.Flushe();
 
