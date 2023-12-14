@@ -254,16 +254,18 @@ static int gs_render()
 
 		//printf("Done drawing objects! flushing\n");
 
-		glFlush();
+		{
+			Stats::ScopedTimer flush_timer(Stats::scoped_timers::render_flush);
+			glFlush();
 
-		//printf("Ending geometry\n");
-
-		pglEndGeometry();
+			pglEndGeometry();
+		}
 
 		//printf("done\n");
 
 		if (!firstTime)
 		{
+			Stats::ScopedTimer finish_geo_timer(Stats::scoped_timers::render_finish_geom);
 			//printf("Waiting for rendering to finish\n");
 			// This waits for rendering to finish
 			pglFinishRenderingGeometry(PGL_DONT_FORCE_IMMEDIATE_STOP);

@@ -1,5 +1,6 @@
 #include "input.hpp"
 #include "world.hpp"
+#include "stats.hpp"
 #include "renderer/mesh.hpp"
 #include "objects/teapot.hpp"
 #include "objects/camera.hpp"
@@ -23,10 +24,30 @@ static void make_teapot()
 	new_teapot->transform.add_location(Vector(((double)rand() / (double)RAND_MAX) * 256.f, 0.f, ((double)rand() / (double)RAND_MAX) * 256.f));
 }
 
-class WorldMesh: public Renderable, public Debuggable
+class WorldMeshStat: public Stats::Statable
+{
+public:
+	WorldMeshStat(const char* name)
+	    : timer(name)
+	{
+	}
+
+	virtual void clear_stats() override { timer.clear(); }
+	virtual void print_stats() override
+	{
+		printf("\t");
+		timer.print();
+	}
+
+	Stats::Timer timer;
+};
+
+class WorldMesh: public Renderable,
+                 public Debuggable
 {
 public:
 	WorldMesh(Asset::Reference world_reference)
+	    : world_render_stat("World")
 	{
 		checkf(Filesystem::load_file(world_reference, level_data, level_size), "unable to load level!");
 		debug_name = Asset::lookup_path(world_reference).data();
@@ -42,15 +63,25 @@ public:
 
 			printf("\n");
 		}
+
+		mesh_render_stats.reserve(level->meshes.mesh_files.num_elements());
+		for (int i = 0; i < level->meshes.mesh_files.num_elements(); ++i)
+		{
+			mesh_render_stats.emplace_back(Asset::lookup_path(level->meshes.mesh_files[i]).data());
+		}
 	}
 
 	virtual void render(const GS::GSState& gs_state) override
 	{
+		world_render_stat.timer.start();
 		for (int i = 0; i < level->meshes.mesh_files.num_elements(); ++i)
 		{
 			ScopedMatrix m(level->meshes.mesh_transforms[i]);
+			mesh_render_stats[i].timer.start();
 			meshes[level->meshes.mesh_files[i]].draw();
+			mesh_render_stats[i].timer.end();
 		}
+		world_render_stat.timer.end();
 	}
 
 	size_t level_size;
@@ -59,6 +90,8 @@ public:
 
 	std::unordered_set<Asset::Reference> level_references;
 	std::unordered_map<Asset::Reference, Mesh> meshes;
+	std::vector<WorldMeshStat> mesh_render_stats;
+	WorldMeshStat world_render_stat;
 
 	virtual const char* get_type_name() const { return typeid(WorldMesh).name(); }
 };

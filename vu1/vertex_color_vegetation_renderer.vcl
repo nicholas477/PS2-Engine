@@ -64,6 +64,23 @@ xform_loop_lid:          --LoopCS 1,3
      muli.xyzw    vert_color, vert_color, i
      store_rgba   vert_color 
 
+; Wind
+     ; Skip the vegetation stuff if this isn't rendering vegetation
+     ;ilw.x               is_vegetation, kIsVegetation(vi00)
+     ;ibeq                is_vegetation, vi00, project_lid
+
+	; Wind
+     ; Lookup the leaf index from the vertex color
+     ilw.x               leaf_index, 3(next_input)
+
+     ; Lookup the sine(time) from leaf index
+     move.xyzw           time, vf00
+     lq.xyzw        	time, kVegetationParams(leaf_index)
+
+     ; Modulate leaf wind by the blue channel of the vertex color
+     mulz.xyzw           time, time, vert_color_old[z]
+     add.y       	     vert, vert, time
+
 project_lid:
 
      xform_vert     xformed_vert, vert_xform, vert

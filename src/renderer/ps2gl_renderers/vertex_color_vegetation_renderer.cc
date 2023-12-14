@@ -9,6 +9,7 @@
 #include "ps2gl/matrix.h"
 #include "ps2gl/metrics.h"
 #include "ps2gl/texture.h"
+#include "ps2s/drawenv.h"
 
 #include "ps2gl/renderer.h"
 
@@ -66,6 +67,8 @@ void CVertexColorVegetationRenderer::InitContext(GLenum primType, tU32 rcChanges
 	CVifSCDmaPacket& packet      = glContext.GetVif1Packet();
 	CImmDrawContext& drawContext = glContext.GetImmDrawContext();
 
+	drawContext.DrawEnv->SetFogColor(128, 128, 128);
+
 	packet.Cnt();
 	{
 		AddVu1RendererContext(packet, primType, kContextStart);
@@ -73,13 +76,12 @@ void CVertexColorVegetationRenderer::InitContext(GLenum primType, tU32 rcChanges
 		// overwrite the giftag built by CBaseRenderer::AddVu1RendererContext()...
 		// ..it knows not what it does.
 		primType &= 0x7; // convert from GL #define to gs prim number
-		CImmDrawContext& drawContext = glContext.GetImmDrawContext();
-		bool smoothShading           = drawContext.GetDoSmoothShading();
-		bool useTexture              = glContext.GetTexManager().GetTexEnabled();
-		bool alpha                   = drawContext.GetBlendEnabled();
-		unsigned int nreg            = OutputQuadsPerVert;
+		bool smoothShading = drawContext.GetDoSmoothShading();
+		bool useTexture    = glContext.GetTexManager().GetTexEnabled();
+		bool alpha         = drawContext.GetBlendEnabled();
+		unsigned int nreg  = OutputQuadsPerVert;
 
-		GS::tPrim prim = {prim_type : primType, iip : smoothShading, tme : useTexture, fge : 0, abe : alpha, aa1 : 0, fst : 0, ctxt : 0, fix : 0};
+		GS::tPrim prim = {prim_type : primType, iip : smoothShading, tme : useTexture, fge : 1, abe : alpha, aa1 : 0, fst : 0, ctxt : 0, fix : 0};
 		tGifTag giftag = {NLOOP : 0, EOP : 1, pad0 : 0, id : 0, PRE : 1, PRIM : *(tU64*)&prim, FLG : 0, NREG : nreg, REGS0 : 2, REGS1 : 1, REGS2 : 4};
 
 		packet.Pad96();

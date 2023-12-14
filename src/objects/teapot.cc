@@ -28,7 +28,7 @@ public:
 
 	virtual void on_gs_init() override
 	{
-		teapot_mesh = new Mesh("assets/models/kettle.mdl"_asset);
+		//teapot_mesh = new Mesh("assets/models/kettle.mdl"_asset);
 	}
 
 	virtual void render(const GS::GSState& gs_state) override
@@ -43,7 +43,7 @@ public:
 		ScopedMatrix sm(local_world);
 
 		//printf("Drawing teapot\n");
-		teapot_mesh->draw(false);
+		//teapot_mesh->draw(false);
 	}
 
 	AABB get_bounds() const
