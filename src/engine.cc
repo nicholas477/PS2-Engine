@@ -46,6 +46,8 @@ static void load_asset_manifest()
 		size_t manifest_size;
 		std::unique_ptr<std::byte[]> asset_manifest_data;
 
+		check("MANIFEST.ISO"_p.to_full_filepath() == std::string("cdrom0:\\MANIFEST.ISO"));
+
 		Filesystem::load_file("MANIFEST.ISO"_p, asset_manifest_data, manifest_size);
 		Asset::load_asset_table(asset_manifest_data.get(), manifest_size);
 

@@ -137,7 +137,7 @@ public:
 		static std::array<char, max_path_length + 9> buffer {'\0'};
 
 		const char* filesystem_prefix   = get_filesystem_prefix(in_filesystem_type);
-		size_t filesystem_prefix_length = constexpr_strlen(filesystem_prefix);
+		size_t filesystem_prefix_length = strlen(filesystem_prefix);
 		strncpy(buffer.data(), filesystem_prefix, filesystem_prefix_length);
 		strncpy(buffer.data() + filesystem_prefix_length, mem.data(), max_path_length);
 
@@ -242,6 +242,7 @@ constexpr Path convert_to_iso_path(const char* path)
 
 #ifndef _MSC_VER
 static_assert(convert_to_iso_path("/asdf-ggggg/sdkfjs.egg2") == "ASDF_GGGGG\\SDKFJS.EGG");
+static_assert(convert_to_iso_path("MANIFEST.ISO") == "MANIFEST.ISO");
 #endif
 
 } // namespace Filesystem
