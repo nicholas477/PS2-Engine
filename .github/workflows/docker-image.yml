@@ -34,7 +34,6 @@ jobs:
         cd ../../
         make clean install -j$(getconf _NPROCESSORS_ONLN)
 
-        
     - name: Install ps2stuff
       run: |
         git clone https://github.com/ps2dev/ps2stuff.git dependencies/ps2stuff
