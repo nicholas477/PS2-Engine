@@ -1,5 +1,6 @@
 #pragma once
 #include "egg/math_types.hpp"
+#include <cstdint>
 #include <vector>
 
 struct MeshStrip

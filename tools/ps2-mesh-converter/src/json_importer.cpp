@@ -3,6 +3,7 @@
 #include <json/json.h>
 #include <fstream>
 #include <filesystem>
+#include <algorithm>
 
 bool parseJson(std::string_view path, std::vector<Mesh>& meshes)
 {
