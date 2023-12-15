@@ -16,7 +16,7 @@ FILE(GLOB Source "src/**.cpp")
 
 add_executable(egg-ps2-mesh-converter ${Source})
 
-target_include_directories(egg-ps2-mesh-converter PRIVATE include)
+target_include_directories(egg-ps2-mesh-converter PRIVATE include "/usr/include/jsoncpp")
 target_link_libraries(egg-ps2-mesh-converter PUBLIC meshoptimizer::meshoptimizer assimp ps2-egg ${JSONCPP_LIBRARIES})
 
 set_property(TARGET egg-ps2-mesh-converter PROPERTY CXX_STANDARD 20)

@@ -1,6 +1,6 @@
 #include "model_importer.hpp"
 
-#include <jsoncpp/json/json.h>
+#include <json/json.h>
 #include <fstream>
 #include <filesystem>
 
