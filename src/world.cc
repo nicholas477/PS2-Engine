@@ -79,6 +79,7 @@ public:
 			ScopedMatrix m(level->meshes.mesh_transforms[i]);
 			mesh_render_stats[i].timer.start();
 			meshes[level->meshes.mesh_files[i]].draw();
+			//glFlush();
 			mesh_render_stats[i].timer.end();
 		}
 		world_render_stat.timer.end();

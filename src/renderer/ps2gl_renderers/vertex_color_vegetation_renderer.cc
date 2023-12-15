@@ -71,17 +71,6 @@ void CVertexColorVegetationRenderer::InitContext(GLenum primType, tU32 rcChanges
 	{
 		AddVu1RendererContext(packet, primType, kContextStart);
 
-		// overwrite the giftag built by CBaseRenderer::AddVu1RendererContext()...
-		// ..it knows not what it does.
-		primType &= 0x7; // convert from GL #define to gs prim number
-		bool smoothShading = drawContext.GetDoSmoothShading();
-		bool useTexture    = glContext.GetTexManager().GetTexEnabled();
-		bool alpha         = drawContext.GetBlendEnabled();
-		unsigned int nreg  = OutputQuadsPerVert;
-
-		GS::tPrim prim = {prim_type : primType, iip : smoothShading, tme : useTexture, fge : 0, abe : alpha, aa1 : 0, fst : 0, ctxt : 0, fix : 0};
-		tGifTag giftag = {NLOOP : 0, EOP : 1, pad0 : 0, id : 0, PRE : 1, PRIM : *(tU64*)&prim, FLG : 0, NREG : nreg, REGS0 : 2, REGS1 : 1, REGS2 : 4};
-
 		packet.Pad96();
 
 		packet.OpenUnpack(Vifs::UnpackModes::s_32, kVegetationParams, Packet::kSingleBuff);

@@ -28,6 +28,7 @@ public:
 	virtual void InitContext(GLenum primType, tU32 rcChanges, bool userRcChanged) override;
 	virtual void DrawLinearArrays(CGeometryBlock& block) override;
 	virtual bool GetCachePackets(const CGeometryBlock& geometry) { return true; }
+	void AddVu1RendererContext(CVifSCDmaPacket& packet, GLenum primType, int vu1Offset);
 
 	// This is the prim type passed to the gs
 	u32 PrimType           = 0x7; // 0x7 = triangle strip

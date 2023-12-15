@@ -64,6 +64,15 @@ jobs:
         cmake ..
         make clean all install -j$(getconf _NPROCESSORS_ONLN)
 
+    - name: Install jsoncpp
+      run: |
+        git clone https://github.com/open-source-parsers/jsoncpp.git dependencies/jsoncpp
+        cd dependencies/jsoncpp
+        mkdir -p build
+        cd build
+        cmake ..
+        make clean all install -j$(getconf _NPROCESSORS_ONLN)
+
     - name: Compile egg-library
       run: |
         cd dependencies/egg-library

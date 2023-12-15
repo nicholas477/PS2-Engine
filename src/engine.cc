@@ -30,7 +30,7 @@
 #include "graph.h"
 
 #ifndef FILESYSTEM_TYPE
-#define FILESYSTEM_TYPE Filesystem::Type::host
+#define FILESYSTEM_TYPE Filesystem::Type::cdrom
 #endif
 
 namespace Engine
