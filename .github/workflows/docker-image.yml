@@ -30,9 +30,9 @@ jobs:
         git clone https://github.com/nicholas477/openvcl.git dependencies/openvcl
         cd dependencies/openvcl/contrib/masp
         chmod +x ./configure && ./configure LIBS="-lobstack"
-        make clean install -j$(getconf _NPROCESSORS_ONLN)
+        make install -j$(getconf _NPROCESSORS_ONLN)
         cd ../../
-        make clean install -j$(getconf _NPROCESSORS_ONLN)
+        make install -j$(getconf _NPROCESSORS_ONLN)
 
     - name: Install ps2stuff
       run: |
