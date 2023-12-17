@@ -2,7 +2,7 @@
 
 #include "objects/camera.hpp"
 #include "egg/math_types.hpp"
-#include "input.hpp"
+#include "input/gamepad.hpp"
 
 #include "utils/rendering.hpp"
 

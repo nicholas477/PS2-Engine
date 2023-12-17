@@ -3,7 +3,7 @@
 #include "threading.hpp"
 #include "egg/filesystem.hpp"
 #include "tick.hpp"
-#include "input.hpp"
+#include "input/gamepad.hpp"
 
 #include "egg/assert.hpp"
 

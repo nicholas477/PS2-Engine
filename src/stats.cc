@@ -1,5 +1,5 @@
 #include "stats.hpp"
-#include "input.hpp"
+#include "input/gamepad.hpp"
 
 #include <iostream>
 #include <unordered_map>
