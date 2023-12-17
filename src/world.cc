@@ -1,4 +1,4 @@
-#include "input.hpp"
+#include "input/gamepad.hpp"
 #include "world.hpp"
 #include "stats.hpp"
 #include "renderer/mesh.hpp"
@@ -115,8 +115,8 @@ void init()
 	{
 		virtual void tick(float deltatime) override
 		{
-			const u32 paddata   = Input::get_paddata();
-			const auto& buttons = Input::get_button_status();
+			const u32 paddata   = Input::Gamepad::get_paddata();
+			const auto& buttons = Input::Gamepad::get_button_status();
 
 			Vector input_vector = Vector::zero;
 

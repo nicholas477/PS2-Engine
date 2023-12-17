@@ -1,5 +1,5 @@
 #include "objects/movement.hpp"
-#include "input.hpp"
+#include "input/gamepad.hpp"
 #include "egg/math_types.hpp"
 #include "objects/components/transform_component.hpp"
 #include "objects/components/collision_component.hpp"
@@ -63,8 +63,8 @@ void FlyingMovement::perform_movement(float delta_time)
 
 void FlyingMovement::calculate_rotation_input(float delta_time)
 {
-	const u32 paddata   = Input::get_paddata();
-	const auto& buttons = Input::get_button_status();
+	const u32 paddata   = Input::Gamepad::get_paddata();
+	const auto& buttons = Input::Gamepad::get_button_status();
 
 	Vector input_vector = Vector();
 
@@ -85,8 +85,8 @@ void FlyingMovement::calculate_rotation_input(float delta_time)
 
 void FlyingMovement::calculate_movement_input(float delta_time)
 {
-	const u32 paddata   = Input::get_paddata();
-	const auto& buttons = Input::get_button_status();
+	const u32 paddata   = Input::Gamepad::get_paddata();
+	const auto& buttons = Input::Gamepad::get_button_status();
 
 	Vector input_vector    = Vector();
 	Vector movement_vector = Vector();
@@ -133,7 +133,7 @@ void ThirdPersonMovement::perform_movement(float delta_time)
 void ThirdPersonMovement::calculate_rotation_input(float delta_time)
 {
 	//const u32 paddata   = input::get_paddata();
-	const auto& buttons = Input::get_button_status();
+	const auto& buttons = Input::Gamepad::get_button_status();
 
 	Vector input_vector = Vector();
 
@@ -167,8 +167,8 @@ bool ThirdPersonMovement::is_braking(const Vector& velocity, const Vector& veloc
 
 void ThirdPersonMovement::calculate_movement_input(float delta_time)
 {
-	const u32 paddata   = Input::get_paddata();
-	const auto& buttons = Input::get_button_status();
+	const u32 paddata   = Input::Gamepad::get_paddata();
+	const auto& buttons = Input::Gamepad::get_button_status();
 
 	Vector input_vector    = Vector();
 	Vector movement_vector = Vector();

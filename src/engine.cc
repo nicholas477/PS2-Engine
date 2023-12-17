@@ -1,6 +1,7 @@
 #include "engine.hpp"
 #include "renderer/gs.hpp"
-#include "input.hpp"
+#include "input/input.hpp"
+#include "input/gamepad.hpp"
 #include "world.hpp"
 #include "objects/camera.hpp"
 #include "objects/teapot.hpp"
@@ -48,7 +49,7 @@ static void load_asset_manifest()
 
 		check("MANIFEST.ISO"_p.to_full_filepath() == std::string("cdrom0:\\MANIFEST.ISO"));
 
-		Filesystem::load_file("MANIFEST.ISO"_p, asset_manifest_data, manifest_size);
+		check(Filesystem::load_file("MANIFEST.ISO"_p, asset_manifest_data, manifest_size));
 		Asset::load_asset_table(asset_manifest_data.get(), manifest_size);
 
 		return;
@@ -58,7 +59,7 @@ static void load_asset_manifest()
 		size_t manifest_size;
 		std::unique_ptr<std::byte[]> asset_manifest_data;
 
-		Filesystem::load_file("MANIFEST.HST"_p, asset_manifest_data, manifest_size);
+		check(Filesystem::load_file("MANIFEST.HST"_p, asset_manifest_data, manifest_size));
 		Asset::load_asset_table(asset_manifest_data.get(), manifest_size);
 
 		return;
@@ -198,13 +199,13 @@ void run()
 			GS::render();
 		}
 
-		if (Input::get_paddata() & PAD_SELECT)
+		if (Input::Gamepad::get_paddata() & PAD_SELECT)
 		{
 			//exit(0);
 			//return;
 		}
 
-		if (Input::get_paddata() & PAD_START)
+		if (Input::Gamepad::get_paddata() & PAD_START)
 		{
 			Sound::set_music_volume(50);
 			Stats::print_timer_stats();
