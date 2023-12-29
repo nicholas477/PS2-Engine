@@ -140,10 +140,22 @@ void init(int argc, char* argv[])
 
 	load_asset_manifest();
 
+	{
+		int ret = SifLoadModule("USBD.IRX"_p.to_full_filepath(), 0, nullptr);
+		printf("ret: %d\n", ret);
+		checkf(ret >= 0, "USBD.IRX"_p.to_full_filepath());
+	}
+
+	// {
+	// 	int ret = SifLoadModule("BDMMFS_F.IRX"_p.to_full_filepath(), 0, nullptr);
+	// 	printf("ret: %d\n", ret);
+	// 	checkf(ret >= 0, "BDMMFS_F.IRX"_p.to_full_filepath());
+	// }
+
 	Stats::init();
 	Input::init();
 	//Filesystem::run_tests();
-	//Sound::init();
+	Sound::init();
 	GS::init();
 
 	printf("Graph mode (region): ");
@@ -209,7 +221,7 @@ void run()
 
 		if (Input::Gamepad::get_paddata() & PAD_START)
 		{
-			Sound::set_music_volume(50);
+			Sound::set_music_volume(100);
 			Stats::print_timer_stats();
 		}
 	}

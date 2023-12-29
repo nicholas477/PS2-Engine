@@ -1,5 +1,6 @@
 #include "objects/movement.hpp"
 #include "input/gamepad.hpp"
+#include "input/keyboard.hpp"
 #include "egg/math_types.hpp"
 #include "objects/components/transform_component.hpp"
 #include "objects/components/collision_component.hpp"
@@ -183,6 +184,12 @@ void ThirdPersonMovement::calculate_movement_input(float delta_time)
 
 	input_vector += ((buttons.ljoy_h - 128.f) / 128.f) * right_movement_vector;
 	input_vector += ((buttons.ljoy_v - 128.f) / 128.f) * forward_movement_vector;
+
+	input_vector += Input::Keyboard::get_key_status('a') * right_movement_vector * -1;
+	input_vector += Input::Keyboard::get_key_status('d') * right_movement_vector;
+
+	input_vector += Input::Keyboard::get_key_status('s') * forward_movement_vector;
+	input_vector += Input::Keyboard::get_key_status('w') * forward_movement_vector * -1;
 
 	if (paddata & PAD_CROSS)
 	{

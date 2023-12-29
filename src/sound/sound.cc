@@ -104,7 +104,7 @@ void init()
 		}
 	}
 
-	song_file = std::ifstream("/assets/sounds/white_waking.wav"_p.to_full_filepath());
+	song_file = std::ifstream("/assets/sounds/kettle.wav"_p.to_full_filepath());
 	check(song_file.is_open());
 	song_file.seekg(0x30, std::ios_base::beg);
 	chunkReadStatus = -1;
@@ -160,8 +160,13 @@ bool work_song()
 		}
 	}
 
-	if (chunkReadStatus < (s32)chunkSize)
-		song_playing = false;
+	if (chunkReadStatus == 0)
+	{
+		printf("looping song!\n");
+		song_file.seekg(0x30, std::ios_base::beg);
+		chunkReadStatus = -1;
+		song_playing    = true;
+	}
 
 	return did_work;
 }
