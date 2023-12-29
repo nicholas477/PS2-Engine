@@ -146,16 +146,10 @@ void init(int argc, char* argv[])
 		checkf(ret >= 0, "USBD.IRX"_p.to_full_filepath());
 	}
 
-	// {
-	// 	int ret = SifLoadModule("BDMMFS_F.IRX"_p.to_full_filepath(), 0, nullptr);
-	// 	printf("ret: %d\n", ret);
-	// 	checkf(ret >= 0, "BDMMFS_F.IRX"_p.to_full_filepath());
-	// }
-
 	Stats::init();
 	Input::init();
 	//Filesystem::run_tests();
-	Sound::init();
+	//Sound::init();
 	GS::init();
 
 	printf("Graph mode (region): ");

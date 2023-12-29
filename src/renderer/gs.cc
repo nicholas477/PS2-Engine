@@ -35,6 +35,8 @@
 #include <ps2gl/glcontext.h> // The GL Utility Toolkit (Glut) Header
 #include <ps2gl/matrix.h>    // The GL Utility Toolkit (Glut) Header
 
+#include "renderer/text.hpp"
+
 
 namespace GS
 {
@@ -56,18 +58,6 @@ static void init_lights()
 
 	glEnable(GL_LIGHTING);
 	glEnable(GL_LIGHT0);
-	//glEnable(GL_LIGHT1);
-
-	//glLightfv(GL_LIGHT0, GL_AMBIENT, ambient);
-	//glLightfv(GL_LIGHT0, GL_DIFFUSE, l0_diffuse);
-
-	// glLightfv(GL_LIGHT1, GL_AMBIENT, black);
-	// glLightfv(GL_LIGHT1, GL_DIFFUSE, l1_diffuse);
-	// glLightfv(GL_LIGHT1, GL_SPECULAR, black);
-
-	// glLightf(GL_LIGHT1, GL_CONSTANT_ATTENUATION, 0.0f);
-	// glLightf(GL_LIGHT1, GL_LINEAR_ATTENUATION, 0.005f);
-	// glLightf(GL_LIGHT1, GL_QUADRATIC_ATTENUATION, 0.0f);
 }
 
 //-----------------------------------------------------------------------------
@@ -108,6 +98,8 @@ static void init_renderer()
 	//glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
 	init_lights();
+
+	tsLoadFont();
 
 	CVertexColorRenderer::Register();
 	CVertexColorVegetationRenderer::Register();
@@ -160,25 +152,25 @@ initGsMemory()
 	// 32 bit
 
 	// a slot for fonts (probably)
-	// pglAddGsMemSlot(210, 2, GS::kPsm8);
+	pglAddGsMemSlot(210, 2, GS::kPsm8);
 
-	// // 64x32
-	// pglAddGsMemSlot(212, 1, GS::kPsm32);
-	// pglAddGsMemSlot(213, 1, GS::kPsm32);
-	// // 64x64
-	// pglAddGsMemSlot(214, 2, GS::kPsm32);
-	// pglAddGsMemSlot(216, 2, GS::kPsm32);
-	// pglAddGsMemSlot(218, 2, GS::kPsm32);
-	// pglAddGsMemSlot(220, 2, GS::kPsm32);
-	// // 128x128
-	// pglAddGsMemSlot(222, 8, GS::kPsm32);
-	// pglAddGsMemSlot(230, 8, GS::kPsm32);
-	// // 256x256
-	// pglAddGsMemSlot(238, 32, GS::kPsm32);
-	// pglAddGsMemSlot(270, 32, GS::kPsm32);
-	// // 512x256
-	// pglAddGsMemSlot(302, 64, GS::kPsm32);
-	// pglAddGsMemSlot(366, 64, GS::kPsm32);
+	// 64x32
+	pglAddGsMemSlot(212, 1, GS::kPsm32);
+	pglAddGsMemSlot(213, 1, GS::kPsm32);
+	// 64x64
+	pglAddGsMemSlot(214, 2, GS::kPsm32);
+	pglAddGsMemSlot(216, 2, GS::kPsm32);
+	pglAddGsMemSlot(218, 2, GS::kPsm32);
+	pglAddGsMemSlot(220, 2, GS::kPsm32);
+	// 128x128
+	pglAddGsMemSlot(222, 8, GS::kPsm32);
+	pglAddGsMemSlot(230, 8, GS::kPsm32);
+	// 256x256
+	pglAddGsMemSlot(238, 32, GS::kPsm32);
+	pglAddGsMemSlot(270, 32, GS::kPsm32);
+	// 512x256
+	//pglAddGsMemSlot(302, 64, GS::kPsm32);
+	//pglAddGsMemSlot(366, 64, GS::kPsm32);
 
 	pglPrintGsMemAllocation();
 }
@@ -244,7 +236,6 @@ static int gs_render()
 		glMultMatrixf(_gs_state.world_view);
 
 		glMatrixMode(GL_MODELVIEW);
-		//glLoadMatrixf(_gs_state.world_view);
 
 		pglBeginGeometry();
 
@@ -252,7 +243,24 @@ static int gs_render()
 
 		draw_objects(_gs_state);
 
-		//printf("Done drawing objects! flushing\n");
+		glFlush();
+
+		// Text rendering
+		{
+			float material[] = {.5f, .5f, .5f, .5f};
+			glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, material);
+
+			tsResetCursor();
+			glPolygonMode(GL_FRONT, GL_FILL);
+			glDisable(GL_ALPHA_TEST);
+			glEnable(GL_TEXTURE_2D);
+			glLoadIdentity();
+			tsDrawString("Helllo!");
+			tsDrawString("Helllo!");
+			tsDrawString("Helllo!");
+			tsDrawString("Helllo!");
+			glDisable(GL_TEXTURE_2D);
+		}
 
 		{
 			Stats::ScopedTimer flush_timer(Stats::scoped_timers::render_flush);
@@ -260,8 +268,6 @@ static int gs_render()
 
 			pglEndGeometry();
 		}
-
-		//printf("done\n");
 
 		if (!firstTime)
 		{
