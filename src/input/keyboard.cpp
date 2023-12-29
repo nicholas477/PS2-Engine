@@ -36,14 +36,17 @@ void Keyboard::read_inputs()
 	PS2KbdRawKey key;
 	while (PS2KbdReadRaw(&key) != 0)
 	{
-		printf("New key: %u, %u\n", key.key, key.state);
+		unsigned char c = (key.key + 'a') - 4;
+		//printf("New key: %u, %u, (%u, %c)\n", key.key, key.state, c, c);
 		keyboard_status[key.key] = key.state & 0xF;
 	}
 }
 
-u8 Keyboard::get_key_status(char key)
+u8 Keyboard::get_key_status(unsigned char key)
 {
-	return keyboard_status[(key - 'a') + 4];
+	const unsigned char actual_key = (key - 'a') + 4;
+	//check(actual_key >= 0 && actual_key <= 255);
+	return keyboard_status[actual_key];
 }
 
 } // namespace Input

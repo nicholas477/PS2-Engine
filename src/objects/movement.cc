@@ -141,6 +141,18 @@ void ThirdPersonMovement::calculate_rotation_input(float delta_time)
 	input_vector.yaw   = (buttons.rjoy_h - 128.f) / 128.f;
 	input_vector.pitch = (buttons.rjoy_v - 128.f) / 128.f;
 
+	// Left arrow
+	input_vector.yaw += Input::Keyboard::get_key_status(173) * -1;
+
+	// Right arrow
+	input_vector.yaw += Input::Keyboard::get_key_status(172);
+
+	// Up arrow
+	input_vector.pitch += Input::Keyboard::get_key_status(175);
+
+	// Down arrow
+	input_vector.pitch += Input::Keyboard::get_key_status(174) * -1;
+
 	const float input_length = input_vector.length();
 	if (input_length > dead_zone)
 	{

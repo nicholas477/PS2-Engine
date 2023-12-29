@@ -255,10 +255,11 @@ static int gs_render()
 			glDisable(GL_ALPHA_TEST);
 			glEnable(GL_TEXTURE_2D);
 			glLoadIdentity();
-			tsDrawString("Helllo!");
-			tsDrawString("Helllo!");
-			tsDrawString("Helllo!");
-			tsDrawString("Helllo!");
+			tsShowFont();
+			tsDrawString("Hi mac!\n");
+			// tsDrawString("Helllo!\n");
+			// tsDrawString("Helllo!\n");
+			// tsDrawString("Helllo!\n");
 			glDisable(GL_TEXTURE_2D);
 		}
 

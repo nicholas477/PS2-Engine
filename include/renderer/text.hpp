@@ -1,6 +1,6 @@
 #pragma once
 
-void tsShowFont(const char* text);
+void tsShowFont();
 void tsResetCursor();
 void tsDrawString(const char* text);
 void tsLoadFont();

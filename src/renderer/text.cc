@@ -23,7 +23,7 @@ unsigned int* font_clut;
 float left_margin = 20, top_margin = 20;
 float cursor_x = left_margin, cursor_y = top_margin;
 
-void tsShowFont(const char* text)
+void tsShowFont()
 {
 	glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
