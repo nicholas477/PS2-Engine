@@ -27,8 +27,9 @@ jobs:
 
     - name: Compile ps2 engine
       run: |
-        chmod +x ./compile.sh
-        ./compile.sh
+        pwd
+        ls -lah
+        bash ./compile.sh
 
     - uses: actions/upload-artifact@v3
       with:
