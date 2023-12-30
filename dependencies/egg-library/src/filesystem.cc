@@ -2,6 +2,7 @@
 
 #include <cstdio>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <fstream>
 #include <memory>
@@ -25,22 +26,19 @@ void set_filesystem_type(Type new_type)
 
 bool load_file(const Path& path, std::vector<std::byte>& out_bytes)
 {
-	const char* filepath      = path.to_full_filepath();
-	std::string filepath_copy = filepath;
-	printf("Filesystem::load_file (path, vector): %s\n", filepath_copy.c_str());
-	std::ifstream file(filepath_copy, std::ios::binary);
+	FILE* file = fopen(path.to_full_filepath(), "r");
 
-	if (file.is_open() && file.good())
+	if (file != nullptr)
 	{
 		// Read the file size
-		file.seekg(0, std::ios::end);
-		const size_t file_size = file.tellg();
+		fseek(file, 0, SEEK_END);
+		const size_t file_size = ftell(file);
 		out_bytes.resize(file_size, std::byte(0));
 
 		// Seek back to the beginning
-		file.seekg(0, std::ios::beg);
+		fseek(file, 0, SEEK_SET);
 
-		file.read((char*)out_bytes.data(), file_size);
+		fread((char*)out_bytes.data(), file_size, 1, file);
 		return true;
 	}
 
@@ -49,16 +47,13 @@ bool load_file(const Path& path, std::vector<std::byte>& out_bytes)
 
 bool load_file(const Path& path, std::unique_ptr<std::byte[]>& out_bytes, size_t& size, size_t alignment)
 {
-	const char* filepath      = path.to_full_filepath();
-	std::string filepath_copy = filepath;
-	printf("Filesystem::load_file (path, unique_ptr): %s\n", filepath_copy.c_str());
-	std::ifstream file(filepath_copy, std::ios::binary);
+	FILE* file = fopen(path.to_full_filepath(), "r");
 
-	if (file.is_open() && file.good())
+	if (file != nullptr)
 	{
 		// Read the file size
-		file.seekg(0, std::ios::end);
-		size = file.tellg();
+		fseek(file, 0, SEEK_END);
+		size = ftell(file);
 #ifdef _MSC_VER
 		out_bytes = std::unique_ptr<std::byte[]>((std::byte*)operator new[](size, (std::align_val_t)alignment));
 #else
@@ -66,9 +61,9 @@ bool load_file(const Path& path, std::unique_ptr<std::byte[]>& out_bytes, size_t
 #endif
 
 		// Seek back to the beginning
-		file.seekg(0, std::ios::beg);
+		fseek(file, 0, SEEK_SET);
 
-		file.read((char*)out_bytes.get(), size);
+		fread((char*)out_bytes.get(), size, 1, file);
 		return true;
 	}
 
