@@ -1,1 +1,3 @@
-make install -j16 && pushd build && sudo make install -j16; popd
+#!/usr/bin/bash
+
+make install -j$(nproc) && pushd build && sudo make install -j$(nproc); popd
