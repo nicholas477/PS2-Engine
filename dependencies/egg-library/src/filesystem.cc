@@ -27,7 +27,7 @@ bool load_file(const Path& path, std::vector<std::byte>& out_bytes)
 {
 	const char* filepath      = path.to_full_filepath();
 	std::string filepath_copy = filepath;
-	printf("Filesystem::load_file: %s\n", filepath_copy.c_str());
+	printf("Filesystem::load_file (path, vector): %s\n", filepath_copy.c_str());
 	std::ifstream file(filepath_copy, std::ios::binary);
 
 	if (file.is_open() && file.good())
@@ -51,7 +51,7 @@ bool load_file(const Path& path, std::unique_ptr<std::byte[]>& out_bytes, size_t
 {
 	const char* filepath      = path.to_full_filepath();
 	std::string filepath_copy = filepath;
-	printf("Filesystem::load_file: %s\n", filepath_copy.c_str());
+	printf("Filesystem::load_file (path, unique_ptr): %s\n", filepath_copy.c_str());
 	std::ifstream file(filepath_copy, std::ios::binary);
 
 	if (file.is_open() && file.good())
