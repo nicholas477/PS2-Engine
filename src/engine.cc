@@ -141,9 +141,9 @@ void init(int argc, char* argv[])
 	load_asset_manifest();
 
 	{
-		int ret = SifLoadModule("USBD.IRX"_p.to_full_filepath(), 0, nullptr);
+		int ret = SifLoadModule("usbd.irx"_p.to_full_filepath(), 0, nullptr);
 		printf("ret: %d\n", ret);
-		checkf(ret >= 0, "USBD.IRX"_p.to_full_filepath());
+		checkf(ret >= 0, "usbd.irx"_p.to_full_filepath());
 	}
 
 	Stats::init();

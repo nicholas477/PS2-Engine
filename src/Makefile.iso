@@ -4,32 +4,27 @@ $(ISO_FOLDER_DIR):
 $(ISO_FOLDER_DIR)/SYSTEM.CNF: $(ISO_FOLDER_DIR)
 	cp SYSTEM.CNF $@
 
-$(ISO_FOLDER_DIR)/AUDSRV.IRX: $(ISO_FOLDER_DIR)
-	cp $(PS2SDK)/iop/irx/audsrv.irx $@
+IRX_FILES = \
+	audsrv.irx \
+	ps2snd.irx \
+	ps2dev9.irx \
+	netman.irx \
+	usbd.irx \
+	ps2kbd.irx \
+	smap.irx
 
-$(ISO_FOLDER_DIR)/PS2SND.IRX: $(ISO_FOLDER_DIR)
-	cp $(PS2SDK)/iop/irx/ps2snd.irx $@
+IRX_SRC_FILES := $(addprefix $(PS2SDK)/iop/irx/, $(IRX_FILES))
+IRX_TARGET_FILES := $(addprefix $(ISO_FOLDER_DIR)/, $(IRX_FILES))
 
-$(ISO_FOLDER_DIR)/DEV9.IRX: $(ISO_FOLDER_DIR)
-	cp $(PS2SDK)/iop/irx/ps2dev9.irx $@
+$(IRX_TARGET_FILES): $(ISO_FOLDER_DIR)/%.irx: $(PS2SDK)/iop/irx/%.irx
+	cp $< $@
 
-$(ISO_FOLDER_DIR)/NETMAN.IRX: $(ISO_FOLDER_DIR)
-	cp $(PS2SDK)/iop/irx/netman.irx $@
-
-$(ISO_FOLDER_DIR)/USBD.IRX: $(ISO_FOLDER_DIR)
-	cp $(PS2SDK)/iop/irx/usbd.irx $@
-
-$(ISO_FOLDER_DIR)/PS2KBD.IRX: $(ISO_FOLDER_DIR)
-	cp $(PS2SDK)/iop/irx/ps2kbd.irx $@
-
-$(ISO_FOLDER_DIR)/SMAP.IRX: $(ISO_FOLDER_DIR)
-	cp $(PS2SDK)/iop/irx/smap.irx $@
+copy_irx: $(IRX_TARGET_FILES)
 
 $(ISO_FOLDER_DIR)/ps2client.exe: $(ISO_FOLDER_DIR)
 	cp assets/ps2client.exe $@
 
-.PHONY: copy_libs
-copy_libs: $(ISO_FOLDER_DIR)/AUDSRV.IRX $(ISO_FOLDER_DIR)/DEV9.IRX $(ISO_FOLDER_DIR)/NETMAN.IRX $(ISO_FOLDER_DIR)/SMAP.IRX $(ISO_FOLDER_DIR)/PS2SND.IRX $(ISO_FOLDER_DIR)/USBD.IRX $(ISO_FOLDER_DIR)/PS2KBD.IRX $(ISO_FOLDER_DIR)/ps2client.exe
+copy_libs: copy_irx $(ISO_FOLDER_DIR)/ps2client.exe
 
 # Sound files
 AUDIO_FILE_TYPE = wav
@@ -66,13 +61,11 @@ $(LVL_DEST_FILES): $(ISO_FOLDER_DIR)/assets/%.lvl: assets/%.lvl
 .PHONY: levels
 levels: $(LVL_DEST_FILES)
 
-
 # Asset Manifest compilation
 .PHONY: manifestassets
 manifestassets: sounds models levels
 
 MANIFEST_CC = egg-ps2-manifest-generator
-FORCE: ;
 
 $(ISO_FOLDER_DIR)/MANIFEST.ISO: manifestassets
 	$(MANIFEST_CC) -i$(ISO_FOLDER_DIR)/assets -p assets/ -o$@

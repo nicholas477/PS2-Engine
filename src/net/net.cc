@@ -279,19 +279,19 @@ void Net::init()
 	// //sbv_patch_enable_lmb();
 
 	{
-		int ret = SifLoadModule("DEV9.IRX"_p.to_full_filepath(), 0, nullptr);
+		int ret = SifLoadModule("dev9.irx"_p.to_full_filepath(), 0, nullptr);
 		printf("ret: %d\n", ret);
 		check(ret >= 0);
 	}
 
 	{
-		int ret = SifLoadModule("NETMAN.IRX"_p.to_full_filepath(), 0, nullptr);
+		int ret = SifLoadModule("netman.irx"_p.to_full_filepath(), 0, nullptr);
 		printf("ret: %d\n", ret);
 		check(ret >= 0);
 	}
 
 	{
-		int ret = SifLoadModule("SMAP.IRX"_p.to_full_filepath(), 0, nullptr);
+		int ret = SifLoadModule("smap.irx"_p.to_full_filepath(), 0, nullptr);
 		printf("ret: %d\n", ret);
 		check(ret >= 0);
 	}

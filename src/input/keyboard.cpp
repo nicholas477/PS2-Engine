@@ -17,9 +17,9 @@ void Keyboard::init()
 	memset(keyboard_status, sizeof(keyboard_status), 0);
 
 	{
-		int ret = SifLoadModule("PS2KBD.IRX"_p.to_full_filepath(), 0, nullptr);
+		int ret = SifLoadModule("ps2kbd.irx"_p.to_full_filepath(), 0, nullptr);
 		printf("ret: %d\n", ret);
-		checkf(ret >= 0, "PS2KBD.IRX"_p.to_full_filepath());
+		checkf(ret >= 0, "ps2kbd.irx"_p.to_full_filepath());
 	}
 
 	// Note: this depends on the USB modules being load (BSD.IRX)

@@ -200,11 +200,11 @@ static void process()
 
 static void parse_args(int argc, char** argv)
 {
-	cxxopts::options options("egg-ps2-mesh-converter", "Converts .obj meshes into a mesh format that the ps2 can "
-	                                                   "understand by turning the mesh into strips.");
+	cxxopts::options options("egg-ps2-mesh-converter", "Converts json assets into a cooked asset format that the ps2 can "
+	                                                   "understand.");
 
-	options.add_options()("i,input", "path to the input obj mesh", cxxopts::value<std::string>());
-	options.add_options()("o,output", "output path for the mesh", cxxopts::value<std::string>());
+	options.add_options()("i,input", "path to the input file", cxxopts::value<std::string>());
+	options.add_options()("o,output", "output path for the file", cxxopts::value<std::string>());
 	options.add_options()("null", "null output, don't write file", cxxopts::value<bool>()->default_value("false"));
 	options.add_options()("h,help", "print usage", cxxopts::value<bool>());
 
@@ -212,7 +212,7 @@ static void parse_args(int argc, char** argv)
 
 	options.positional_help("[input file] [output file]");
 
-	options.footer("If no output file is specified then the program will output the file to \"input path\" + .ps2_mesh");
+	options.footer("If no output file is specified then the program will output the file to \"input path\" + .type");
 
 	auto result = options.parse(argc, argv);
 
@@ -242,7 +242,8 @@ static void parse_args(int argc, char** argv)
 	}
 	else
 	{
-		output_path = input_path + ".ps2_mesh";
+		printf("Output path not specified\n");
+		exit(-1);
 	}
 }
 
