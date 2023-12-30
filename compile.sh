@@ -72,4 +72,4 @@ pushd dependencies/ps2gl && make install -j$(nproc); popd
 pushd dependencies/ps2gl/glut && make install -j$(nproc); popd
 
 echo "------Compiling ps2-engine------"
-make deploy_iso -j$(nproc)
+make iso -j$(nproc)
