@@ -25,8 +25,9 @@ void set_filesystem_type(Type new_type)
 
 bool load_file(const Path& path, std::vector<std::byte>& out_bytes)
 {
-	std::ifstream file(path.to_full_filepath(), std::ios::binary);
-	printf("Filesystem::load_file: %s\n", path.to_full_filepath());
+	const char* filepath = path.to_full_filepath();
+	std::ifstream file(filepath, std::ios::binary);
+	printf("Filesystem::load_file: %s\n", filepath);
 	if (file.is_open() && file.good())
 	{
 		// Read the file size
@@ -46,8 +47,9 @@ bool load_file(const Path& path, std::vector<std::byte>& out_bytes)
 
 bool load_file(const Path& path, std::unique_ptr<std::byte[]>& out_bytes, size_t& size, size_t alignment)
 {
-	std::ifstream file(path.to_full_filepath(), std::ios::binary);
-	printf("Filesystem::load_file: %s\n", path.to_full_filepath());
+	const char* filepath = path.to_full_filepath();
+	std::ifstream file(filepath, std::ios::binary);
+	printf("Filesystem::load_file: %s\n", filepath);
 	if (file.is_open() && file.good())
 	{
 		// Read the file size
