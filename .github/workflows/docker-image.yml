@@ -27,7 +27,7 @@ jobs:
 
     - name: Compile ps2 engine
       run: |
-        ./compile.sh
+        compile.sh
 
     - uses: actions/upload-artifact@v3
       with:
