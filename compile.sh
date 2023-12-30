@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [ $1 != "ci" ]; then
+if [ ! "$1" ] || [ $1 != "ci" ]; then
    sudo apt install -y build-essential binutils-dev git cmake genisoimage libassimp-dev 
 fi
 

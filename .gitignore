@@ -5,4 +5,8 @@
 
 build
 
+dependencies/cxxopts
+dependencies/meshoptimizer
 dependencies/ps2gl
+dependencies/openvcl
+dependencies/ps2stuff

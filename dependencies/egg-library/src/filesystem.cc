@@ -97,6 +97,19 @@ void iterate_dir(const Path& dir, std::function<void(const Path&)> itr_func, boo
 	}
 }
 
+const char* Path::to_full_filepath(Type in_filesystem_type) const
+{
+	// 9 is the max filesystem prefix length
+	static std::array<char, max_path_length + 9> buffer {'\0'};
+
+	const char* filesystem_prefix   = get_filesystem_prefix(in_filesystem_type);
+	size_t filesystem_prefix_length = strlen(filesystem_prefix);
+	strncpy(buffer.data(), filesystem_prefix, filesystem_prefix_length);
+	strncpy(buffer.data() + filesystem_prefix_length, mem.data(), max_path_length);
+
+	return buffer.data();
+}
+
 // void run_tests()
 // {
 // 	switch (get_filesystem_type())
