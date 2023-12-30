@@ -1,6 +1,8 @@
 #!/bin/bash
 
-# sudo apt install build-essential binutils-dev git cmake genisoimage libassimp-dev 
+if [ $1 != "ci" ]; then
+   sudo apt install -y build-essential binutils-dev git cmake genisoimage libassimp-dev 
+fi
 
 # Meshoptimizer
 if [ ! -d "dependencies/meshoptimizer" ]; then
@@ -44,7 +46,11 @@ echo "------Compiling Masp------"
 pushd dependencies/openvcl/contrib/masp
 if [ ! -f "Makefile" ]; then
     chmod +x ./configure
-    ./configure LIBS="-lobstack"
+    if [ $1 = "ci" ]; then
+        ./configure LIBS="-lobstack"
+    else
+        ./configure
+    fi
 fi
 sudo -E make install -j$(nproc)
 popd
