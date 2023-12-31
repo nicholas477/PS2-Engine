@@ -13,7 +13,10 @@
 
 namespace Filesystem
 {
+// 9 is the max filesystem prefix length
+static std::array<char, max_path_length + 9> path_buffer {'\0'};
 static Type _filesystem_type = Type::uninitialized;
+
 Type get_filesystem_type()
 {
 	return _filesystem_type;
@@ -22,6 +25,11 @@ Type get_filesystem_type()
 void set_filesystem_type(Type new_type)
 {
 	_filesystem_type = new_type;
+
+	// Copy the filesystem prefix to the path buffer
+	const char* filesystem_prefix   = get_filesystem_prefix(new_type);
+	size_t filesystem_prefix_length = strlen(filesystem_prefix);
+	strncpy(path_buffer.data(), filesystem_prefix, filesystem_prefix_length);
 }
 
 bool load_file(const Path& path, std::vector<std::byte>& out_bytes)
@@ -39,6 +47,8 @@ bool load_file(const Path& path, std::vector<std::byte>& out_bytes)
 		fseek(file, 0, SEEK_SET);
 
 		fread((char*)out_bytes.data(), file_size, 1, file);
+
+		fclose(file);
 		return true;
 	}
 
@@ -64,6 +74,7 @@ bool load_file(const Path& path, std::unique_ptr<std::byte[]>& out_bytes, size_t
 		fseek(file, 0, SEEK_SET);
 
 		fread((char*)out_bytes.get(), size, 1, file);
+		fclose(file);
 		return true;
 	}
 
@@ -100,15 +111,10 @@ void iterate_dir(const Path& dir, std::function<void(const Path&)> itr_func, boo
 
 const char* Path::to_full_filepath(Type in_filesystem_type) const
 {
-	// 9 is the max filesystem prefix length
-	static std::array<char, max_path_length + 9> buffer {'\0'};
+	size_t filesystem_prefix_length = strlen(get_filesystem_prefix(in_filesystem_type));
+	strncpy(path_buffer.data() + filesystem_prefix_length, mem.data(), max_path_length);
 
-	const char* filesystem_prefix   = get_filesystem_prefix(in_filesystem_type);
-	size_t filesystem_prefix_length = strlen(filesystem_prefix);
-	strncpy(buffer.data(), filesystem_prefix, filesystem_prefix_length);
-	strncpy(buffer.data() + filesystem_prefix_length, mem.data(), max_path_length);
-
-	return buffer.data();
+	return path_buffer.data();
 }
 
 // void run_tests()
