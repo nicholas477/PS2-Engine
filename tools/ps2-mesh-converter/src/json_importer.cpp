@@ -172,7 +172,7 @@ bool parseJson(std::string_view path)
 			for (size_t y = 0; y < my_image.rows(); ++y)
 			{
 				// The pixel read doesn't work without this line. I don't understand why
-				const PixelPacket* pixel = my_image.getConstPixels(x, y, 1, 1);
+				const void* pixel = my_image.getConstPixels(x, y, 1, 1);
 
 				ColorRGB c = my_image.pixelColor(x, y);
 
