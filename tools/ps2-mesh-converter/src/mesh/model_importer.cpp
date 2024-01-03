@@ -3,7 +3,6 @@
 #include <algorithm>
 
 #include "meshoptimizer.h"
-#include <filesystem>
 
 #define FAST_OBJ_IMPLEMENTATION
 #include "../extern/fast_obj.h"
@@ -93,41 +92,6 @@ bool parseObj(std::string_view path, std::vector<Mesh>& out_meshes)
 
 	out_meshes[0].vertices.resize(total_vertices);
 	meshopt_remapVertexBuffer(&out_meshes[0].vertices[0], &vertices[0], total_indices, sizeof(Vertex), &remap[0]);
-
-	return true;
-}
-
-bool load_mesh(std::vector<Mesh>& out_meshes, std::string_view path)
-{
-	std::filesystem::path p(path);
-
-	bool parsed = false;
-	if (iequals(p.extension(), ".obj"))
-	{
-		parsed = parseObj(path, out_meshes);
-	}
-	else if (iequals(p.extension(), ".fbx"))
-	{
-		parsed = parseFbx(path, out_meshes);
-	}
-	else if (iequals(p.extension(), ".json"))
-	{
-		parsed = parseJson(path, out_meshes);
-	}
-
-	if (parsed == false)
-	{
-		printf("Couldn't find/parse mesh at path %s\n", path.data());
-		return false;
-	}
-
-	if (out_meshes.empty() || std::all_of(out_meshes.begin(), out_meshes.end(), [](const Mesh& mesh) {
-		    return mesh.indices.empty();
-	    }))
-	{
-		fprintf(stderr, "Mesh data empty %s\n", path.data());
-		return false;
-	}
 
 	return true;
 }

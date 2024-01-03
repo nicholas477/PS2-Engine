@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <assert.h>
 #include <fstream>
+#include <filesystem>
 #include <iterator>
 #include <egg/math_types.hpp>
 #include <cstddef>
@@ -12,187 +13,56 @@
 #include "mesh/model_importer.hpp"
 #include "mesh/model_exporter.hpp"
 #include "mesh/model_modifiers.hpp"
+#include "json_importer.hpp"
 #include <cxxopts.hpp>
 
-#include "meshoptimizer.h"
-
-static bool rotateTriangle(Triangle& t)
+bool& write_output()
 {
-	int c01 = memcmp(&t.v[0], &t.v[1], sizeof(Vertex));
-	int c02 = memcmp(&t.v[0], &t.v[2], sizeof(Vertex));
-	int c12 = memcmp(&t.v[1], &t.v[2], sizeof(Vertex));
-
-	if (c12 < 0 && c01 > 0)
-	{
-		// 1 is minimum, rotate 012 => 120
-		Vertex tv = t.v[0];
-		t.v[0] = t.v[1], t.v[1] = t.v[2], t.v[2] = tv;
-	}
-	else if (c02 > 0 && c12 > 0)
-	{
-		// 2 is minimum, rotate 012 => 201
-		Vertex tv = t.v[2];
-		t.v[2] = t.v[1], t.v[1] = t.v[0], t.v[0] = tv;
-	}
-
-	return c01 != 0 && c02 != 0 && c12 != 0;
+	static bool write_output = true;
+	return write_output;
 }
 
-static unsigned int hashRange(const char* key, size_t len)
+std::string& input_path()
 {
-	// MurmurHash2
-	const unsigned int m = 0x5bd1e995;
-	const int r          = 24;
+	static std::string input_path;
+	return input_path;
+}
 
-	unsigned int h = 0;
+std::string& output_path()
+{
+	static std::string output_path;
+	return output_path;
+}
 
-	while (len >= 4)
+bool load_file(std::string_view path)
+{
+	std::filesystem::path p(path);
+
+	bool parsed = false;
+	if (iequals(p.extension(), ".json"))
 	{
-		unsigned int k = *reinterpret_cast<const unsigned int*>(key);
-
-		k *= m;
-		k ^= k >> r;
-		k *= m;
-
-		h *= m;
-		h ^= k;
-
-		key += 4;
-		len -= 4;
+		parsed = parseJson(path);
 	}
 
-	return h;
-}
-
-static unsigned int hashMesh(const Mesh& mesh)
-{
-	size_t triangle_count = mesh.indices.size() / 3;
-
-	const Vertex* vertices      = &mesh.vertices[0];
-	const unsigned int* indices = &mesh.indices[0];
-
-	unsigned int h1 = 0;
-	unsigned int h2 = 0;
-
-	for (size_t i = 0; i < triangle_count; ++i)
+	if (parsed == false)
 	{
-		Triangle t;
-		t.v[0] = vertices[indices[i * 3 + 0]];
-		t.v[1] = vertices[indices[i * 3 + 1]];
-		t.v[2] = vertices[indices[i * 3 + 2]];
-
-		// skip degenerate triangles since some algorithms don't preserve them
-		if (rotateTriangle(t))
-		{
-			unsigned int hash = hashRange(t.data, sizeof(t.data));
-
-			h1 ^= hash;
-			h2 += hash;
-		}
+		printf("Couldn't find/parse asset at path %s\n", path.data());
+		return false;
 	}
 
-	return h1 * 0x5bd1e995 + h2;
+	return true;
 }
-
-static std::vector<unsigned int> stripify(const Mesh& mesh, bool use_restart, char desc)
-{
-	unsigned int restart_index = use_restart ? ~0u : 0;
-
-	// note: input mesh is assumed to be optimized for vertex cache and vertex fetch
-	std::vector<unsigned int> strip(meshopt_stripifyBound(mesh.indices.size()));
-	strip.resize(meshopt_stripify(&strip[0], &mesh.indices[0], mesh.indices.size(), mesh.vertices.size(), restart_index));
-
-	Mesh copy = mesh;
-	copy.indices.resize(meshopt_unstripify(&copy.indices[0], &strip[0], strip.size(), restart_index));
-	assert(copy.indices.size() <= meshopt_unstripifyBound(strip.size()));
-
-	assert(isMeshValid(copy));
-	assert(hashMesh(mesh) == hashMesh(copy));
-
-	return strip;
-}
-
-static std::string input_path;
-static std::string output_path;
-static bool write_output = true;
 
 static void process()
 {
 	printf(ANSI_COLOR_GREEN "[PS2-Mesh-Converter]: Starting\n" ANSI_COLOR_RESET);
 	printf(ANSI_COLOR_MAGENTA "[PS2-Mesh-Converter]: Loading file\n" ANSI_COLOR_RESET);
-	printf("Processing model file: %s\n", input_path.c_str());
+	printf("Processing file: %s\n", input_path().c_str());
 
-	std::vector<Mesh> meshes;
-	if (!load_mesh(meshes, input_path.c_str()))
+	if (!load_file(input_path().c_str()))
 	{
-		fprintf(stderr, "Failed to load model\n");
 		std::exit(-1);
 		return;
-	}
-
-	printf("Loaded %lu meshes from file\n", meshes.size());
-
-	std::vector<MeshStrip> strips;
-	for (size_t i = 0; i < meshes.size(); ++i)
-	{
-		for (const std::string& modifier : meshes[i].modifiers)
-		{
-			apply_modification(modifier, meshes[i]);
-		}
-
-		// Stripify it
-		std::vector<unsigned int> strip = stripify(meshes[i], false, 'S');
-
-		int num_strips = 1;
-
-		MeshStrip& new_strip                 = strips.emplace_back();
-		std::vector<Vector>& positions       = new_strip.positions;
-		std::vector<Vector>& normals         = new_strip.normals;
-		std::vector<Vector2>& texture_coords = new_strip.texture_coords;
-		std::vector<Vector>& colors          = new_strip.colors;
-
-		positions.reserve(strip.size());
-		normals.reserve(strip.size());
-		texture_coords.reserve(strip.size());
-		colors.reserve(strip.size());
-
-		// Reverse winding order
-		std::reverse(strip.begin(), strip.end());
-
-		constexpr unsigned int restart_index = ~0u;
-		for (unsigned int index : strip)
-		{
-			if (index == restart_index)
-			{
-				num_strips++;
-			}
-			else
-			{
-				const Vertex& vertex = meshes[i].vertices[index];
-
-				positions.emplace_back(vertex.px, vertex.py, vertex.pz);
-				normals.emplace_back(vertex.nx, vertex.ny, vertex.nz);
-				texture_coords.emplace_back(vertex.tx, vertex.ty);
-				colors.emplace_back(vertex.r, vertex.g, vertex.b, vertex.a);
-			}
-		}
-
-		//printf("Mesh %lu: Num verts (after stripping): %lu, num tris: %lu\n", i, positions.size(), positions.size() - 2);
-	}
-
-	//printf("Meshes/strips: %lu\n", strips.size());
-
-	printf(ANSI_COLOR_MAGENTA "[PS2-Mesh-Converter]: Serializing mesh to file\n" ANSI_COLOR_RESET);
-	std::vector<std::byte> mesh_data = serialize_meshes(meshes[0].primitive_type, strips); // 0x0004 = GL_TRIANGLE_STRIPS
-
-	if (write_output)
-	{
-		printf("Writing out file: %s\n", output_path.c_str());
-
-		std::ofstream fout;
-		fout.open(output_path, std::ios::binary | std::ios::out);
-		fout.write((const char*)mesh_data.data(), mesh_data.size());
-		fout.close();
 	}
 
 	printf(ANSI_COLOR_GREEN "[PS2-Mesh-Converter]: Done\n" ANSI_COLOR_RESET);
@@ -229,16 +99,16 @@ static void parse_args(int argc, char** argv)
 		}
 	}
 
-	input_path = result["input"].as<std::string>();
+	input_path() = result["input"].as<std::string>();
 
 	if (result["null"].count() && result["null"].as<bool>())
 	{
-		write_output = false;
+		write_output() = false;
 	}
 
 	if (result["output"].count())
 	{
-		output_path = result["output"].as<std::string>();
+		output_path() = result["output"].as<std::string>();
 	}
 	else
 	{
@@ -250,9 +120,6 @@ static void parse_args(int argc, char** argv)
 int main(int argc, char** argv)
 {
 	parse_args(argc, argv);
-
-	meshopt_encodeVertexVersion(0);
-	meshopt_encodeIndexVersion(1);
 
 	process();
 

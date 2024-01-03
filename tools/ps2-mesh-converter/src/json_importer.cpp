@@ -1,9 +1,12 @@
 #include "mesh/model_importer.hpp"
+#include "mesh/model_modifiers.hpp"
 
 #include <json/json.h>
 #include <fstream>
 #include <filesystem>
 #include <algorithm>
+#include "utils.hpp"
+#include "app.hpp"
 
 static bool parseMesh(std::string_view path, const Json::Value& obj, std::vector<Mesh>& meshes)
 {
@@ -54,7 +57,7 @@ static bool parseMesh(std::string_view path, const Json::Value& obj, std::vector
 	return true;
 }
 
-bool parseJson(std::string_view path, std::vector<Mesh>& meshes)
+bool parseJson(std::string_view path)
 {
 	std::ifstream ifs(path.data());
 	Json::Value obj;
@@ -68,7 +71,53 @@ bool parseJson(std::string_view path, std::vector<Mesh>& meshes)
 
 	if (iequals(type, "mesh"))
 	{
-		return parseMesh(path, obj, meshes);
+		std::vector<Mesh> meshes;
+		if (!parseMesh(path, obj, meshes))
+		{
+			fprintf(stderr, "Failed to parse mesh %s\n", path.data());
+			return false;
+		}
+
+		if (meshes.empty() || std::all_of(meshes.begin(), meshes.end(), [](const Mesh& mesh) {
+			    return mesh.indices.empty();
+		    }))
+		{
+			fprintf(stderr, "Mesh data empty %s\n", path.data());
+			return false;
+		}
+
+		printf("Loaded %lu meshes from file\n", meshes.size());
+
+		for (size_t i = 0; i < meshes.size(); ++i)
+		{
+			for (const std::string& modifier : meshes[i].modifiers)
+			{
+				apply_modification(modifier, meshes[i]);
+			}
+		}
+
+		std::vector<MeshStrip> strips;
+		if (!stripify(meshes, strips))
+		{
+			return false;
+		}
+
+		printf(ANSI_COLOR_MAGENTA "[PS2-Mesh-Converter]: Serializing mesh to file\n" ANSI_COLOR_RESET);
+		std::vector<std::byte> mesh_data = serialize_meshes(meshes[0].primitive_type, strips); // 0x0004 = GL_TRIANGLE_STRIPS
+
+		if (write_output())
+		{
+			printf("Writing out file: %s\n", output_path().c_str());
+
+			std::ofstream fout;
+			fout.open(output_path(), std::ios::binary | std::ios::out);
+			fout.write((const char*)mesh_data.data(), mesh_data.size());
+			fout.close();
+			return true;
+		}
+	}
+	else if (iequals(type, "texture"))
+	{
 	}
 	else
 	{

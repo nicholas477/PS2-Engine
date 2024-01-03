@@ -20,12 +20,3 @@ enum class printf_color : uint8_t {
 #define ANSI_COLOR_MAGENTA "\x1b[35m"
 #define ANSI_COLOR_CYAN "\x1b[36m"
 #define ANSI_COLOR_RESET "\x1b[0m"
-
-// template <printf_color color = printf_color::none>
-// int mesh_converter_printf(const char* str, ...)
-// {
-// 	std::string print_string = "\x1b[" + std::to_string(static_cast<int>(color)) + "m";
-// 	print_string += str;
-// 	print_string += "\x1b[0m";
-// 	return printf(print_string.c_str(), ...);
-// }
