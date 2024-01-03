@@ -21,6 +21,14 @@ struct Mesh
 	std::vector<std::string> modifiers;
 };
 
+struct MeshStrip
+{
+	std::vector<Vector> positions;
+	std::vector<Vector> normals;
+	std::vector<Vector2> texture_coords;
+	std::vector<Vector> colors;
+};
+
 static bool isMeshValid(const Mesh& mesh)
 {
 	size_t index_count  = mesh.indices.size();

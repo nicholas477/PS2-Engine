@@ -78,14 +78,6 @@ bool parseJson(std::string_view path)
 			return false;
 		}
 
-		if (meshes.empty() || std::all_of(meshes.begin(), meshes.end(), [](const Mesh& mesh) {
-			    return mesh.indices.empty();
-		    }))
-		{
-			fprintf(stderr, "Mesh data empty %s\n", path.data());
-			return false;
-		}
-
 		printf("Loaded %lu meshes from file\n", meshes.size());
 
 		for (size_t i = 0; i < meshes.size(); ++i)
@@ -118,6 +110,9 @@ bool parseJson(std::string_view path)
 	}
 	else if (iequals(type, "texture"))
 	{
+		printf("opening texture!\n");
+
+		return true;
 	}
 	else
 	{

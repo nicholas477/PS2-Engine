@@ -39,17 +39,29 @@ $(SOUND_ISO_FILES): $(ISO_FOLDER_DIR)/assets/%.$(AUDIO_FILE_TYPE): assets/%.wav
 .PHONY: sounds
 sounds: $(SOUND_ISO_FILES)
 
+# Texture compilation
+TEXTURE_CC = egg-ps2-mesh-converter
+JSON_TEXTURE_SRC_FILES = $(wildcard assets/textures/*.json) $(wildcard assets/textures/**/*.json)
+JSON_TEXTURE_FILES := $(JSON_TEXTURE_SRC_FILES:%.json=$(ISO_FOLDER_DIR)/%.tex)
+
+$(JSON_TEXTURE_FILES): $(ISO_FOLDER_DIR)/assets/textures/%.tex: assets/textures/%.json
+	$(MKDIR) -p $(dir $@)
+	$(TEXTURE_CC) $< $@
+
+.PHONY: textures
+textures: $(JSON_TEXTURE_FILES)
+
 # Model compilation
 MODEL_CC = egg-ps2-mesh-converter
-JSON_MODEL_SRC_FILES = $(wildcard assets/*.json) $(wildcard assets/**/*.json)
+JSON_MODEL_SRC_FILES = $(wildcard assets/models/*.json) $(wildcard assets/models/**/*.json)
 JSON_MODEL_FILES := $(JSON_MODEL_SRC_FILES:%.json=$(ISO_FOLDER_DIR)/%.mdl)
 
-$(JSON_MODEL_FILES): $(ISO_FOLDER_DIR)/assets/%.mdl: assets/%.json
+$(JSON_MODEL_FILES): $(ISO_FOLDER_DIR)/assets/models/%.mdl: assets/models/%.json
 	$(MKDIR) -p $(dir $@)
 	$(MODEL_CC) $< $@
 
 .PHONY: models
-models: $(JSON_MODEL_FILES)
+models: $(JSON_MODEL_FILES) 
 
 # Level files
 LEVEL_SRC_FILES = $(shell find assets/ -name "*.lvl")
@@ -64,7 +76,7 @@ levels: $(LVL_DEST_FILES)
 
 # Asset Manifest compilation
 .PHONY: manifestassets
-manifestassets: sounds models levels
+manifestassets: sounds models levels textures
 
 MANIFEST_CC = egg-ps2-manifest-generator
 
