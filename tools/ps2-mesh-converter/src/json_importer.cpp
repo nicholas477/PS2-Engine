@@ -10,6 +10,9 @@
 
 #include "egg/texture_header.hpp"
 
+#define MAGICKCORE_QUANTUM_DEPTH 8
+#define MAGICKCORE_HDRI_ENABLE false
+
 #include <Magick++.h>
 #include <unordered_set>
 
@@ -152,7 +155,7 @@ bool parseJson(std::string_view path)
 
 		std::filesystem::path texture_file_path = get_file_path(path, obj);
 
-		InitializeMagick(*argv());
+		printf("texture file path: %s\n", texture_file_path.c_str());
 
 		Magick::Image my_image;
 		my_image.read(texture_file_path);
@@ -161,8 +164,6 @@ bool parseJson(std::string_view path)
 		texture_header.size_x = my_image.columns();
 		texture_header.size_y = my_image.rows();
 
-		my_image.modifyImage();
-
 		printf("x: %u y: %u\n", texture_header.size_x, texture_header.size_y);
 
 		std::unordered_set<PalleteColor> colors;
@@ -170,10 +171,10 @@ bool parseJson(std::string_view path)
 		{
 			for (size_t y = 0; y < my_image.rows(); ++y)
 			{
-				ColorRGB c;
-				c = my_image.pixelColor(x, y);
+				// The pixel read doesn't work without this line. I don't understand why
+				const PixelPacket* pixel = my_image.getConstPixels(x, y, 1, 1);
 
-				//printf("C: r: %f, g: %f, b: %f, a: %f\n", c.red(), c.green(), c.blue(), c.alpha());
+				ColorRGB c = my_image.pixelColor(x, y);
 
 				PalleteColor new_color;
 				new_color.alpha = c.alpha() * 255;
