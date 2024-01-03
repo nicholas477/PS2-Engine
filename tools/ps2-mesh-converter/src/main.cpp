@@ -9,9 +9,9 @@
 #include "types.hpp"
 #include "utils.hpp"
 
-#include "model_importer.hpp"
-#include "model_exporter.hpp"
-#include "model_modifiers.hpp"
+#include "mesh/model_importer.hpp"
+#include "mesh/model_exporter.hpp"
+#include "mesh/model_modifiers.hpp"
 #include <cxxopts.hpp>
 
 #include "meshoptimizer.h"

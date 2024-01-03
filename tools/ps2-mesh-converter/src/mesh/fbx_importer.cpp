@@ -1,4 +1,4 @@
-#include "model_importer.hpp"
+#include "mesh/model_importer.hpp"
 #include "types.hpp"
 
 #include <filesystem>

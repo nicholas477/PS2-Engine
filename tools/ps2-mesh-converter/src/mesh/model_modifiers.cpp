@@ -1,4 +1,4 @@
-#include "model_modifiers.hpp"
+#include "mesh/model_modifiers.hpp"
 #include "utils.hpp"
 
 #include <cmath>

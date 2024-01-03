@@ -1,20 +1,12 @@
-#include "model_importer.hpp"
+#include "mesh/model_importer.hpp"
 
 #include <json/json.h>
 #include <fstream>
 #include <filesystem>
 #include <algorithm>
 
-bool parseJson(std::string_view path, std::vector<Mesh>& meshes)
+static bool parseMesh(std::string_view path, const Json::Value& obj, std::vector<Mesh>& meshes)
 {
-	std::ifstream ifs(path.data());
-	Json::Value obj;
-
-	{
-		Json::Reader reader;
-		reader.parse(ifs, obj);
-	}
-
 	std::string mesh_file = obj["mesh_file"].asString();
 
 	std::filesystem::path mesh_file_path = std::filesystem::path(path).parent_path() / mesh_file;
@@ -60,4 +52,28 @@ bool parseJson(std::string_view path, std::vector<Mesh>& meshes)
 	}
 
 	return true;
+}
+
+bool parseJson(std::string_view path, std::vector<Mesh>& meshes)
+{
+	std::ifstream ifs(path.data());
+	Json::Value obj;
+
+	{
+		Json::Reader reader;
+		reader.parse(ifs, obj);
+	}
+
+	std::string type = obj["type"].asString();
+
+	if (iequals(type, "mesh"))
+	{
+		return parseMesh(path, obj, meshes);
+	}
+	else
+	{
+		printf("Couldn't parse asset of type: %s\n", type.c_str());
+	}
+
+	return false;
 }

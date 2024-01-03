@@ -1,4 +1,4 @@
-#include "model_exporter.hpp"
+#include "mesh/model_exporter.hpp"
 
 #include <egg/mesh_header.hpp>
 #include <assert.h>
