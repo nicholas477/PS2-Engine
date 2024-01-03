@@ -53,6 +53,18 @@ bool load_file(std::string_view path)
 	return true;
 }
 
+int& argc()
+{
+	static int argc;
+	return argc;
+}
+
+char**& argv()
+{
+	static char** argv;
+	return argv;
+}
+
 static void process()
 {
 	printf(ANSI_COLOR_GREEN "[PS2-Mesh-Converter]: Starting\n" ANSI_COLOR_RESET);
@@ -119,6 +131,9 @@ static void parse_args(int argc, char** argv)
 
 int main(int argc, char** argv)
 {
+	::argc() = argc;
+	::argv() = argv;
+
 	parse_args(argc, argv);
 
 	process();

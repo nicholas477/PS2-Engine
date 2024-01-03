@@ -2,6 +2,7 @@
 #include "utils.hpp"
 #include "meshoptimizer.h"
 #include <cmath>
+#include <algorithm>
 
 static void apply_gamma_correction(Mesh& mesh)
 {

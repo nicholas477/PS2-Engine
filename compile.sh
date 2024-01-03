@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [ ! "$1" ] || [ $1 != "ci" ]; then
-   sudo apt install -y build-essential binutils-dev git cmake genisoimage libassimp-dev 
+   sudo apt install -y build-essential binutils-dev git cmake genisoimage libassimp-dev libmagick++-dev
 fi
 
 # Meshoptimizer

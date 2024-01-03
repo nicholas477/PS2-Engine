@@ -8,11 +8,21 @@
 #include "utils.hpp"
 #include "app.hpp"
 
+#include "egg/texture_header.hpp"
+
+#include <Magick++.h>
+#include <unordered_set>
+
+static std::filesystem::path get_file_path(std::string_view json_path, const Json::Value& obj)
+{
+	std::string mesh_file = obj["file"].asString();
+
+	return std::filesystem::path(json_path).parent_path() / mesh_file;
+}
+
 static bool parseMesh(std::string_view path, const Json::Value& obj, std::vector<Mesh>& meshes)
 {
-	std::string mesh_file = obj["mesh_file"].asString();
-
-	std::filesystem::path mesh_file_path = std::filesystem::path(path).parent_path() / mesh_file;
+	std::filesystem::path mesh_file_path = get_file_path(path, obj);
 
 	bool parsed = false;
 	if (iequals(mesh_file_path.extension(), ".obj"))
@@ -55,6 +65,32 @@ static bool parseMesh(std::string_view path, const Json::Value& obj, std::vector
 	}
 
 	return true;
+}
+
+union PalleteColor
+{
+	struct
+	{
+		uint8_t red;
+		uint8_t green;
+		uint8_t blue;
+		uint8_t alpha;
+	};
+	uint32_t color;
+};
+
+template <>
+struct std::hash<PalleteColor>
+{
+	std::size_t operator()(const PalleteColor& k) const
+	{
+		return k.color;
+	}
+};
+
+static bool operator==(const PalleteColor& lhs, const PalleteColor& rhs)
+{
+	return lhs.color == rhs.color;
 }
 
 bool parseJson(std::string_view path)
@@ -110,7 +146,51 @@ bool parseJson(std::string_view path)
 	}
 	else if (iequals(type, "texture"))
 	{
+		using namespace Magick;
+
 		printf("opening texture!\n");
+
+		std::filesystem::path texture_file_path = get_file_path(path, obj);
+
+		InitializeMagick(*argv());
+
+		Magick::Image my_image;
+		my_image.read(texture_file_path);
+
+		TextureFileHeader texture_header;
+		texture_header.size_x = my_image.columns();
+		texture_header.size_y = my_image.rows();
+
+		my_image.modifyImage();
+
+		printf("x: %u y: %u\n", texture_header.size_x, texture_header.size_y);
+
+		std::unordered_set<PalleteColor> colors;
+		for (size_t x = 0; x < my_image.columns(); ++x)
+		{
+			for (size_t y = 0; y < my_image.rows(); ++y)
+			{
+				ColorRGB c;
+				c = my_image.pixelColor(x, y);
+
+				//printf("C: r: %f, g: %f, b: %f, a: %f\n", c.red(), c.green(), c.blue(), c.alpha());
+
+				PalleteColor new_color;
+				new_color.alpha = c.alpha() * 255;
+				new_color.red   = c.red() * 255;
+				new_color.green = c.green() * 255;
+				new_color.blue  = c.blue() * 255;
+
+				colors.insert(new_color);
+			}
+		}
+
+		printf("Num colors in image: %lu\n", colors.size());
+
+		for (const PalleteColor& c : colors)
+		{
+			printf("r: %u, g: %u, b: %u, a: %u\n", c.red, c.green, c.blue, c.alpha);
+		}
 
 		return true;
 	}

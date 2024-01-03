@@ -1,6 +1,6 @@
 {
 	"type": "mesh",
-	"mesh_file": "plant.fbx",
+	"file": "plant.fbx",
 	"primitive_type": 2147483650,
 	"modifiers": [
 		"vegetation",

@@ -1,6 +1,6 @@
 {
 	"type": "mesh",
-	"mesh_file": "testmap.fbx",
+	"file": "testmap.fbx",
 	"primitive_type": 2147483649,
 	"modifiers": [
 		"gamma_correct_alpha"

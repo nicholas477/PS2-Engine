@@ -112,7 +112,7 @@ struct OffsetArray
 };
 
 template <typename T>
-static size_t serialize(Serializer& serializer, const OffsetArray<T>& val, size_t alignment = 1)
+static size_t serialize(Serializer& serializer, const OffsetArray<T>& val, size_t alignment = 1, size_t data_alignment = alignof(T))
 {
 	const size_t offset_array_start = serializer.add_data(val, alignment);
 
@@ -120,18 +120,21 @@ static size_t serialize(Serializer& serializer, const OffsetArray<T>& val, size_
 	{
 	public:
 		OffsetArrayHeapSerializer(size_t in_offset_array_start,
-		                          const OffsetArray<T>& in_arr)
+		                          const OffsetArray<T>& in_arr,
+		                          size_t in_data_alignment)
 		    : offset_array_start(in_offset_array_start)
+		    , data_alignment(in_data_alignment)
 		    , arr(in_arr)
 		{
 		}
 
 		size_t offset_array_start;
+		size_t data_alignment;
 		const OffsetArray<T>& arr;
 
 		virtual void heap_serialize(Serializer& serializer) override
 		{
-			size_t data_index = serializer.align_current_byte_to(alignof(T));
+			size_t data_index = serializer.align_current_byte_to(data_alignment);
 			for (const T& val : arr)
 			{
 				serialize(serializer, val, 1);
@@ -145,6 +148,6 @@ static size_t serialize(Serializer& serializer, const OffsetArray<T>& val, size_
 		}
 	};
 
-	serializer.heap_data_serializer.push(new OffsetArrayHeapSerializer(offset_array_start, val));
+	serializer.heap_data_serializer.push(new OffsetArrayHeapSerializer(offset_array_start, val, data_alignment));
 	return offset_array_start;
 }
