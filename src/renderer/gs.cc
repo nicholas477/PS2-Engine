@@ -43,9 +43,40 @@ namespace GS
 static const int screen_width  = 640;
 static const int screen_height = 448;
 
+std::pair<int, int> get_screen_res()
+{
+	return {screen_width, screen_height};
+}
+
 static int context = 0;
 
 static GSState _gs_state;
+
+bool GSState::world_to_screen(const Vector& world_vec, Vector& out_screen_pos) const
+{
+	Vector location = world_vec;
+	location.w      = 1.f;
+
+	out_screen_pos = (world_view * view_screen).transform_vector(location);
+
+	if (out_screen_pos.w > 0.f)
+	{
+		out_screen_pos.x /= out_screen_pos.w;
+		out_screen_pos.y /= out_screen_pos.w;
+		out_screen_pos.z /= out_screen_pos.w;
+
+		out_screen_pos.x += 1.0f;
+		out_screen_pos.y += 1.0f;
+
+		out_screen_pos.x *= 0.5f * screen_width;
+		out_screen_pos.y *= 0.5f;
+		out_screen_pos.y = 1.0f - out_screen_pos.y;
+		out_screen_pos.y *= screen_height;
+
+		return true;
+	}
+	return false;
+}
 
 static void init_lights()
 {
@@ -61,7 +92,68 @@ static void init_lights()
 }
 
 //-----------------------------------------------------------------------------
-static void gluPerspective(GLdouble fovy, GLdouble aspect, GLdouble zNear, GLdouble zFar)
+static Matrix frustum(GLdouble left, GLdouble right,
+                      GLdouble bottom, GLdouble top,
+                      GLdouble zNear, GLdouble zFar)
+{
+	/*
+     * NOTE:
+     *   The PS2 does not support GL_LESS/GL_LEQUAL
+     *   but this is what 99% of OpenGL programs use.
+     *
+     *   As a result depth is inverted.
+     *   See glDepthFunc/glFrustum/glOrtho
+     */
+	//GL_FUNC_DEBUG("%s\n", __FUNCTION__);
+
+	cpu_mat_44 xform(
+	    cpu_vec_xyzw(
+	        (2.0f * zNear) / (right - left),
+	        0.0f,
+	        0.0f,
+	        0.0f),
+	    cpu_vec_xyzw(
+	        0.0f,
+	        (2.0f * zNear) / (top - bottom),
+	        0.0f,
+	        0.0f),
+	    cpu_vec_xyzw(
+	        (right + left) / (right - left),
+	        (top + bottom) / (top - bottom),
+	        -(zFar + zNear) / (zFar - zNear),
+	        -1.0f),
+	    cpu_vec_xyzw(
+	        0.0f,
+	        0.0f,
+	        (-2.0f * zFar * zNear) / (zFar - zNear),
+	        0.0f));
+
+	cpu_mat_44 inv(
+	    cpu_vec_xyzw(
+	        (right - left) / (2 * zNear),
+	        0,
+	        0,
+	        0),
+	    cpu_vec_xyzw(
+	        0,
+	        (top - bottom) / (2 * zNear),
+	        0,
+	        0),
+	    cpu_vec_xyzw(
+	        0,
+	        0,
+	        0,
+	        -(zFar - zNear) / (2 * zFar * zNear)),
+	    cpu_vec_xyzw(
+	        (right + left) / (2 * zNear),
+	        (top + bottom) / (2 * zNear),
+	        -1,
+	        (zFar + zNear) / (2 * zFar * zNear)));
+
+	return *reinterpret_cast<Matrix*>(&xform);
+}
+
+static Matrix perspective(GLdouble fovy, GLdouble aspect, GLdouble zNear, GLdouble zFar)
 {
 	GLdouble xmin, xmax, ymin, ymax;
 
@@ -70,7 +162,7 @@ static void gluPerspective(GLdouble fovy, GLdouble aspect, GLdouble zNear, GLdou
 	xmin = ymin * aspect;
 	xmax = ymax * aspect;
 
-	glFrustum(xmin, xmax, ymin, ymax, zNear, zFar);
+	return frustum(xmin, xmax, ymin, ymax, zNear, zFar);
 }
 
 void clear_screen()
@@ -214,10 +306,23 @@ static void draw_objects(const GSState& gs_state)
 {
 	for (Renderable::TIterator Itr = Renderable::Itr(); Itr; ++Itr)
 	{
-		//Debuggable::print_debug_object(&(*Itr));
 		Itr->render(gs_state);
 	}
-}
+
+	// Text rendering
+	{
+		glPolygonMode(GL_FRONT, GL_FILL);
+		glDisable(GL_ALPHA_TEST);
+		glEnable(GL_TEXTURE_2D);
+		glLoadIdentity();
+
+		for (TextRenderable::TIterator Itr = TextRenderable::Itr(); Itr; ++Itr)
+		{
+			Itr->render(gs_state);
+		}
+		glDisable(GL_TEXTURE_2D);
+	}
+} // namespace GS
 
 static int gs_render()
 {
@@ -227,13 +332,14 @@ static int gs_render()
 
 		constexpr float world_scale = 0.0001f;
 		// Create the world-to-view matrix.
-		_gs_state.world_view      = Camera::get().transform.get_matrix().invert() * Matrix::from_scale(Vector(world_scale, world_scale, world_scale));
+		_gs_state.world_view      = Camera::get().transform.get_matrix().invert();
+		_gs_state.view_screen     = perspective(Camera::get().fov, (GLfloat)screen_width / (GLfloat)screen_height, 0.001f, 1.f);
 		_gs_state.camera_rotation = Camera::get().transform.get_rotation();
 
 		glMatrixMode(GL_PROJECTION); // Select The Projection Matrix
 		glLoadIdentity();
-		gluPerspective(Camera::get().fov, (GLfloat)screen_width / (GLfloat)screen_height, 0.001f, 1.f);
-		glMultMatrixf(_gs_state.world_view);
+		glMultMatrixf(_gs_state.view_screen);
+		glMultMatrixf(_gs_state.world_view * Matrix::from_scale(Vector(world_scale, world_scale, world_scale)));
 
 		glMatrixMode(GL_MODELVIEW);
 
@@ -242,26 +348,6 @@ static int gs_render()
 		clear_screen();
 
 		draw_objects(_gs_state);
-
-		glFlush();
-
-		// Text rendering
-		{
-			float material[] = {.5f, .5f, .5f, .5f};
-			glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, material);
-
-			tsResetCursor();
-			glPolygonMode(GL_FRONT, GL_FILL);
-			glDisable(GL_ALPHA_TEST);
-			glEnable(GL_TEXTURE_2D);
-			glLoadIdentity();
-			tsShowFont();
-			tsDrawString("Hi mac!\n");
-			// tsDrawString("Helllo!\n");
-			// tsDrawString("Helllo!\n");
-			// tsDrawString("Helllo!\n");
-			glDisable(GL_TEXTURE_2D);
-		}
 
 		{
 			Stats::ScopedTimer flush_timer(Stats::scoped_timers::render_flush);

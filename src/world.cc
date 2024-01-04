@@ -7,6 +7,7 @@
 #include "objects/movement.hpp"
 #include "objects/components/collision_component.hpp"
 #include "objects/mesh_object.hpp"
+#include "objects/text_object.hpp"
 
 #include "egg/level.hpp"
 #include "egg/mesh_header.hpp"
@@ -136,6 +137,8 @@ void init()
 	movement.updated_rotation_component = &scene;
 	movement.updated_location_component = &teapot4.transform;
 	movement.collision_component        = &teapot4.collision;
+
+	static TextObject t("Mary, mary.\nSo contrary!");
 
 	printf("World initialized!\n");
 }

@@ -14,6 +14,7 @@ const Vector Vector::quat_identity(1.f, 0.f, 0.f, 0.f);
 std::string Vector::to_string(bool print_rotation, bool print_w) const
 {
 	std::stringstream out_stream;
+	out_stream.precision(4);
 	if (print_rotation)
 	{
 		out_stream << "(";

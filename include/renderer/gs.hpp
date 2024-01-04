@@ -20,10 +20,13 @@ struct GSState
 	Matrix get_camera_matrix() const;
 	Vector get_camera_pos() const;
 	Vector get_camera_rotation() const;
+
+	bool world_to_screen(const Vector& world_vec, Vector& out_screen_pos) const;
 };
 
 bool has_gs_initialized();
 void init();
 void render();
 void clear_screen();
+std::pair<int, int> get_screen_res();
 } // namespace GS

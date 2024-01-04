@@ -15,3 +15,16 @@ protected:
 	{
 	}
 };
+
+class TextRenderable: public TIntrusiveLinkedList<TextRenderable>
+{
+public:
+	virtual void on_gs_init() {};
+	virtual void render(const GS::GSState& gs_state) {};
+
+protected:
+	TextRenderable(bool add_to_render_list = true)
+	    : TIntrusiveLinkedList<TextRenderable>(add_to_render_list)
+	{
+	}
+};
