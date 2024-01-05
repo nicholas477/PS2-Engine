@@ -25,6 +25,7 @@ void collision_component::render(const GS::GSState& gs_state, color_t color)
 
 hit_result collideable::sweep_collision(const collideable& collideable, const Matrix& sweep_start, const Matrix& sweep_end)
 {
+	return hit_result();
 	// hit_result out_result;
 	// out_result.hit = false;
 
