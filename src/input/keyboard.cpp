@@ -18,7 +18,7 @@ std::array<Keyboard::KeyStatus, 256>& Keyboard::get_all_key_statuses()
 
 void Keyboard::init()
 {
-	memset(keyboard_status.data(), sizeof(keyboard_status), 0);
+	memset(keyboard_status.data(), 0, sizeof(keyboard_status));
 
 	{
 		int ret = SifLoadModule("ps2kbd.irx"_p.to_full_filepath(), 0, nullptr);

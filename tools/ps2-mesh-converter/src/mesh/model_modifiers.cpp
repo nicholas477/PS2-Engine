@@ -29,18 +29,18 @@ bool apply_modification(const std::string& mod, Mesh& mesh)
 {
 	if (mod == "vegetation")
 	{
-		printf(ANSI_COLOR_MAGENTA "[PS2-Mesh-Converter]: Applying mesh modification: %s\n" ANSI_COLOR_RESET, "vegetation");
+		printf(ANSI_COLOR_MAGENTA "[PS2-Mesh-Converter]: Applying mesh modification: %s" ANSI_COLOR_RESET "\n", "vegetation");
 		apply_vegetation_mod(mesh);
 		return true;
 	}
 	else if (mod == "gamma_correct_alpha")
 	{
-		printf(ANSI_COLOR_MAGENTA "[PS2-Mesh-Converter]: Applying mesh modification: %s\n" ANSI_COLOR_RESET, "gamma correction");
+		printf(ANSI_COLOR_MAGENTA "[PS2-Mesh-Converter]: Applying mesh modification: %s" ANSI_COLOR_RESET "\n", "gamma correction");
 		apply_gamma_correction(mesh);
 		return true;
 	}
 
-	printf(ANSI_COLOR_RED "[PS2-Mesh-Converter]: Unable to find mesh mod: %s\n" ANSI_COLOR_RESET, mod.c_str());
+	printf(ANSI_COLOR_RED "[PS2-Mesh-Converter]: Unable to find mesh mod: %s" ANSI_COLOR_RESET "\n", mod.c_str());
 	return false;
 }
 

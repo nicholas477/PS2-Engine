@@ -118,11 +118,11 @@ void Mesh::compile()
 
 void Mesh::draw(bool flush)
 {
-	if (this == nullptr)
-	{
-		printf("Mesh::Draw: this is nullptr? wtf\n");
-		return;
-	}
+	// if (this == nullptr)
+	// {
+	// 	printf("Mesh::Draw: this is nullptr? wtf\n");
+	// 	return;
+	// }
 
 	if (mesh == nullptr)
 	{

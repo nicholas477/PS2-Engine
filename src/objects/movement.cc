@@ -26,12 +26,12 @@ void Movement::tick(float delta_time)
 
 static void draw_rejected_hit(const collision_component* collision_component, const Matrix& end_location)
 {
-	color_t color;
-	color.r         = 255;
-	color.g         = 0;
-	color.b         = 0;
-	color.a         = 255.f;
-	const AABB aabb = collision_component->get_local_bounds().transform(end_location);
+	// color_t color;
+	// color.r         = 255;
+	// color.g         = 0;
+	// color.b         = 0;
+	// color.a         = 255.f;
+	//const AABB aabb = collision_component->get_local_bounds().transform(end_location);
 
 	//draw_aabb_one_frame(aabb, color);
 }

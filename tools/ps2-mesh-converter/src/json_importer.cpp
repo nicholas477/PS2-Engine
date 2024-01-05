@@ -133,7 +133,7 @@ bool parseJson(std::string_view path)
 			return false;
 		}
 
-		printf(ANSI_COLOR_MAGENTA "[PS2-Mesh-Converter]: Serializing mesh to file\n" ANSI_COLOR_RESET);
+		printf(ANSI_COLOR_MAGENTA "[PS2-Mesh-Converter]: Serializing mesh to file" ANSI_COLOR_RESET "\n");
 		std::vector<std::byte> mesh_data = serialize_meshes(meshes[0].primitive_type, strips); // 0x0004 = GL_TRIANGLE_STRIPS
 
 		if (write_output())

@@ -67,8 +67,8 @@ char**& argv()
 
 static void process()
 {
-	printf(ANSI_COLOR_GREEN "[PS2-Mesh-Converter]: Starting\n" ANSI_COLOR_RESET);
-	printf(ANSI_COLOR_MAGENTA "[PS2-Mesh-Converter]: Loading file\n" ANSI_COLOR_RESET);
+	printf(ANSI_COLOR_GREEN "[PS2-Mesh-Converter]: Starting" ANSI_COLOR_RESET "\n");
+	printf(ANSI_COLOR_MAGENTA "[PS2-Mesh-Converter]: Loading file" ANSI_COLOR_RESET "\n");
 	printf("Processing file: %s\n", input_path().c_str());
 
 	if (!load_file(input_path().c_str()))
