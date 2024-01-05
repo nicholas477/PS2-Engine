@@ -34,16 +34,7 @@ void set_filesystem_type(Type new_type)
 
 bool load_file(const Path& path, std::vector<std::byte>& out_bytes)
 {
-	const char* path_str = path.to_full_filepath();
-
-	printf("path_str: ");
-	for(const char* c = path_str; *c != '0'; ++c)
-	{
-    	printf("%02X ", *c);
-	}
-	printf("\n");
-
-	FILE* file = fopen(path_str, "r");
+	FILE* file = fopen(path.to_full_filepath(), "r");
 
 	if (file != nullptr)
 	{
@@ -66,16 +57,7 @@ bool load_file(const Path& path, std::vector<std::byte>& out_bytes)
 
 bool load_file(const Path& path, std::unique_ptr<std::byte[]>& out_bytes, size_t& size, size_t alignment)
 {
-	const char* path_str = path.to_full_filepath();
-
-	printf("path_str: ");
-	for(const char* c = path_str; *c != '0'; ++c)
-	{
-    	printf("%02X ", *c);
-	}
-	printf("\n");
-
-	FILE* file = fopen(path_str, "r");
+	FILE* file = fopen(path.to_full_filepath(), "r");
 
 	if (file != nullptr)
 	{
