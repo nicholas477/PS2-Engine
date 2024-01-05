@@ -141,17 +141,20 @@ void ThirdPersonMovement::calculate_rotation_input(float delta_time)
 	input_vector.yaw   = (buttons.rjoy_h - 128.f) / 128.f;
 	input_vector.pitch = (buttons.rjoy_v - 128.f) / 128.f;
 
-	// Left arrow
-	input_vector.yaw += Input::Keyboard::get_key_status(173) * -1;
+	{
+		using namespace Input::Keyboard;
+		// Left arrow
+		input_vector.yaw += is_key_down(173) * -1;
 
-	// Right arrow
-	input_vector.yaw += Input::Keyboard::get_key_status(172);
+		// Right arrow
+		input_vector.yaw += is_key_down(172);
 
-	// Up arrow
-	input_vector.pitch += Input::Keyboard::get_key_status(175);
+		// Up arrow
+		input_vector.pitch += is_key_down(175);
 
-	// Down arrow
-	input_vector.pitch += Input::Keyboard::get_key_status(174) * -1;
+		// Down arrow
+		input_vector.pitch += is_key_down(174) * -1;
+	}
 
 	const float input_length = input_vector.length();
 	if (input_length > dead_zone)
@@ -197,11 +200,14 @@ void ThirdPersonMovement::calculate_movement_input(float delta_time)
 	input_vector += ((buttons.ljoy_h - 128.f) / 128.f) * right_movement_vector;
 	input_vector += ((buttons.ljoy_v - 128.f) / 128.f) * forward_movement_vector;
 
-	input_vector += Input::Keyboard::get_key_status('a') * right_movement_vector * -1;
-	input_vector += Input::Keyboard::get_key_status('d') * right_movement_vector;
+	{
+		using namespace Input::Keyboard;
+		input_vector += is_key_down('a') * right_movement_vector * -1;
+		input_vector += is_key_down('d') * right_movement_vector;
 
-	input_vector += Input::Keyboard::get_key_status('s') * forward_movement_vector;
-	input_vector += Input::Keyboard::get_key_status('w') * forward_movement_vector * -1;
+		input_vector += is_key_down('s') * forward_movement_vector;
+		input_vector += is_key_down('w') * forward_movement_vector * -1;
+	}
 
 	if (paddata & PAD_CROSS)
 	{

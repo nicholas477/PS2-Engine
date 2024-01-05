@@ -7,14 +7,18 @@
 #include "libkbd.h"
 #include "ps2kbd.h"
 
-static u8 keyboard_status[256];
-
 namespace Input
 {
+static std::array<Keyboard::KeyStatus, 256> keyboard_status;
+
+std::array<Keyboard::KeyStatus, 256>& Keyboard::get_all_key_statuses()
+{
+	return keyboard_status;
+}
+
 void Keyboard::init()
 {
-
-	memset(keyboard_status, sizeof(keyboard_status), 0);
+	memset(keyboard_status.data(), sizeof(keyboard_status), 0);
 
 	{
 		int ret = SifLoadModule("ps2kbd.irx"_p.to_full_filepath(), 0, nullptr);
@@ -29,24 +33,70 @@ void Keyboard::init()
 	}
 
 	PS2KbdSetReadmode(PS2KBD_READMODE_RAW);
+	PS2KbdSetBlockingMode(false);
 }
 
 void Keyboard::read_inputs()
 {
+	for (int i = 0; i < 256; ++i)
+	{
+		if (keyboard_status[i] == KeyStatus::pressed)
+		{
+			keyboard_status[i] = KeyStatus::holding;
+		}
+		else if (keyboard_status[i] == KeyStatus::released)
+		{
+			keyboard_status[i] = KeyStatus::none;
+		}
+	}
+
 	PS2KbdRawKey key;
 	while (PS2KbdReadRaw(&key) != 0)
 	{
 		unsigned char c = (key.key + 'a') - 4;
-		//printf("New key: %u, %u, (%u, %c)\n", key.key, key.state, c, c);
-		keyboard_status[key.key] = key.state & 0xF;
+		printf("New key: %u, %u, (%u, %c)\n", key.key, key.state, c, c);
+		if (key.state & 1)
+		{
+			keyboard_status[key.key] = KeyStatus::pressed;
+		}
+		else
+		{
+			keyboard_status[key.key] = KeyStatus::released;
+		}
 	}
 }
 
-u8 Keyboard::get_key_status(unsigned char key)
+Keyboard::KeyStatus Keyboard::get_key_status(unsigned char ascii_key)
 {
-	const unsigned char actual_key = (key - 'a') + 4;
-	//check(actual_key >= 0 && actual_key <= 255);
-	return keyboard_status[actual_key];
+	return keyboard_status[convert_ascii_to_keyboard_key(ascii_key)];
+}
+
+unsigned char Keyboard::convert_ascii_to_keyboard_key(unsigned char ascii_key)
+{
+	return (ascii_key - 'a') + 4;
+}
+
+unsigned char Keyboard::convert_keyboard_key_to_ascii(unsigned char keyboard_key)
+{
+	return (keyboard_key + 'a') - 4;
+}
+
+bool Keyboard::is_key_down(unsigned char key)
+{
+	const KeyStatus k = Keyboard::get_key_status(key);
+	return k == KeyStatus::holding || k == KeyStatus::pressed;
+}
+
+bool Keyboard::is_key_up(unsigned char key)
+{
+	const KeyStatus k = Keyboard::get_key_status(key);
+	return k == KeyStatus::released || k == KeyStatus::none;
+}
+
+bool Keyboard::is_shift_down()
+{
+	const KeyStatus k = keyboard_status[225];
+	return k == KeyStatus::holding || k == KeyStatus::pressed;
 }
 
 } // namespace Input

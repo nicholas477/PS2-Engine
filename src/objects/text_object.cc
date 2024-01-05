@@ -27,6 +27,16 @@ void TextObject::render(const GS::GSState& gs_state)
 	}
 }
 
+void TextObject::set_text(std::string_view new_text)
+{
+	text = new_text;
+}
+
+std::string_view TextObject::get_text() const
+{
+	return text;
+}
+
 const char* TextObject::get_name() const
 {
 	if (text.size() > 0)

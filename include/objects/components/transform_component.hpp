@@ -4,6 +4,13 @@
 
 #include <set>
 
+class TransformComponent;
+
+class RootComponentInterface
+{
+public:
+	virtual TransformComponent* get_root_component() = 0;
+};
 
 class TransformComponent
 {

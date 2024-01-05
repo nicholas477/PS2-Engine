@@ -4,6 +4,7 @@
 #include "objects/teapot.hpp"
 #include "objects/camera.hpp"
 #include "objects/movement.hpp"
+#include "objects/text_prompt.hpp"
 
 #include "input/gamepad.hpp"
 
@@ -49,10 +50,11 @@ public:
 	Level1(Asset::Reference level)
 	    : World::Level(level)
 	{
-		printf("Aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\n");
-
 		// Player teapot
 		player.teapot_model.transform.set_location(Vector(0.f, 0.f, 0.f));
+
+		t1.get_root_component()->set_location(Vector(100.f, 0.f, 0.f));
+		t1.set_prompt("Welcome to level one!");
 	}
 
 	virtual void initialize() override
@@ -65,6 +67,7 @@ public:
 	}
 
 	Level1Player player;
+	TextPrompt t1;
 };
 
 static struct Level1ConstructorHelper
