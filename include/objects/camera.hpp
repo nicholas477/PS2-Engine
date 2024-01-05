@@ -6,7 +6,7 @@
 #include "tick.hpp"
 #include "objects/components/transform_component.hpp"
 
-class Camera //: public tickable
+class Camera
 {
 public:
 	Camera();
@@ -15,6 +15,4 @@ public:
 	float fov;
 
 	static Camera& get();
-
-	//virtual void tick(float deltaTime) override;
 }; // namespace camera
