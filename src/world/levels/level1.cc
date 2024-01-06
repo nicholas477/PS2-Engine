@@ -59,7 +59,7 @@ public:
 		player.teapot_model.transform.set_location(Vector(0.f, 0.f, 0.f));
 
 		t1.get_root_component()->set_location(Vector(100.f, 0.f, 0.f));
-		t1.set_prompt("Welcome to level one!");
+		t1.set_prompt("Cream of mushroom");
 	}
 
 	virtual void initialize() override

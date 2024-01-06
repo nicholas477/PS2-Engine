@@ -88,7 +88,14 @@ unsigned char Keyboard::convert_ascii_to_keyboard_key(unsigned char ascii_key)
 
 unsigned char Keyboard::convert_keyboard_key_to_ascii(unsigned char keyboard_key)
 {
-	return (keyboard_key + 'a') - 4;
+	switch (keyboard_key)
+	{
+		case 44:
+			return ' ';
+
+		default:
+			return (keyboard_key + 'a') - 4;
+	}
 }
 
 bool Keyboard::is_key_down(unsigned char key)

@@ -23,7 +23,7 @@ jobs:
     - uses: actions/checkout@v3
     - name: Get dependencies
       run: |
-        apk add sudo bash build-base binutils-dev git cmake xorriso assimp-dev musl-obstack-dev jsoncpp-dev imagemagick-dev
+        apk add sudo bash build-base binutils-dev git cmake xorriso assimp-dev musl-obstack-dev jsoncpp-dev imagemagick-dev sox
 
     - name: Compile ps2 engine
       run: |

@@ -2,12 +2,17 @@
 #include "objects/text_object.hpp"
 #include "tick.hpp"
 
+#include "egg/asset.hpp"
+
 class TextPrompt: public Tickable, public RootComponentInterface
 {
 public:
 	TextPrompt();
 	std::string prompt;
 	std::string inputted_text;
+	Asset::Reference key_sounds[3];
+	Asset::Reference finish_sound;
+	uint32_t cursor;
 
 	// Actual 3d text rendered
 	TextObject text_object;

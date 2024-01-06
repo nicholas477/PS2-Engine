@@ -5,7 +5,7 @@
 #include "world/world.hpp"
 #include "objects/camera.hpp"
 #include "objects/teapot.hpp"
-#include "sound/sound.hpp"
+#include "audio/audio.hpp"
 #include "stats.hpp"
 #include "net/net.hpp"
 #include "egg/filesystem.hpp"
@@ -141,7 +141,7 @@ void init(int argc, char* argv[])
 	Stats::init();
 	Input::init();
 	//Filesystem::run_tests();
-	//Sound::init();
+	Audio::init();
 	GS::init();
 
 	printf("Graph mode (region): ");
@@ -186,15 +186,9 @@ void run()
 		{
 			Stats::ScopedTimer frame_timer(Stats::scoped_timers::frame);
 
-			//sound::work_song();
-
 			Input::read_inputs();
 
-			//sound::work_song();
-
 			tick(tickrate);
-
-			Sound::work_song();
 
 			GS::render();
 		}
@@ -207,7 +201,7 @@ void run()
 
 		if (Input::Gamepad::get_paddata() & PAD_START)
 		{
-			Sound::set_music_volume(100);
+			//Sound::set_music_volume(100);
 			Stats::print_timer_stats();
 		}
 	}

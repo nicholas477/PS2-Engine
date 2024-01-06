@@ -28,16 +28,29 @@ $(ISO_FOLDER_DIR)/ps2client.exe: $(ISO_FOLDER_DIR)
 copy_libs: copy_irx $(ISO_FOLDER_DIR)/ps2client.exe
 
 # Sound files
-AUDIO_FILE_TYPE = wav
-SOUND_INPUT_FILES = $(wildcard assets/*.$(AUDIO_FILE_TYPE)) $(wildcard assets/**/*.wav)
-SOUND_ISO_FILES = $(SOUND_INPUT_FILES:%.wav=$(ISO_FOLDER_DIR)/%.$(AUDIO_FILE_TYPE))
-$(SOUND_ISO_FILES): $(ISO_FOLDER_DIR)/assets/%.$(AUDIO_FILE_TYPE): assets/%.wav
+SOUND_INPUT_FILES = $(wildcard assets/sounds/*.wav) $(wildcard assets/sounds/**/*.wav)
+SOUND_ISO_FILES = $(SOUND_INPUT_FILES:%.wav=$(ISO_FOLDER_DIR)/%.adp)
+$(SOUND_ISO_FILES): $(ISO_FOLDER_DIR)/assets/sounds/%.adp: assets/sounds/%.wav
+	$(MKDIR) -p $(dir $@)
+	sox $< -r 8000 -c 1 -b 16 $(basename $@).wav
+	adpenc $(basename $@).wav $@
+	rm $(basename $@).wav
+#	cp $< $@
+
+.PHONY: sounds
+sounds: $(SOUND_ISO_FILES)
+
+# Music files
+# Music isn't converted to ADPENC, it's just pure wav
+MUSIC_INPUT_FILES = $(wildcard assets/music/*.wav) $(wildcard assets/music/**/*.wav)
+MUSIC_ISO_FILES = $(MUSIC_INPUT_FILES:%.wav=$(ISO_FOLDER_DIR)/%.wav)
+$(MUSIC_ISO_FILES): $(ISO_FOLDER_DIR)/assets/music/%.wav: assets/music/%.wav
 	$(MKDIR) -p $(dir $@)
 #	adpenc $< $@
 	cp $< $@
 
-.PHONY: sounds
-sounds: $(SOUND_ISO_FILES)
+.PHONY: music
+music: $(MUSIC_ISO_FILES)
 
 # Texture compilation
 TEXTURE_CC = egg-ps2-mesh-converter
@@ -76,7 +89,7 @@ levels: $(LVL_DEST_FILES)
 
 # Asset Manifest compilation
 .PHONY: manifestassets
-manifestassets: sounds models levels textures
+manifestassets: sounds music models levels textures
 
 MANIFEST_CC = egg-ps2-manifest-generator
 
