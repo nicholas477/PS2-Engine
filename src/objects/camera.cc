@@ -15,5 +15,5 @@ Camera& Camera::get()
 Camera::Camera()
 {
 	transform.set_location(Vector(0.f, 0.f, 100.f));
-	fov = 50.f;
+	fov = 90.f;
 }

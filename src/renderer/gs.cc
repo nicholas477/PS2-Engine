@@ -153,14 +153,19 @@ static Matrix frustum(GLdouble left, GLdouble right,
 	return *reinterpret_cast<Matrix*>(&xform);
 }
 
-static Matrix perspective(GLdouble fovy, GLdouble aspect, GLdouble zNear, GLdouble zFar)
+static Matrix perspective(GLdouble horizontal_fov, GLdouble aspect, GLdouble zNear, GLdouble zFar)
 {
 	GLdouble xmin, xmax, ymin, ymax;
 
-	ymax = zNear * tan(fovy * M_PI / 360.0f);
-	ymin = -ymax;
-	xmin = ymin * aspect;
-	xmax = ymax * aspect;
+	// ymax = zNear * tan(fovy * M_PI / 360.0f);
+	// ymin = -ymax;
+	// xmin = ymin * aspect;
+	// xmax = ymax * aspect;
+
+	xmax = zNear * tan(horizontal_fov * M_PI / 360.0f);
+	xmin = -xmax;
+	ymin = xmin * (1.f / aspect);
+	ymax = xmax * (1.f / aspect);
 
 	return frustum(xmin, xmax, ymin, ymax, zNear, zFar);
 }
@@ -185,7 +190,7 @@ static void init_renderer()
 	pglEnable(PGL_CLIPPING);
 
 	glEnableClientState(GL_VERTEX_ARRAY);
-	glEnableClientState(GL_NORMAL_ARRAY);
+	//glEnableClientState(GL_NORMAL_ARRAY);
 	glEnableClientState(GL_COLOR_ARRAY);
 	//glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
@@ -321,6 +326,8 @@ static void draw_objects(const GSState& gs_state)
 			Itr->render(gs_state);
 		}
 		glDisable(GL_TEXTURE_2D);
+
+		printf("8\n");
 	}
 } // namespace GS
 
@@ -350,12 +357,18 @@ static int gs_render()
 		draw_objects(_gs_state);
 
 		{
+			printf("9\n");
 			Stats::ScopedTimer flush_timer(Stats::scoped_timers::render_flush);
 			glFlush();
-
-			pglEndGeometry();
 		}
 
+		printf("10\n");
+
+		pglEndGeometry();
+
+		printf("11\n");
+
+		printf("12\n");
 		if (!firstTime)
 		{
 			Stats::ScopedTimer finish_geo_timer(Stats::scoped_timers::render_finish_geom);
@@ -365,6 +378,8 @@ static int gs_render()
 		}
 		else
 			firstTime = false;
+
+		printf("13\n");
 	}
 
 	//printf("Waiting for vsync\n");
@@ -372,12 +387,17 @@ static int gs_render()
 	// Either block until a vsync, or keep rendering until there's one
 	// available.
 	{
+		printf("14\n");
 		Stats::ScopedTimer vsync_timer(Stats::scoped_timers::render_vsync_wait);
 		pglWaitForVSync();
 	}
 
+	printf("15\n");
+
 	pglSwapBuffers();
 	pglRenderGeometry();
+
+	printf("16\n");
 
 	return 0;
 }

@@ -6,7 +6,7 @@
 #include "components/collision_component.hpp"
 #include "egg/filesystem.hpp"
 
-class MeshObject: public Renderable, public Debuggable
+class MeshObject: public Renderable, public Debuggable, public RootComponentInterface
 {
 public:
 	MeshObject();
@@ -19,4 +19,6 @@ public:
 
 	virtual const char* get_name() const override;
 	virtual const char* get_type_name() const { return typeid(MeshObject).name(); }
+
+	virtual TransformComponent* get_root_component() { return &transform; }
 };

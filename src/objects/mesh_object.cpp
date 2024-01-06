@@ -29,9 +29,7 @@ void MeshObject::render(const GS::GSState& gs_state)
 {
 	if (mesh)
 	{
-		const Matrix local_world = Matrix::from_location_and_rotation(transform.get_location(), transform.get_rotation());
-		ScopedMatrix sm(local_world);
-
+		ScopedMatrix sm(transform.get_matrix());
 		mesh->draw();
 	}
 }
