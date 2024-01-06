@@ -4,6 +4,7 @@
 #include <math.h>
 #include <string.h>
 #include <string>
+#include <cstdint>
 
 #ifdef _EE
 #include "math3d.h"
