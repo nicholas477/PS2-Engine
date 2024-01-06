@@ -28,5 +28,5 @@ bool has_gs_initialized();
 void init();
 void render();
 void clear_screen();
-std::pair<int, int> get_screen_res();
+IntVector2 get_screen_res();
 } // namespace GS

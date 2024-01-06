@@ -21,6 +21,12 @@ public:
 	virtual const char* get_name() const override;
 	virtual const char* get_type_name() const { return typeid(TextObject).name(); }
 
+	// Calculates the maximum width and height of the text if it were drawn
+	IntVector2 get_text_size() const;
+
+	Vector quad_background_offset;
+	Vector2 text_screen_offset;
+
 protected:
 	std::string text;
 };

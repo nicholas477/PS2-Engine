@@ -15,6 +15,7 @@
 
 #include "ps2s/gs.h"
 
+#include "renderer/gs.hpp"
 #include "renderer/text.hpp"
 
 #include <utility>
@@ -34,7 +35,7 @@ void tsShowFont()
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();
 	glLoadIdentity();
-	glOrtho(0, 639, 447, 0, 0, 10);
+	glOrtho(0, GS::get_screen_res().x, GS::get_screen_res().y, 0, 0, 10);
 	// glOrtho( -2, 2, -2, 2, 0, 10 );
 
 	glEnable(GL_TEXTURE_2D);
@@ -95,7 +96,7 @@ void tsDrawString(const char* text)
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();
 	glLoadIdentity();
-	glOrtho(0, 639, 447, 0, 0, 10);
+	glOrtho(0, GS::get_screen_res().x, GS::get_screen_res().y, 0, 0, 10);
 
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, font_texture);
@@ -161,7 +162,7 @@ void tsDrawString(float x, float y, const char* text)
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();
 	glLoadIdentity();
-	glOrtho(0, 639, 447, 0, 0, 10);
+	glOrtho(0, GS::get_screen_res().x, GS::get_screen_res().y, 0, 0, 10);
 
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, font_texture);
@@ -180,13 +181,13 @@ void tsDrawString(float x, float y, const char* text)
 
 	glBegin(GL_QUADS);
 	{
-		std::pair<int, int> cursor = {0, 0};
+		IntVector2 cursor = {0, 0};
 		for (int i = 0; i < (int)strlen(text); i++)
 		{
 			if (text[i] == '\n')
 			{
-				cursor.first = 0;
-				cursor.second += 16;
+				cursor.x = 0;
+				cursor.y += 16;
 				continue;
 			}
 
@@ -194,18 +195,18 @@ void tsDrawString(float x, float y, const char* text)
 			tex_v = ((unsigned int)text[i] / 16) * cell_height;
 
 			glTexCoord2f(tex_u, tex_v);
-			glVertex3f(x + cursor.first, y + cursor.second, -1);
+			glVertex3f(x + cursor.x, y + cursor.y, -1);
 
 			glTexCoord2f(tex_u, tex_v + cell_height);
-			glVertex3f(x + cursor.first, y + cursor.second + 16, -1);
+			glVertex3f(x + cursor.x, y + cursor.y + 16, -1);
 
 			glTexCoord2f(tex_u + cell_width, tex_v + cell_height);
-			glVertex3f(x + cursor.first + 8, y + cursor.second + 16, -1);
+			glVertex3f(x + cursor.x + 8, y + cursor.y + 16, -1);
 
 			glTexCoord2f(tex_u + cell_width, tex_v);
-			glVertex3f(x + cursor.first + 8, y + cursor.second, -1);
+			glVertex3f(x + cursor.x + 8, y + cursor.y, -1);
 
-			cursor.first += 8;
+			cursor.x += 8;
 		}
 	}
 	glEnd();

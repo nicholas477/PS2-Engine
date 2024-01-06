@@ -5,6 +5,7 @@
 class TextPrompt: public Tickable, public RootComponentInterface
 {
 public:
+	TextPrompt();
 	std::string prompt;
 	std::string inputted_text;
 

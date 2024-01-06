@@ -1,5 +1,7 @@
 #pragma once
 
+#include "egg/math_types.hpp"
+
 #include "renderer/gs.hpp"
 #include "collision/AABB.hpp"
 #include "collision/plane.hpp"
@@ -22,7 +24,7 @@ struct Color
 		};
 	};
 
-	constexpr Color(u8 _r, u8 _g, u8 _b, float _a = 255.f)
+	constexpr Color(u8 _r, u8 _g, u8 _b, u8 _a = 255)
 	    : r(_r)
 	    , g(_g)
 	    , b(_b)
@@ -30,39 +32,44 @@ struct Color
 	{
 	}
 
-	constexpr operator color_t()
+	constexpr operator color_t() const
 	{
 		return _color;
 	}
 
-	constexpr color_t get_color()
+	constexpr color_t get_color() const
 	{
 		return _color;
 	}
+
+	constexpr Vector to_vector() const
+	{
+		return Vector {r / 255.f, g / 255.f, b / 255.f, a / 255.f};
+	}
 };
 
-constexpr color_t red()
+constexpr Color red()
 {
-	return Color(255, 0, 0).get_color();
+	return Color(255, 0, 0);
 };
 
-constexpr color_t green()
+constexpr Color green()
 {
-	return Color(0, 255, 0).get_color();
+	return Color(0, 255, 0);
 };
 
-constexpr color_t blue()
+constexpr Color blue()
 {
-	return Color(0, 0, 255).get_color();
+	return Color(0, 0, 255);
 };
 
-constexpr color_t white()
+constexpr Color white()
 {
-	return Color(255, 255, 255).get_color();
+	return Color(255, 255, 255);
 };
 
-constexpr color_t black()
+constexpr Color black()
 {
-	return Color(0, 0, 0).get_color();
+	return Color(0, 0, 0);
 };
 } // namespace Colors

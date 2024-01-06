@@ -43,7 +43,7 @@ namespace GS
 static const int screen_width  = 640;
 static const int screen_height = 448;
 
-std::pair<int, int> get_screen_res()
+IntVector2 get_screen_res()
 {
 	return {screen_width, screen_height};
 }

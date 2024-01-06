@@ -5,6 +5,11 @@
 #include <stdio.h>
 #include <ctype.h>
 
+TextPrompt::TextPrompt()
+{
+	text_object.quad_background_offset = Vector(-8, -8, 16, 16);
+}
+
 void TextPrompt::tick(float deltaTime)
 {
 	using namespace Input::Keyboard;
@@ -14,28 +19,41 @@ void TextPrompt::tick(float deltaTime)
 	const auto& keyboard_keys = get_all_key_statuses();
 	for (int i = 0; i < 256; ++i)
 	{
+		const bool can_add_chars = inputted_text.size() < prompt.size();
 		if (keyboard_keys[i] == KeyStatus::pressed)
 		{
 			const unsigned char ascii_key = convert_keyboard_key_to_ascii(i);
 			if (isalpha(ascii_key))
 			{
-				inputted_text += ascii_key;
-				new_text = true;
+				if (can_add_chars)
+				{
+					inputted_text += ascii_key;
+					new_text = true;
+				}
 			}
 			else if (ascii_key == '.' || ascii_key == ',')
 			{
-				inputted_text += ascii_key;
-				new_text = true;
+				if (can_add_chars)
+				{
+					inputted_text += ascii_key;
+					new_text = true;
+				}
 			}
 			else if (i == 56 && is_shift_down())
 			{
-				inputted_text += '?';
-				new_text = true;
+				if (can_add_chars)
+				{
+					inputted_text += '?';
+					new_text = true;
+				}
 			}
 			else if (i == 44) // space bar
 			{
-				inputted_text += ' ';
-				new_text = true;
+				if (can_add_chars)
+				{
+					inputted_text += ' ';
+					new_text = true;
+				}
 			}
 			else if (i == 42 && inputted_text.size() > 0) // delete key
 			{

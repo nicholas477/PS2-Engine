@@ -51,6 +51,26 @@ struct alignas(16) Vector2
 	    , y(_y)
 	{
 	}
+
+	static const Vector2 zero;
+};
+
+struct alignas(16) IntVector2
+{
+	union
+	{
+		struct
+		{
+			int32_t x;
+			int32_t y;
+		};
+	};
+
+	constexpr IntVector2(int32_t _x = 0, int32_t _y = 0)
+	    : x(_x)
+	    , y(_y)
+	{
+	}
 };
 
 struct alignas(16) Vector
@@ -344,6 +364,8 @@ static_assert(std::is_standard_layout_v<Vector> == true);
 #ifdef _EE
 constexpr Vector Vector::quat_identity = Vector(1.f, 0.f, 0.f, 0.f);
 constexpr Vector Vector::zero          = Vector(0.f, 0.f, 0.f, 0.f);
+
+constexpr Vector2 Vector2::zero = Vector2(0.f, 0.f);
 
 static Vector operator*(float Lhs, const Vector& Rhs)
 {
