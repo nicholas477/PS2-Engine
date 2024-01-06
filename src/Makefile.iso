@@ -32,7 +32,7 @@ SOUND_INPUT_FILES = $(wildcard assets/sounds/*.wav) $(wildcard assets/sounds/**/
 SOUND_ISO_FILES = $(SOUND_INPUT_FILES:%.wav=$(ISO_FOLDER_DIR)/%.adp)
 $(SOUND_ISO_FILES): $(ISO_FOLDER_DIR)/assets/sounds/%.adp: assets/sounds/%.wav
 	$(MKDIR) -p $(dir $@)
-	sox $< -r 8000 -c 1 -b 16 $(basename $@).wav
+	sox $< -r 44100 -c 1 -b 16 $(basename $@).wav
 	adpenc $(basename $@).wav $@
 	rm $(basename $@).wav
 #	cp $< $@
