@@ -46,7 +46,7 @@ bool load_file(const Path& path, std::vector<std::byte>& out_bytes)
 		// Seek back to the beginning
 		fseek(file, 0, SEEK_SET);
 
-		fread((char*)out_bytes.data(), file_size, 1, file);
+		fread((char*)out_bytes.data(), 1, file_size, file);
 
 		fclose(file);
 		return true;
@@ -73,7 +73,7 @@ bool load_file(const Path& path, std::unique_ptr<std::byte[]>& out_bytes, size_t
 		// Seek back to the beginning
 		fseek(file, 0, SEEK_SET);
 
-		fread((char*)out_bytes.get(), size, 1, file);
+		fread((char*)out_bytes.get(), 1, size, file);
 		fclose(file);
 		return true;
 	}

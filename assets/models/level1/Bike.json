@@ -3,6 +3,8 @@
 	"file": "Bike.fbx",
 	"primitive_type": 2147483649,
 	"modifiers": [
-		"gamma_correct_alpha"
+		"gamma_correct_alpha",
+		"gamma_correct_colors",
+		"blender_orientation"
 	]
 }

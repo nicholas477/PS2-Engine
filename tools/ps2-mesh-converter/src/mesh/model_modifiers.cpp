@@ -4,7 +4,7 @@
 #include <cmath>
 #include <algorithm>
 
-static void apply_gamma_correction(Mesh& mesh)
+static void gamma_correct_alpha(Mesh& mesh)
 {
 	for (Vertex& vertex : mesh.vertices)
 	{
@@ -12,6 +12,25 @@ static void apply_gamma_correction(Mesh& mesh)
 		//vertex.g = pow(vertex.g, 1.0 / 2.2);
 		//vertex.b = pow(vertex.b, 1.0 / 2.2);
 		vertex.a = pow(vertex.a, 1.0 / 2.2);
+	}
+}
+
+static void gamma_correct_colors(Mesh& mesh)
+{
+	for (Vertex& vertex : mesh.vertices)
+	{
+		vertex.r = pow(vertex.r, 1.0 / 2.2);
+		vertex.g = pow(vertex.g, 1.0 / 2.2);
+		vertex.b = pow(vertex.b, 1.0 / 2.2);
+		//vertex.a = pow(vertex.a, 1.0 / 2.2);
+	}
+}
+
+static void fix_blender_orientation(Mesh& mesh)
+{
+	for (Vertex& vertex : mesh.vertices)
+	{
+		std::swap(vertex.py, vertex.pz);
 	}
 }
 
@@ -29,18 +48,24 @@ bool apply_modification(const std::string& mod, Mesh& mesh)
 {
 	if (mod == "vegetation")
 	{
-		printf(ANSI_COLOR_MAGENTA "[PS2-Mesh-Converter]: Applying mesh modification: %s" ANSI_COLOR_RESET "\n", "vegetation");
 		apply_vegetation_mod(mesh);
 		return true;
 	}
 	else if (mod == "gamma_correct_alpha")
 	{
-		printf(ANSI_COLOR_MAGENTA "[PS2-Mesh-Converter]: Applying mesh modification: %s" ANSI_COLOR_RESET "\n", "gamma correction");
-		apply_gamma_correction(mesh);
+		gamma_correct_alpha(mesh);
 		return true;
 	}
-
-	printf(ANSI_COLOR_RED "[PS2-Mesh-Converter]: Unable to find mesh mod: %s" ANSI_COLOR_RESET "\n", mod.c_str());
+	else if (mod == "gamma_correct_colors")
+	{
+		gamma_correct_colors(mesh);
+		return true;
+	}
+	else if (mod == "blender_orientation")
+	{
+		fix_blender_orientation(mesh);
+		return true;
+	}
 	return false;
 }
 

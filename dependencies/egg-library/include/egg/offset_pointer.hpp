@@ -116,6 +116,12 @@ static size_t serialize(Serializer& serializer, const OffsetArray<T>& val, size_
 {
 	const size_t offset_array_start = serializer.add_data(val, alignment);
 
+	// Skip heap serialization if this array is empty
+	if (val.offset == 0 || val.length == 0)
+	{
+		return offset_array_start;
+	}
+
 	class OffsetArrayHeapSerializer: public HeapSerializer
 	{
 	public:

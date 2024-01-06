@@ -24,9 +24,9 @@ void TextObject::render(const GS::GSState& gs_state)
 		Vector screen_pos;
 		if (gs_state.world_to_screen(transform.get_location(), screen_pos))
 		{
-			printf("############rendering quad!\n");
-			IntVector2 text_size = get_text_size();
-			GS::Helpers::draw_2d_quad(Vector(screen_pos.x, screen_pos.y, text_size.x, text_size.y) + quad_background_offset, Colors::black());
+			//printf("############rendering quad!\n");
+			//IntVector2 text_size = get_text_size();
+			//GS::Helpers::draw_2d_quad(Vector(screen_pos.x, screen_pos.y, text_size.x, text_size.y) + quad_background_offset, Colors::black());
 
 			printf("############rendering text!\n");
 			float material[] = {1.0f, 1.0f, 1.0f, 1.0f};

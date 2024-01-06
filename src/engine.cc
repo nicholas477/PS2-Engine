@@ -136,11 +136,7 @@ void init(int argc, char* argv[])
 
 	load_asset_manifest();
 
-	{
-		int ret = SifLoadModule("usbd.irx"_p.to_full_filepath(), 0, nullptr);
-		printf("ret: %d\n", ret);
-		checkf(ret >= 0, "usbd.irx"_p.to_full_filepath());
-	}
+	sif_load_module("usbd.irx");
 
 	Stats::init();
 	Input::init();
@@ -236,5 +232,23 @@ u64 get_cpu_ticks()
 u64 get_cpu_tickrate()
 {
 	return kBUSCLK;
+}
+
+bool sif_load_module(const char* module_path)
+{
+	const char* converted_path = nullptr;
+	if (Filesystem::get_filesystem_type() == Filesystem::Type::cdrom)
+	{
+		converted_path = Filesystem::Path(module_path, true).to_full_filepath();
+	}
+	else
+	{
+		converted_path = Filesystem::Path(module_path, false).to_full_filepath();
+	}
+
+	int ret = SifLoadModule(converted_path, 0, nullptr);
+	printf("ret: %d\n", ret);
+	checkf(ret >= 0, converted_path);
+	return ret >= 0;
 }
 } // namespace Engine

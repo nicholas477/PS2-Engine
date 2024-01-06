@@ -119,11 +119,12 @@ bool parseJson(std::string_view path)
 
 		printf("Loaded %lu meshes from file\n", meshes.size());
 
-		for (size_t i = 0; i < meshes.size(); ++i)
+		for (const Json::Value& modifier : obj["modifiers"])
 		{
-			for (const std::string& modifier : meshes[i].modifiers)
+			printf(ANSI_COLOR_MAGENTA "[PS2-Mesh-Converter]: Applying mesh modification: %s" ANSI_COLOR_RESET "\n", modifier.asCString());
+			for (size_t i = 0; i < meshes.size(); ++i)
 			{
-				apply_modification(modifier, meshes[i]);
+				apply_modification(modifier.asString(), meshes[i]);
 			}
 		}
 

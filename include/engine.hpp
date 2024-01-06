@@ -27,4 +27,6 @@ u64 get_cpu_ticks();
 /// @brief Gets the number of CPU ticks per second.
 /// @return
 u64 get_cpu_tickrate();
+
+bool sif_load_module(const char* module_path);
 }; // namespace Engine

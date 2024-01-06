@@ -57,11 +57,7 @@ static void create_audio_thread()
 
 void init()
 {
-	{
-		int ret = SifLoadModule("audsrv.irx"_p.to_full_filepath(), 0, nullptr);
-		printf("ret: %d\n", ret);
-		checkf(ret >= 0, "audsrv.irx"_p.to_full_filepath());
-	}
+	Engine::sif_load_module("audsrv.irx");
 
 	printf("initializing audiosrv...\n");
 	int ret = audsrv_init();

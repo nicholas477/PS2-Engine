@@ -40,7 +40,9 @@ std::vector<std::byte> serialize_meshes(uint32_t prim_type, const std::vector<Me
 	}
 
 	mesh_header.pos.set(positions);
-	mesh_header.nrm.set(normals);
+	//mesh_header.nrm.set(normals);
+	mesh_header.nrm.offset = 0;
+	mesh_header.nrm.length = 0;
 	mesh_header.uvs.set(texture_coords);
 	mesh_header.colors.set(colors);
 	mesh_header.strips.set(strip_header);
@@ -57,7 +59,7 @@ std::vector<std::byte> serialize_meshes(uint32_t prim_type, const std::vector<Me
 
 	printf("Testing mesh header and strip header equality...\n");
 	assert(out_header->pos.num_elements() == positions.size());
-	assert(out_header->nrm.num_elements() == normals.size());
+	//assert(out_header->nrm.num_elements() == normals.size());
 	assert(out_header->uvs.num_elements() == texture_coords.size());
 	assert(out_header->colors.num_elements() == colors.size());
 	assert(out_header->strips.num_elements() == strips.size());
