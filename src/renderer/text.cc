@@ -155,18 +155,15 @@ void tsDrawString(const char* text)
 
 void tsDrawString(float x, float y, const char* text)
 {
-	printf("1\n");
 	glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
 	glLoadIdentity();
 
-	printf("2\n");
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();
 	glLoadIdentity();
 	glOrtho(0, GS::get_screen_res().x, GS::get_screen_res().y, 0, 0, 10);
 
-	printf("3\n");
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, font_texture);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -175,7 +172,6 @@ void tsDrawString(float x, float y, const char* text)
 	glColorTable(GL_COLOR_TABLE, GL_RGBA, 256, GL_RGBA, GL_UNSIGNED_INT_8_8_8_8,
 	             font_clut);
 
-	printf("4\n");
 	glDisable(GL_LIGHTING);
 	glEnable(GL_BLEND);
 
@@ -183,7 +179,6 @@ void tsDrawString(float x, float y, const char* text)
 	      cell_width  = 8.0f / 128.0f,
 	      cell_height = 16.0f / 256.0f;
 
-	printf("5\n");
 	glBegin(GL_QUADS);
 	{
 		IntVector2 cursor = {0, 0};
@@ -214,16 +209,15 @@ void tsDrawString(float x, float y, const char* text)
 			cursor.x += 8;
 		}
 	}
-	printf("6\n");
 	glEnd();
 
-	printf("7\n");
 	glPopMatrix();
 	glMatrixMode(GL_MODELVIEW);
 	glPopMatrix();
 
 	glDisable(GL_BLEND);
 	glEnable(GL_LIGHTING);
+	glDisable(GL_TEXTURE_2D);
 }
 
 extern unsigned char glut_font_image[128 * 256];

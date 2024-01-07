@@ -25,25 +25,25 @@ void draw_2d_quad(const Vector& quad_rect, const Colors::Color& color)
 	//glDisable(GL_LIGHTING);
 	//glEnable(GL_BLEND);
 
-	// glBegin(GL_QUADS);
-	// {
-	// 	glColor4fv((const GLfloat*)&color_vector);
-	// 	//glTexCoord2f(0.f, 0.f);
-	// 	glVertex3f(quad_rect.x, quad_rect.y, -1);
+	glBegin(GL_QUADS);
+	{
+		glColor4fv((const GLfloat*)&color_vector);
+		//glTexCoord2f(0.f, 0.f);
+		glVertex3f(quad_rect.x, quad_rect.y, -1);
 
-	// 	glColor4fv((const GLfloat*)&color_vector);
-	// 	//glTexCoord2f(0.f, 1.f);
-	// 	glVertex3f(quad_rect.x, quad_rect.y + quad_rect.w, -1);
+		glColor4fv((const GLfloat*)&color_vector);
+		//glTexCoord2f(0.f, 1.f);
+		glVertex3f(quad_rect.x, quad_rect.y + quad_rect.w, -1);
 
-	// 	glColor4fv((const GLfloat*)&color_vector);
-	// 	//glTexCoord2f(1.f, 1.f);
-	// 	glVertex3f(quad_rect.x + quad_rect.z, quad_rect.y + quad_rect.w, -1);
+		glColor4fv((const GLfloat*)&color_vector);
+		//glTexCoord2f(1.f, 1.f);
+		glVertex3f(quad_rect.x + quad_rect.z, quad_rect.y + quad_rect.w, -1);
 
-	// 	glColor4fv((const GLfloat*)&color_vector);
-	// 	//glTexCoord2f(1.f, 0.f);
-	// 	glVertex3f(quad_rect.x + quad_rect.z, quad_rect.y, -1);
-	// }
-	// glEnd();
+		glColor4fv((const GLfloat*)&color_vector);
+		//glTexCoord2f(1.f, 0.f);
+		glVertex3f(quad_rect.x + quad_rect.z, quad_rect.y, -1);
+	}
+	glEnd();
 
 	glPopMatrix();
 	glMatrixMode(GL_MODELVIEW);

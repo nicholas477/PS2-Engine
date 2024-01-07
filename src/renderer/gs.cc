@@ -190,7 +190,7 @@ static void init_renderer()
 	glEnableClientState(GL_COLOR_ARRAY);
 
 	glDisableClientState(GL_NORMAL_ARRAY);
-	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
 	//init_lights();
 
@@ -264,8 +264,8 @@ initGsMemory()
 	pglAddGsMemSlot(240, 32, GS::kPsm32);
 	pglAddGsMemSlot(272, 32, GS::kPsm32);
 	// 512x256
-	//pglAddGsMemSlot(302, 64, GS::kPsm32);
-	//pglAddGsMemSlot(366, 64, GS::kPsm32);
+	pglAddGsMemSlot(302, 64, GS::kPsm32);
+	pglAddGsMemSlot(366, 64, GS::kPsm32);
 
 	pglPrintGsMemAllocation();
 }
@@ -314,20 +314,16 @@ static void draw_objects(const GSState& gs_state)
 		Itr->render(gs_state);
 	}
 
-	return;
-
 	// Text rendering
 	{
 		//glPolygonMode(GL_FRONT, GL_FILL);
 		//glDisable(GL_ALPHA_TEST);
-		//glEnable(GL_TEXTURE_2D);
 		glLoadIdentity();
 
 		for (TextRenderable::TIterator Itr = TextRenderable::Itr(); Itr; ++Itr)
 		{
 			Itr->render(gs_state);
 		}
-		//glDisable(GL_TEXTURE_2D);
 
 		printf("8\n");
 	}
