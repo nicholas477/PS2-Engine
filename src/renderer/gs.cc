@@ -194,7 +194,7 @@ static void init_renderer()
 
 	//init_lights();
 
-	//tsLoadFont();
+	tsLoadFont();
 
 	CVertexColorRenderer::Register();
 	CVertexColorVegetationRenderer::Register();
@@ -247,22 +247,22 @@ initGsMemory()
 	// 32 bit
 
 	// a slot for fonts (probably)
-	pglAddGsMemSlot(210, 2, GS::kPsm8);
+	pglAddGsMemSlot(210, 4, GS::kPsm8);
 
 	// 64x32
-	pglAddGsMemSlot(212, 1, GS::kPsm32);
-	pglAddGsMemSlot(213, 1, GS::kPsm32);
+	pglAddGsMemSlot(214, 1, GS::kPsm32);
+	pglAddGsMemSlot(215, 1, GS::kPsm32);
 	// 64x64
-	pglAddGsMemSlot(214, 2, GS::kPsm32);
 	pglAddGsMemSlot(216, 2, GS::kPsm32);
 	pglAddGsMemSlot(218, 2, GS::kPsm32);
 	pglAddGsMemSlot(220, 2, GS::kPsm32);
+	pglAddGsMemSlot(222, 2, GS::kPsm32);
 	// 128x128
-	pglAddGsMemSlot(222, 8, GS::kPsm32);
-	pglAddGsMemSlot(230, 8, GS::kPsm32);
+	pglAddGsMemSlot(224, 8, GS::kPsm32);
+	pglAddGsMemSlot(232, 8, GS::kPsm32);
 	// 256x256
-	pglAddGsMemSlot(238, 32, GS::kPsm32);
-	pglAddGsMemSlot(270, 32, GS::kPsm32);
+	pglAddGsMemSlot(240, 32, GS::kPsm32);
+	pglAddGsMemSlot(272, 32, GS::kPsm32);
 	// 512x256
 	//pglAddGsMemSlot(302, 64, GS::kPsm32);
 	//pglAddGsMemSlot(366, 64, GS::kPsm32);
