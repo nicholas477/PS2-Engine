@@ -182,21 +182,19 @@ static void init_renderer()
 	printf("Initializing graphics synthesizer: renderer\n");
 	glShadeModel(GL_SMOOTH);              // Enable Smooth Shading
 	glClearColor(0.5f, 0.5f, 0.5f, 0.5f); // Black Background
-	//glClearDepth(1.0f);                   // Depth Buffer Setup
-	glEnable(GL_DEPTH_TEST); // Enables Depth Testing
-	//glEnable(GL_RESCALE_NORMAL);
-	//glEnable(GL_CULL_FACE);
-	glDepthFunc(GL_LEQUAL); // The Type Of Depth Testing To Do
+	glEnable(GL_DEPTH_TEST);              // Enables Depth Testing
+	glDepthFunc(GL_LEQUAL);               // The Type Of Depth Testing To Do
 	pglEnable(PGL_CLIPPING);
 
 	glEnableClientState(GL_VERTEX_ARRAY);
-	//glEnableClientState(GL_NORMAL_ARRAY);
 	glEnableClientState(GL_COLOR_ARRAY);
-	//glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
-	init_lights();
+	glDisableClientState(GL_NORMAL_ARRAY);
+	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 
-	tsLoadFont();
+	//init_lights();
+
+	//tsLoadFont();
 
 	CVertexColorRenderer::Register();
 	CVertexColorVegetationRenderer::Register();
@@ -309,23 +307,27 @@ void init()
 
 static void draw_objects(const GSState& gs_state)
 {
+	int i = 0;
 	for (Renderable::TIterator Itr = Renderable::Itr(); Itr; ++Itr)
 	{
+		Debuggable::print_debug_object(&*Itr);
 		Itr->render(gs_state);
 	}
 
+	return;
+
 	// Text rendering
 	{
-		glPolygonMode(GL_FRONT, GL_FILL);
-		glDisable(GL_ALPHA_TEST);
-		glEnable(GL_TEXTURE_2D);
+		//glPolygonMode(GL_FRONT, GL_FILL);
+		//glDisable(GL_ALPHA_TEST);
+		//glEnable(GL_TEXTURE_2D);
 		glLoadIdentity();
 
 		for (TextRenderable::TIterator Itr = TextRenderable::Itr(); Itr; ++Itr)
 		{
 			Itr->render(gs_state);
 		}
-		glDisable(GL_TEXTURE_2D);
+		//glDisable(GL_TEXTURE_2D);
 
 		printf("8\n");
 	}

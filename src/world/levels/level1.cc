@@ -15,13 +15,13 @@ public:
 	Level1Player()
 	    : teeth_model("assets/models/level1/Mouth.mdl"_asset)
 	{
-		camera_transform.set_parent(teapot_model.transform);
+		camera_transform.set_parent(*teapot_model.get_root_component());
 		camera_transform.set_location(Vector(0.f, teapot_model.collision.get_local_bounds().get_half_extents().y));
 
 		Camera::get().transform.set_parent(camera_transform);
 
 		movement.updated_rotation_component = &camera_transform;
-		movement.updated_location_component = &teapot_model.transform;
+		movement.updated_location_component = teapot_model.get_root_component();
 		movement.collision_component        = &teapot_model.collision;
 
 		teeth_model.get_root_component()->set_parent(Camera::get().transform);
@@ -55,8 +55,9 @@ public:
 	Level1(Asset::Reference level)
 	    : World::Level(level)
 	{
+		debug_name = "Level1";
 		// Player teapot
-		player.teapot_model.transform.set_location(Vector(0.f, 0.f, 0.f));
+		player.teapot_model.get_root_component()->set_location(Vector(0.f, 0.f, 0.f));
 
 		t1.get_root_component()->set_location(Vector(100.f, 0.f, 0.f));
 		t1.set_prompt("Cream of mushroom");

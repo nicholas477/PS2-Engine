@@ -87,17 +87,22 @@ void Mesh::compile()
 		check((uintptr_t)mesh->nrm.get_ptr() % 16 == 0);
 		check((uintptr_t)mesh->uvs.get_ptr() % 16 == 0);
 
+		check(mesh->pos.offset > 0);
+
 		glVertexPointer(4, GL_FLOAT, 0, mesh->pos.get_ptr());
-		pglNormalPointer(4, GL_FLOAT, 0, mesh->nrm.get_ptr());
+
+		if (mesh->nrm.offset > 0)
+		{
+			pglNormalPointer(4, GL_FLOAT, 0, mesh->nrm.get_ptr());
+		}
 
 		if (mesh->uvs.offset > 0)
 		{
-			//glTexCoordPointer(2, GL_FLOAT, 0, mesh->uvs.get_ptr());
+			glTexCoordPointer(2, GL_FLOAT, 0, mesh->uvs.get_ptr());
 		}
 
 		if (mesh->colors.offset > 0)
 		{
-			//printf("Mesh: %d has colors\n", list);
 			glColorPointer(4, GL_FLOAT, 0, mesh->colors.get_ptr());
 		}
 
@@ -118,12 +123,6 @@ void Mesh::compile()
 
 void Mesh::draw(bool flush)
 {
-	// if (this == nullptr)
-	// {
-	// 	printf("Mesh::Draw: this is nullptr? wtf\n");
-	// 	return;
-	// }
-
 	if (mesh == nullptr)
 	{
 		printf("Mesh::draw: Mesh nullptr, not drawing!\n");
@@ -136,24 +135,6 @@ void Mesh::draw(bool flush)
 		printf("Mesh::draw: Mesh not compiled! shame on you!\n");
 		compile();
 	}
-
-
-	// {
-	// 	static char debug_str[256];
-	// 	memset(debug_str, 0, sizeof(debug_str));
-	// 	strncpy(debug_str, "Mesh::draw called with an invalid mesh! Did you compile the mesh before drawing it?\n", sizeof(debug_str));
-	// 	if (path != nullptr)
-	// 	{
-	// 		printf("%s\n", path->data());
-	// 		printf("list: %d\n", list);
-	// 		strncat(debug_str, path->data(), sizeof(debug_str));
-	// 		strncat(debug_str, "\n", sizeof(debug_str));
-	// 	}
-
-	// 	printf("list >= 0? %s\n", is_valid() ? "TRUE" : "FALSE");
-	// 	printf("list num: %d\n", list);
-	// 	checkf(is_valid(), debug_str);
-	// }
 
 	glCallList(list);
 	if (flush)

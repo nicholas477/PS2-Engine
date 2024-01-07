@@ -6,6 +6,7 @@ namespace World
 {
 Level::Level(Asset::Reference level_reference)
 {
+	debug_name = "Level";
 	checkf(Filesystem::load_file(level_reference, level_data, level_data_size), "unable to load level!");
 	level = (LevelFileHeader*)level_data.get();
 

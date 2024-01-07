@@ -6,15 +6,15 @@
 #include "components/transform_component.hpp"
 #include "components/collision_component.hpp"
 
-class Teapot: public Renderable, public Debuggable
+#include "objects/mesh_object.hpp"
+
+class Teapot: public RootComponentInterface
 {
 public:
 	Teapot();
-	virtual void render(const GS::GSState& gs_state) override;
-	TransformComponent transform;
 	collision_component collision;
 
-	class teapot_render_proxy* render_proxy;
+	MeshObject teapot_mesh;
 
-	virtual const char* get_type_name() const override { return typeid(Teapot).name(); }
+	virtual TransformComponent* get_root_component() { return teapot_mesh.get_root_component(); }
 };

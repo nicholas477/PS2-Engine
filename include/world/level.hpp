@@ -11,7 +11,7 @@
 
 namespace World
 {
-class Level: public Renderable
+class Level: public Renderable, public Debuggable
 {
 public:
 	Level(Asset::Reference level_reference);
@@ -21,6 +21,7 @@ public:
 
 	virtual ~Level() {};
 
+	virtual const char* get_type_name() const override { return typeid(Level).name(); }
 
 public: // Data members
 	size_t level_data_size;
