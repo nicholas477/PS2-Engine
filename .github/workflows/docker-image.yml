@@ -13,7 +13,7 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
-    container: ps2dev/ps2sdk
+    container: ps2dev/ps2dev
 
     permissions:
       contents: read
