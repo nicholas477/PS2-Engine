@@ -16,9 +16,9 @@ Level::Level(Asset::Reference level_reference)
 	{
 		meshes[ref] = Mesh(ref);
 
-		checkf(meshes[ref].is_valid(), "Mesh invalid!");
+		//checkf(meshes[ref].is_valid(), "Mesh invalid!");
 
-		printf("\n");
+		//printf("\n");
 	}
 }
 

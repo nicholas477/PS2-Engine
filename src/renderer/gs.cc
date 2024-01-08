@@ -6,6 +6,7 @@
 #include "stats.hpp"
 #include "egg/assert.hpp"
 #include "utils/debuggable.hpp"
+#include "threading.hpp"
 
 /* libc */
 #include <stdio.h>
@@ -270,6 +271,11 @@ initGsMemory()
 	pglPrintGsMemAllocation();
 }
 
+static void rendering_finished()
+{
+	//printf("rendering finished!!!!!!!!!!!!!!!\n");
+}
+
 void init()
 {
 	printf("Initializing graphics synthesizer\n");
@@ -294,6 +300,8 @@ void init()
 		pglInit(immBufferVertexSize, 1000);
 	}
 
+	pglSetRenderingFinishedCallback(rendering_finished);
+
 	// does gs memory need to be initialized?
 
 	if (!pglHasGsMemBeenInitted())
@@ -310,23 +318,17 @@ static void draw_objects(const GSState& gs_state)
 	int i = 0;
 	for (Renderable::TIterator Itr = Renderable::Itr(); Itr; ++Itr)
 	{
-		Debuggable::print_debug_object(&*Itr);
+		//Debuggable::print_debug_object(&*Itr);
 		Itr->render(gs_state);
 	}
 
 	// Text rendering
+	for (TextRenderable::TIterator Itr = TextRenderable::Itr(); Itr; ++Itr)
 	{
-		//glPolygonMode(GL_FRONT, GL_FILL);
-		//glDisable(GL_ALPHA_TEST);
-		glLoadIdentity();
-
-		for (TextRenderable::TIterator Itr = TextRenderable::Itr(); Itr; ++Itr)
-		{
-			Itr->render(gs_state);
-		}
-
-		printf("8\n");
+		Itr->render(gs_state);
 	}
+
+	printf("8\n");
 } // namespace GS
 
 static int gs_render()
@@ -334,6 +336,8 @@ static int gs_render()
 	static bool firstTime = true;
 	{
 		Stats::ScopedTimer draw_timer(Stats::scoped_timers::draw);
+
+		//printf("0: finish rendering sema: %d\n", PollSema(CGLContext::RenderingFinishedSemaId));
 
 		constexpr float world_scale = 0.0001f;
 		// Create the world-to-view matrix.
@@ -366,6 +370,10 @@ static int gs_render()
 
 		printf("11\n");
 
+		//printf("12: finish rendering sema: %d\n", PollSema(CGLContext::RenderingFinishedSemaId));
+
+		//iSignalSema(CGLContext::RenderingFinishedSemaId);
+
 		printf("12\n");
 		if (!firstTime)
 		{
@@ -373,6 +381,15 @@ static int gs_render()
 			//printf("Waiting for rendering to finish\n");
 			// This waits for rendering to finish
 			pglFinishRenderingGeometry(PGL_DONT_FORCE_IMMEDIATE_STOP);
+			// int i = 0;
+			// while (PollSema(CGLContext::RenderingFinishedSemaId) != -1)
+			// {
+			// 	if (i % 1000 == 0)
+			// 	{
+			// 		printf("Waiting for rendering! %d\n", i);
+			// 	}
+			// 	i++;
+			// }
 		}
 		else
 			firstTime = false;
@@ -396,6 +413,8 @@ static int gs_render()
 	pglRenderGeometry();
 
 	printf("16\n");
+
+	//printf("17: finish rendering sema: %d\n", PollSema(CGLContext::RenderingFinishedSemaId));
 
 	return 0;
 }

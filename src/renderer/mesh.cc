@@ -59,7 +59,13 @@ void Mesh::compile()
 	}
 
 	check(!is_valid());
-	check(mesh != nullptr);
+	//check(mesh != nullptr);
+
+	if (mesh == nullptr)
+	{
+		printf("Trying to compile null mesh!\n");
+		return;
+	}
 
 	printf("Compiling mesh %s, size in bytes: %ld\n", path->data(), mesh->pos.length + mesh->nrm.length);
 
@@ -126,7 +132,6 @@ void Mesh::draw(bool flush)
 	if (mesh == nullptr)
 	{
 		printf("Mesh::draw: Mesh nullptr, not drawing!\n");
-		check(false);
 		return;
 	}
 

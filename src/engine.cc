@@ -89,14 +89,6 @@ static void set_filesystem_type(Filesystem::Type t)
 
 void init(int argc, char* argv[])
 {
-	// TODO: figure out why this don't work
-	// if (argc == 2 && strcmp(argv[1], "--filesystem=host") == 0)
-	// {
-	// 	printf("Using host filesystem type\n");
-	// 	Filesystem::set_filesystem_type(Filesystem::Type::host);
-	// }
-	// else
-
 	Engine::set_filesystem_type(FILESYSTEM_TYPE);
 
 	if (Filesystem::get_filesystem_type() != Filesystem::Type::host)

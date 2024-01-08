@@ -83,8 +83,8 @@ if [ ! -d "dependencies/ps2gl" ]; then
     git clone https://github.com/nicholas477/ps2gl.git dependencies/ps2gl
 fi
 echo "------Compiling ps2gl------"
-pushd dependencies/ps2gl && make install DEBUG=1 -j$(nproc); popd
-pushd dependencies/ps2gl/glut && make install -j$(nproc); popd
+pushd dependencies/ps2gl && make clean && make install -j$(nproc); popd
+pushd dependencies/ps2gl/glut && make clean && make install -j$(nproc) ; popd
 
 echo "------Compiling ps2-engine------"
 
