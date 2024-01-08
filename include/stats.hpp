@@ -4,6 +4,7 @@
 #include "utils/list.hpp"
 
 #include <string>
+#include <array>
 #include <map>
 
 namespace Stats
