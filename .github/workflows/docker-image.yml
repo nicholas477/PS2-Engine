@@ -13,7 +13,8 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
-    container: ps2dev/ps2dev@sha256:1ad387529033129cc004299dbccb3066acf0e351de7db595d1e356e146c6e7e4
+    container: 
+      image: ghcr.io/ps2dev/ps2sdk@sha256:1ad387529033129cc004299dbccb3066acf0e351de7db595d1e356e146c6e7e4
 
     permissions:
       contents: read
