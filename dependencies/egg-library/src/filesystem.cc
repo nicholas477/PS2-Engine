@@ -6,10 +6,17 @@
 #include <string.h>
 #include <fstream>
 #include <memory>
-#include <filesystem>
 
 #include "egg/string.hpp"
 #include "egg/assert.hpp"
+
+#ifdef WIN32
+#include <io.h>
+#define F_OK 0
+#define access _access
+#else
+#include <unistd.h>
+#endif
 
 namespace Filesystem
 {
@@ -83,7 +90,7 @@ bool load_file(const Path& path, std::unique_ptr<std::byte[]>& out_bytes, size_t
 
 bool file_exists(const Path& path)
 {
-	return std::filesystem::exists(path.to_full_filepath());
+	return access(path.to_full_filepath(), F_OK) == 0;
 }
 
 // void iterate_dir(const Path& dir, std::function<void(const Path&)> itr_func, bool recursive)
