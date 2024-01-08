@@ -79,7 +79,7 @@ static constexpr char get_filesystem_separator(Type in_filesystem_type = get_fil
 bool load_file(const Path& path, std::vector<std::byte>& out_bytes);
 bool load_file(const Path& path, std::unique_ptr<std::byte[]>& out_bytes, size_t& size, size_t alignment = 1);
 bool file_exists(const Path& path);
-void iterate_dir(const Path& dir, std::function<void(const Path&)> itr_func, bool recursive = false);
+//void iterate_dir(const Path& dir, std::function<void(const Path&)> itr_func, bool recursive = false);
 
 constexpr struct Path convert_to_iso_path(const char* path);
 

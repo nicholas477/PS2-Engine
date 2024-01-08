@@ -5,7 +5,7 @@ set -e
 if [ ! "$1" ] || [ $1 != "ci" ]; then
     # Check if apt is installed before trying to run prereqs
     if command -v apt 2>&1 /dev/null; then
-        sudo apt install -y build-essential binutils-dev git cmake genisoimage libassimp-dev libmagick++-dev sox
+        sudo apt install -y build-essential binutils-dev git cmake genisoimage libassimp-dev libmagick++-dev sox autoconf automake
     fi
 
     if command -v pacman 2>&1 /dev/null; then
@@ -61,6 +61,7 @@ if [ ! -f "Makefile" ]; then
         ./configure
     fi
 fi
+make -j$(nproc)
 sudo -E make install -j$(nproc)
 popd
 

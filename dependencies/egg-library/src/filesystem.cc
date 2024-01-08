@@ -86,28 +86,28 @@ bool file_exists(const Path& path)
 	return std::filesystem::exists(path.to_full_filepath());
 }
 
-void iterate_dir(const Path& dir, std::function<void(const Path&)> itr_func, bool recursive)
-{
-	checkf(itr_func, "iterate_dir called with empty itr_func!");
+// void iterate_dir(const Path& dir, std::function<void(const Path&)> itr_func, bool recursive)
+// {
+// 	checkf(itr_func, "iterate_dir called with empty itr_func!");
 
-	namespace fs = std::filesystem;
-	if (recursive)
-	{
-		for (const fs::directory_entry& dir_entry :
-		     fs::recursive_directory_iterator(dir.to_full_filepath()))
-		{
-			itr_func(Path(dir_entry.path().c_str(), false));
-		}
-	}
-	else
-	{
-		for (const fs::directory_entry& dir_entry :
-		     fs::directory_iterator(dir.to_full_filepath()))
-		{
-			itr_func(Path(dir_entry.path().c_str(), false));
-		}
-	}
-}
+// 	namespace fs = std::filesystem;
+// 	if (recursive)
+// 	{
+// 		for (const fs::directory_entry& dir_entry :
+// 		     fs::recursive_directory_iterator(dir.to_full_filepath()))
+// 		{
+// 			itr_func(Path(dir_entry.path().c_str(), false));
+// 		}
+// 	}
+// 	else
+// 	{
+// 		for (const fs::directory_entry& dir_entry :
+// 		     fs::directory_iterator(dir.to_full_filepath()))
+// 		{
+// 			itr_func(Path(dir_entry.path().c_str(), false));
+// 		}
+// 	}
+// }
 
 const char* Path::to_full_filepath(Type in_filesystem_type) const
 {
