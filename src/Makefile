@@ -1,13 +1,11 @@
 EE_BIN = build/iso/MAIN.00
 ISO_TGT = $(OUTPUT_DIR)/test.iso
 SRC_FILES = $(shell find $(PREFIX) -name "*.cc" -o -name "*.cpp" -o -name "*.c")
-#SRC_FILES = src/main.cc
 EE_OBJS = $(patsubst %.cc, build/%.o, $(SRC_FILES))
 EE_OBJS := $(patsubst %.c, build/%.o, $(EE_OBJS))
 EE_OBJS := $(patsubst %.cpp, build/%.o, $(EE_OBJS))
 EE_INCS := -I$(PS2SDK)/ports/include -Iinclude -Ivu1 $(EE_INCS)
 EE_LDFLAGS  += -L$(PS2SDK)/ports/lib
-#EE_LIBS = -ldebug -lpatches -lxcdvd 
 EE_LIBS = -ldebug -lpatches -lxcdvd -lnetman -lps2gl -lps2stuff -legg -lps2ip -ldraw -lgraph -lmath3d -ldma -lpad -lc -lstdc++ -lgs -ldebug -leedebug -laudsrv -lcdvd -lxcdvd -lkbd
 EE_OPTFLAGS = -O3 -g -std=gnu++20
 EE_CFLAGS += -DNO_VU0_VECTORS -DNO_ASM
