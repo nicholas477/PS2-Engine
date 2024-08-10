@@ -87,6 +87,14 @@ echo "------Compiling ps2gl------"
 pushd dependencies/ps2gl && make clean && make install -j$(nproc); popd
 pushd dependencies/ps2gl/glut && make clean && make install -j$(nproc) ; popd
 
+# PS2GDB
+if [ ! -d "dependencies/ps2gdb" ]; then
+    echo "------Cloning ps2gdb------"
+    git clone https://github.com/ps2dev/ps2gdb.git dependencies/ps2gdb
+fi
+echo "------Compiling ps2gdb------"
+pushd dependencies/ps2gdb && make clean && make install; popd
+
 echo "------Compiling ps2-engine------"
 
 if [ ! "$1" ] || [ $1 != "deploy" ]; then

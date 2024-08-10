@@ -11,7 +11,8 @@ IRX_FILES = \
 	netman.irx \
 	usbd.irx \
 	ps2kbd.irx \
-	smap.irx
+	smap.irx \
+	ps2ips.irx
 
 IRX_SRC_FILES := $(addprefix $(PS2SDK)/iop/irx/, $(IRX_FILES))
 IRX_TARGET_FILES := $(addprefix $(ISO_FOLDER_DIR)/, $(IRX_FILES))
