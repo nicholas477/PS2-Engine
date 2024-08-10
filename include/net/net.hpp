@@ -2,5 +2,5 @@
 
 namespace Net
 {
-void init();
+void init() {};
 }
