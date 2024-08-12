@@ -1,8 +1,6 @@
 *.o
 *.elf
 
-.vscode
-
 build
 
 dependencies/cxxopts

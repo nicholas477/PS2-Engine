@@ -55,7 +55,7 @@ echo "------Compiling Masp------"
 pushd dependencies/openvcl/contrib/masp
 if [ ! -f "Makefile" ]; then
     chmod +x ./configure
-    if [ $1 = "ci" ]; then
+    if [ ! -z "$1" ] && [ $1 = "ci" ]; then
         ./configure LIBS="-lobstack"
     else
         ./configure

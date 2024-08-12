@@ -3,13 +3,20 @@
         {
             "name": "Linux",
             "includePath": [
-                "${default}"
+                "${default}",
+                "/usr/local/ps2dev/ee/include",
+                "/usr/local/ps2dev/ps2sdk/ee/include",
+                "/usr/local/ps2dev/ps2sdk/ports/include",
+                "/usr/local/ps2dev/ps2sdk/common/include"
             ],
             "compilerPath": "/usr/local/ps2dev/ee/bin/mips64r5900el-ps2-elf-g++",
             "cStandard": "c17",
             "cppStandard": "gnu++20",
             "intelliSenseMode": "linux-gcc-x64",
-            "configurationProvider": "ms-vscode.makefile-tools"
+            "configurationProvider": "ms-vscode.makefile-tools",
+            "defines": [
+                "_EE"
+            ]
         }
     ],
     "version": 4
