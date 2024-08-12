@@ -92,85 +92,6 @@ static void init_lights()
 	glEnable(GL_LIGHT0);
 }
 
-//-----------------------------------------------------------------------------
-static Matrix frustum(GLdouble left, GLdouble right,
-                      GLdouble bottom, GLdouble top,
-                      GLdouble zNear, GLdouble zFar)
-{
-	/*
-     * NOTE:
-     *   The PS2 does not support GL_LESS/GL_LEQUAL
-     *   but this is what 99% of OpenGL programs use.
-     *
-     *   As a result depth is inverted.
-     *   See glDepthFunc/glFrustum/glOrtho
-     */
-	//GL_FUNC_DEBUG("%s\n", __FUNCTION__);
-
-	cpu_mat_44 xform(
-	    cpu_vec_xyzw(
-	        (2.0f * zNear) / (right - left),
-	        0.0f,
-	        0.0f,
-	        0.0f),
-	    cpu_vec_xyzw(
-	        0.0f,
-	        (2.0f * zNear) / (top - bottom),
-	        0.0f,
-	        0.0f),
-	    cpu_vec_xyzw(
-	        (right + left) / (right - left),
-	        (top + bottom) / (top - bottom),
-	        -(zFar + zNear) / (zFar - zNear),
-	        -1.0f),
-	    cpu_vec_xyzw(
-	        0.0f,
-	        0.0f,
-	        (-2.0f * zFar * zNear) / (zFar - zNear),
-	        0.0f));
-
-	cpu_mat_44 inv(
-	    cpu_vec_xyzw(
-	        (right - left) / (2 * zNear),
-	        0,
-	        0,
-	        0),
-	    cpu_vec_xyzw(
-	        0,
-	        (top - bottom) / (2 * zNear),
-	        0,
-	        0),
-	    cpu_vec_xyzw(
-	        0,
-	        0,
-	        0,
-	        -(zFar - zNear) / (2 * zFar * zNear)),
-	    cpu_vec_xyzw(
-	        (right + left) / (2 * zNear),
-	        (top + bottom) / (2 * zNear),
-	        -1,
-	        (zFar + zNear) / (2 * zFar * zNear)));
-
-	return *reinterpret_cast<Matrix*>(&xform);
-}
-
-static Matrix perspective(GLdouble horizontal_fov, GLdouble aspect, GLdouble zNear, GLdouble zFar)
-{
-	GLdouble xmin, xmax, ymin, ymax;
-
-	// ymax = zNear * tan(fovy * M_PI / 360.0f);
-	// ymin = -ymax;
-	// xmin = ymin * aspect;
-	// xmax = ymax * aspect;
-
-	xmax = zNear * tan(horizontal_fov * M_PI / 360.0f);
-	xmin = -xmax;
-	ymin = xmin * (1.f / aspect);
-	ymax = xmax * (1.f / aspect);
-
-	return frustum(xmin, xmax, ymin, ymax, zNear, zFar);
-}
-
 void clear_screen()
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -327,22 +248,18 @@ static void draw_objects(const GSState& gs_state)
 	{
 		Itr->render(gs_state);
 	}
-
-	printf("8\n");
 } // namespace GS
 
-static int gs_render()
+static void gs_render()
 {
 	static bool firstTime = true;
 	{
 		Stats::ScopedTimer draw_timer(Stats::scoped_timers::draw);
 
-		//printf("0: finish rendering sema: %d\n", PollSema(CGLContext::RenderingFinishedSemaId));
-
 		constexpr float world_scale = 0.0001f;
 		// Create the world-to-view matrix.
 		_gs_state.world_view      = Camera::get().transform.get_matrix().invert();
-		_gs_state.view_screen     = perspective(Camera::get().fov, (GLfloat)screen_width / (GLfloat)screen_height, 0.001f, 1.f);
+		_gs_state.view_screen     = Matrix::perspective(Camera::get().fov, (GLfloat)screen_width / (GLfloat)screen_height, 0.001f, 1.f);
 		_gs_state.camera_rotation = Camera::get().transform.get_rotation();
 
 		glMatrixMode(GL_PROJECTION); // Select The Projection Matrix
@@ -359,64 +276,31 @@ static int gs_render()
 		draw_objects(_gs_state);
 
 		{
-			printf("9\n");
 			Stats::ScopedTimer flush_timer(Stats::scoped_timers::render_flush);
 			glFlush();
 		}
 
-		printf("10\n");
-
 		pglEndGeometry();
-
-		printf("11\n");
-
-		//printf("12: finish rendering sema: %d\n", PollSema(CGLContext::RenderingFinishedSemaId));
-
-		//iSignalSema(CGLContext::RenderingFinishedSemaId);
-
-		printf("12\n");
 		if (!firstTime)
 		{
 			Stats::ScopedTimer finish_geo_timer(Stats::scoped_timers::render_finish_geom);
-			//printf("Waiting for rendering to finish\n");
-			// This waits for rendering to finish
 			pglFinishRenderingGeometry(PGL_DONT_FORCE_IMMEDIATE_STOP);
-			// int i = 0;
-			// while (PollSema(CGLContext::RenderingFinishedSemaId) != -1)
-			// {
-			// 	if (i % 1000 == 0)
-			// 	{
-			// 		printf("Waiting for rendering! %d\n", i);
-			// 	}
-			// 	i++;
-			// }
 		}
 		else
+		{
 			firstTime = false;
-
-		printf("13\n");
+		}
 	}
-
-	//printf("Waiting for vsync\n");
 
 	// Either block until a vsync, or keep rendering until there's one
 	// available.
 	{
-		printf("14\n");
 		Stats::ScopedTimer vsync_timer(Stats::scoped_timers::render_vsync_wait);
 		pglWaitForVSync();
 	}
 
-	printf("15\n");
-
 	pglSwapBuffers();
 	pglRenderGeometry();
-
-	printf("16\n");
-
-	//printf("17: finish rendering sema: %d\n", PollSema(CGLContext::RenderingFinishedSemaId));
-
-	return 0;
 }
 
 void render() { gs_render(); }

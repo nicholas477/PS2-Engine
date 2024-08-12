@@ -19,6 +19,8 @@ TextObject::TextObject(std::string_view in_text)
 
 void TextObject::render(const GS::GSState& gs_state)
 {
+	//return;
+
 	if (text.size() > 0)
 	{
 		Vector screen_pos;

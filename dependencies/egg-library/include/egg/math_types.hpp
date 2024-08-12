@@ -387,30 +387,81 @@ struct alignas(16) Matrix
 	{
 	}
 
+	constexpr Matrix(const Vector& col0, const Vector& col1, const Vector& col2, const Vector& col3)
+	    : matrix {
+	          col0.x, col0.y, col0.z, col0.w,
+	          col1.x, col1.y, col1.z, col1.w,
+	          col2.x, col2.y, col2.z, col2.w,
+	          col3.x, col3.y, col3.z, col3.w}
+	{
+	}
+
 	operator const float*() const { return matrix; }
 	operator float*() { return matrix; }
 
-	float& operator[](size_t index)
+	operator const Vector*() const { return reinterpret_cast<const Vector*>(matrix); }
+	operator Vector*() { return reinterpret_cast<Vector*>(matrix); }
+
+	constexpr float& operator[](size_t index)
 	{
 		return matrix[index];
 	}
 
-	const float& operator[](size_t index) const
+	constexpr const float& operator[](size_t index) const
 	{
 		return matrix[index];
 	}
 
-	float& lookup(size_t row, size_t col)
+	constexpr float& lookup(size_t row, size_t col)
 	{
 		return matrix[col + (row * 4)];
 	}
 
-	const float& lookup(size_t row, size_t col) const
+	constexpr const float& lookup(size_t row, size_t col) const
 	{
 		return matrix[col + (row * 4)];
 	}
 
 	std::string to_string() const;
+
+	static constexpr Matrix frustum(float left, float right,
+	                                float bottom, float top,
+	                                float zNear, float zFar)
+	{
+		Matrix xform(
+		    Vector(
+		        (2.0f * zNear) / (right - left),
+		        0.0f,
+		        0.0f,
+		        0.0f),
+		    Vector(
+		        0.0f,
+		        (2.0f * zNear) / (top - bottom),
+		        0.0f,
+		        0.0f),
+		    Vector(
+		        (right + left) / (right - left),
+		        (top + bottom) / (top - bottom),
+		        -(zFar + zNear) / (zFar - zNear),
+		        -1.0f),
+		    Vector(
+		        0.0f,
+		        0.0f,
+		        (-2.0f * zFar * zNear) / (zFar - zNear),
+		        0.0f));
+
+		return xform;
+	}
+
+	static constexpr Matrix perspective(float horizontal_fov, float aspect, float zNear, float zFar)
+	{
+		float xmax = zNear * tan(horizontal_fov * M_PI / 360.0f);
+		float xmin = -xmax;
+		float ymin = xmin * (1.f / aspect);
+		float ymax = xmax * (1.f / aspect);
+
+		return frustum(xmin, xmax, ymin, ymax, zNear, zFar);
+	}
 
 #ifdef _EE
 	static constexpr Matrix UnitMatrix()
