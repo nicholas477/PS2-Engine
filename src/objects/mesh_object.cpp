@@ -29,8 +29,8 @@ void MeshObject::render(const GS::GSState& gs_state)
 {
 	if (mesh)
 	{
-		ScopedMatrix sm(transform.get_matrix());
-		mesh->draw();
+		printf("Object location: %s\n", transform.get_location().to_string().c_str());
+		mesh->draw(transform.get_matrix() * gs_state.world_screen);
 	}
 }
 

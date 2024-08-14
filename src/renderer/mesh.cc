@@ -1,12 +1,13 @@
 #include "renderer/mesh.hpp"
 #include "renderer/renderable.hpp"
-#include "renderer/ps2gl_renderers/vertex_color_renderer.hpp"
 
 #include "egg/filesystem.hpp"
 #include <egg/mesh_header.hpp>
 #include <GL/gl.h>
 #include <GL/ps2gl.h>
 #include <egg/assert.hpp>
+
+#include "egg-ps2-graphics-lib/egg-ps2-graphics-lib.hpp"
 
 static GLint num_lists = 0;
 
@@ -67,67 +68,67 @@ void Mesh::compile()
 		return;
 	}
 
-	printf("Compiling mesh %s, size in bytes: %ld\n", path->data(), mesh->pos.length + mesh->nrm.length);
+	// printf("Compiling mesh %s, size in bytes: %ld\n", path->data(), mesh->pos.length + mesh->nrm.length);
 
-	list = ++num_lists;
-	printf("New mesh draw list: %d\n", list);
+	// list = ++num_lists;
+	// printf("New mesh draw list: %d\n", list);
 
-	check(num_lists <= 4096);
-	glNewList(list, GL_COMPILE);
-	{
-		glEnable(GL_COLOR_MATERIAL);
-		glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
-		//glColorMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE);
-		//static float material_diff_amb[] = {0.5f, 0.5f, 0.5f, 0};
-		//glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, material_diff_amb);
-		glShadeModel(GL_SMOOTH);
-		glCullFace(GL_BACK);
-		//glDisable(GL_LIGHT0);
+	// check(num_lists <= 4096);
+	// glNewList(list, GL_COMPILE);
+	// {
+	// 	glEnable(GL_COLOR_MATERIAL);
+	// 	glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
+	// 	//glColorMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE);
+	// 	//static float material_diff_amb[] = {0.5f, 0.5f, 0.5f, 0};
+	// 	//glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, material_diff_amb);
+	// 	glShadeModel(GL_SMOOTH);
+	// 	glCullFace(GL_BACK);
+	// 	//glDisable(GL_LIGHT0);
 
-		//float material[] = {.5f, .5f, .5f, .5f};
-		//glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, material);
-		//glFrontFace(GL_CCW);
-		//pglEnableCustom(kVCRPrimTypeFlag);
+	// 	//float material[] = {.5f, .5f, .5f, .5f};
+	// 	//glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, material);
+	// 	//glFrontFace(GL_CCW);
+	// 	//pglEnableCustom(kVCRPrimTypeFlag);
 
-		check((uintptr_t)mesh->pos.get_ptr() % 16 == 0);
-		check((uintptr_t)mesh->nrm.get_ptr() % 16 == 0);
-		check((uintptr_t)mesh->uvs.get_ptr() % 16 == 0);
+	// 	check((uintptr_t)mesh->pos.get_ptr() % 16 == 0);
+	// 	check((uintptr_t)mesh->nrm.get_ptr() % 16 == 0);
+	// 	check((uintptr_t)mesh->uvs.get_ptr() % 16 == 0);
 
-		check(mesh->pos.offset > 0);
+	// 	check(mesh->pos.offset > 0);
 
-		glVertexPointer(4, GL_FLOAT, 0, mesh->pos.get_ptr());
+	// glVertexPointer(4, GL_FLOAT, 0, mesh->pos.get_ptr());
 
-		if (mesh->nrm.offset > 0)
-		{
-			pglNormalPointer(4, GL_FLOAT, 0, mesh->nrm.get_ptr());
-		}
+	// 	if (mesh->nrm.offset > 0)
+	// 	{
+	// 		pglNormalPointer(4, GL_FLOAT, 0, mesh->nrm.get_ptr());
+	// 	}
 
-		if (mesh->uvs.offset > 0)
-		{
-			glTexCoordPointer(2, GL_FLOAT, 0, mesh->uvs.get_ptr());
-		}
+	// 	if (mesh->uvs.offset > 0)
+	// 	{
+	// 		glTexCoordPointer(2, GL_FLOAT, 0, mesh->uvs.get_ptr());
+	// 	}
 
-		if (mesh->colors.offset > 0)
-		{
-			glColorPointer(4, GL_FLOAT, 0, mesh->colors.get_ptr());
-		}
+	// 	if (mesh->colors.offset > 0)
+	// 	{
+	// 		glColorPointer(4, GL_FLOAT, 0, mesh->colors.get_ptr());
+	// 	}
 
-		int i = 0;
-		for (const MeshTriangleStripHeader& strip : mesh->strips)
-		{
-			//printf("Compiling mesh strip: %d\n", i);
-			const auto start_index = strip.strip_start_index;
-			const auto count       = strip.strip_end_index - start_index;
+	// 	int i = 0;
+	// 	for (const MeshTriangleStripHeader& strip : mesh->strips)
+	// 	{
+	// 		//printf("Compiling mesh strip: %d\n", i);
+	// 		const auto start_index = strip.strip_start_index;
+	// 		const auto count       = strip.strip_end_index - start_index;
 
-			glDrawArrays(mesh->prim_type, start_index, count);
+	// 		glDrawArrays(mesh->prim_type, start_index, count);
 
-			++i;
-		}
-	}
-	glEndList();
+	// 		++i;
+	// 	}
+	// }
+	// glEndList();
 }
 
-void Mesh::draw(bool flush)
+void Mesh::draw(const Matrix& render_matrix, bool flush)
 {
 	if (mesh == nullptr)
 	{
@@ -135,17 +136,32 @@ void Mesh::draw(bool flush)
 		return;
 	}
 
-	if (!is_valid())
+
+	//printf("mesh Total verts: %d\n", mesh->pos.num_elements());
+	for (const MeshTriangleStripHeader& strip : mesh->strips)
 	{
-		printf("Mesh::draw: Mesh not compiled! shame on you!\n");
-		compile();
+		const auto start_index = strip.strip_start_index;
+		const auto end_index   = strip.strip_end_index;
+		for (uint32_t i = start_index; i < strip.strip_end_index; i += 198)
+		{
+			const auto i_start = std::max(i - 2, start_index);
+			const auto i_end   = std::min(i + 198, strip.strip_end_index);
+
+			egg::ps2::graphics::draw_mesh(render_matrix, i_end - i_start, mesh->pos.get_ptr() + i_start, mesh->colors.get_ptr() + i_start);
+		}
 	}
 
-	glCallList(list);
-	if (flush)
-	{
-		glFlush();
-	}
+	// if (!is_valid())
+	// {
+	// 	printf("Mesh::draw: Mesh not compiled! shame on you!\n");
+	// 	compile();
+	// }
+
+	// glCallList(list);
+	// if (flush)
+	// {
+	// 	glFlush();
+	// }
 }
 
 int Mesh::get_triangle_count() const

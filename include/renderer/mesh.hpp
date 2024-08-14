@@ -23,7 +23,7 @@ public:
 	size_t mesh_size;
 
 	void compile();
-	void draw(bool flush = false);
+	void draw(const Matrix& render_matrix, bool flush = false);
 
 	bool is_valid() const { return mesh != nullptr && list >= 0; }
 	int get_triangle_count() const;

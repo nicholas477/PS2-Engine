@@ -1,8 +1,6 @@
 #include "objects/camera.hpp"
 #include "renderer/gs.hpp"
 #include "renderer/renderable.hpp"
-#include "renderer/ps2gl_renderers/vertex_color_renderer.hpp"
-#include "renderer/ps2gl_renderers/vertex_color_vegetation_renderer.hpp"
 #include "stats.hpp"
 #include "egg/assert.hpp"
 #include "utils/debuggable.hpp"
@@ -16,40 +14,21 @@
 #include "kernel.h"
 #include "graph.h"
 
-/* GL */
-#include "GL/ps2gl.h"
-
-/* ps2stuff */
-#include "ps2s/core.h"
-#include "ps2s/displayenv.h"
-#include "ps2s/drawenv.h"
-#include "ps2s/gs.h"
-#include "ps2s/timer.h"
-
-/* ps2gl */
-#include "ps2gl/debug.h"
-#include "ps2gl/displaycontext.h"
-#include "ps2gl/drawcontext.h"
-#include "ps2gl/glcontext.h"
-
-#include <GL/glut.h>         // The GL Utility Toolkit (Glut) Header
-#include <ps2gl/glcontext.h> // The GL Utility Toolkit (Glut) Header
-#include <ps2gl/matrix.h>    // The GL Utility Toolkit (Glut) Header
-
 #include "renderer/text.hpp"
+#include "renderer/vu1/vertex_color_program.hpp"
+
+#include "egg-ps2-graphics-lib/egg-ps2-graphics-lib.hpp"
 
 
 namespace GS
 {
 static const int screen_width  = 640;
-static const int screen_height = 448;
+static const int screen_height = 512;
 
 IntVector2 get_screen_res()
 {
 	return {screen_width, screen_height};
 }
-
-static int context = 0;
 
 static GSState _gs_state;
 
@@ -79,117 +58,11 @@ bool GSState::world_to_screen(const Vector& world_vec, Vector& out_screen_pos) c
 	return false;
 }
 
-static void init_lights()
-{
-	// lighting
-	GLfloat ambient[]    = {0.0, 0.0, 0.0, 0.0};
-	GLfloat l0_diffuse[] = {1.0f, 1.0f, 1.0f, 0};
-
-
-	GLfloat black[] = {0, 0, 0, 0};
-
-	glEnable(GL_LIGHTING);
-	glEnable(GL_LIGHT0);
-}
-
-void clear_screen()
-{
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-}
-
 static bool has_initialized = false;
-
-static void init_renderer()
-{
-	printf("Initializing graphics synthesizer: renderer\n");
-	glShadeModel(GL_SMOOTH);              // Enable Smooth Shading
-	glClearColor(0.5f, 0.5f, 0.5f, 0.5f); // Black Background
-	glEnable(GL_DEPTH_TEST);              // Enables Depth Testing
-	glDepthFunc(GL_LEQUAL);               // The Type Of Depth Testing To Do
-	pglEnable(PGL_CLIPPING);
-
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glEnableClientState(GL_COLOR_ARRAY);
-
-	glDisableClientState(GL_NORMAL_ARRAY);
-	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-
-	//init_lights();
-
-	tsLoadFont();
-
-	CVertexColorRenderer::Register();
-	CVertexColorVegetationRenderer::Register();
-
-	has_initialized = true;
-
-	printf("Initializing graphics synthesizer: calling on_gs_init\n");
-	for (Renderable::TIterator Itr = Renderable::Itr(); Itr; ++Itr)
-	{
-		Itr->on_gs_init();
-	}
-
-	printf("Succesfully initialized GS\n");
-}
 
 bool has_gs_initialized()
 {
 	return has_initialized;
-}
-
-static void
-initGsMemory()
-{
-	// frame and depth buffer
-	pgl_slot_handle_t frame_slot_0, frame_slot_1, depth_slot;
-	frame_slot_0 = pglAddGsMemSlot(0, 70, GS::kPsm32);
-	frame_slot_1 = pglAddGsMemSlot(70, 70, GS::kPsm32);
-	depth_slot   = pglAddGsMemSlot(140, 70, GS::kPsmz24);
-	// lock these slots so that they aren't allocated by the memory manager
-	pglLockGsMemSlot(frame_slot_0);
-	pglLockGsMemSlot(frame_slot_1);
-	pglLockGsMemSlot(depth_slot);
-
-	// create gs memory area objects to use for frame and depth buffers
-	pgl_area_handle_t frame_area_0, frame_area_1, depth_area;
-	frame_area_0 = pglCreateGsMemArea(screen_width, screen_height / 2, GS::kPsm24);
-	frame_area_1 = pglCreateGsMemArea(screen_width, screen_height / 2, GS::kPsm24);
-	depth_area   = pglCreateGsMemArea(screen_width, screen_height / 2, GS::kPsmz24);
-
-	// bind the areas to the slots we created above
-	pglBindGsMemAreaToSlot(frame_area_0, frame_slot_0);
-	pglBindGsMemAreaToSlot(frame_area_1, frame_slot_1);
-	pglBindGsMemAreaToSlot(depth_area, depth_slot);
-
-	// draw to the new areas...
-	pglSetDrawBuffers(PGL_INTERLACED, frame_area_0, frame_area_1, depth_area);
-	// ...and display from them
-	pglSetDisplayBuffers(PGL_INTERLACED, frame_area_0, frame_area_1);
-
-	// 32 bit
-
-	// a slot for fonts (probably)
-	pglAddGsMemSlot(210, 4, GS::kPsm8);
-
-	// 64x32
-	pglAddGsMemSlot(214, 1, GS::kPsm32);
-	pglAddGsMemSlot(215, 1, GS::kPsm32);
-	// 64x64
-	pglAddGsMemSlot(216, 2, GS::kPsm32);
-	pglAddGsMemSlot(218, 2, GS::kPsm32);
-	pglAddGsMemSlot(220, 2, GS::kPsm32);
-	pglAddGsMemSlot(222, 2, GS::kPsm32);
-	// 128x128
-	pglAddGsMemSlot(224, 8, GS::kPsm32);
-	pglAddGsMemSlot(232, 8, GS::kPsm32);
-	// 256x256
-	pglAddGsMemSlot(240, 32, GS::kPsm32);
-	pglAddGsMemSlot(272, 32, GS::kPsm32);
-	// 512x256
-	pglAddGsMemSlot(302, 64, GS::kPsm32);
-	pglAddGsMemSlot(366, 64, GS::kPsm32);
-
-	pglPrintGsMemAllocation();
 }
 
 static void rendering_finished()
@@ -201,37 +74,9 @@ void init()
 {
 	printf("Initializing graphics synthesizer\n");
 
-	if (!pglHasLibraryBeenInitted())
-	{
-		// reset the machine
-		//      sceDevVif0Reset();
-		//      sceDevVu0Reset();
-		//      sceDmaReset(1);
-		//      sceGsResetPath();
+	egg::ps2::graphics::init();
 
-		// Reset the GIF. OSDSYS leaves PATH3 busy, that ends up having
-		// our PATH1/2 transfers ignored by the GIF.
-		*GIF::Registers::ctrl = 1;
-
-		//      sceGsResetGraph(0, SCE_GS_INTERLACE, SCE_GS_NTSC, SCE_GS_FRAME);
-		SetGsCrt(1 /* non-interlaced */, 2 /* ntsc */, 1 /* frame */);
-
-		mWarn("ps2gl library has not been initialized by the user; using default values.");
-		int immBufferVertexSize = 64 * 1024;
-		pglInit(immBufferVertexSize, 1000);
-	}
-
-	pglSetRenderingFinishedCallback(rendering_finished);
-
-	// does gs memory need to be initialized?
-
-	if (!pglHasGsMemBeenInitted())
-	{
-		mWarn("GS memory has not been allocated by the user; using default values.");
-		initGsMemory();
-	}
-
-	init_renderer();
+	egg::ps2::graphics::init_vu_program(mVsmStartAddr(VertexColorRenderer), mVsmEndAddr(VertexColorRenderer));
 }
 
 static void draw_objects(const GSState& gs_state)
@@ -241,66 +86,32 @@ static void draw_objects(const GSState& gs_state)
 	{
 		//Debuggable::print_debug_object(&*Itr);
 		Itr->render(gs_state);
+		i++;
 	}
 
-	// Text rendering
-	for (TextRenderable::TIterator Itr = TextRenderable::Itr(); Itr; ++Itr)
-	{
-		Itr->render(gs_state);
-	}
+	printf("rendered %d objects\n", i);
 } // namespace GS
 
 static void gs_render()
 {
-	static bool firstTime = true;
+	printf("Rendering...\n");
 	{
 		Stats::ScopedTimer draw_timer(Stats::scoped_timers::draw);
 
-		constexpr float world_scale = 0.0001f;
-		// Create the world-to-view matrix.
-		_gs_state.world_view      = Camera::get().transform.get_matrix().invert();
-		_gs_state.view_screen     = Matrix::perspective(Camera::get().fov, (GLfloat)screen_width / (GLfloat)screen_height, 0.001f, 1.f);
+		printf("camera matrix: \n%s\n", Camera::get().transform.get_matrix().to_string().c_str());
+		_gs_state.world_view = Camera::get().transform.get_matrix().invert() * Matrix::from_scale(Vector(1.f, 1.f, 1.f));
+		//_gs_state.view_screen = Matrix::perspective(Camera::get().fov, (GLfloat)screen_width / (GLfloat)screen_height, 1.f, 2000.f);
+		_gs_state.view_screen     = Matrix::frustum(-3.00f, 3.00f, -3.00f, 3.00f, 1.00f, 2000.f);
+		_gs_state.world_screen    = _gs_state.world_view * _gs_state.view_screen;
 		_gs_state.camera_rotation = Camera::get().transform.get_rotation();
+		printf("world screen matrix: \n%s\n", _gs_state.world_screen.to_string().c_str());
 
-		glMatrixMode(GL_PROJECTION); // Select The Projection Matrix
-		glLoadIdentity();
-		glMultMatrixf(_gs_state.view_screen);
-		glMultMatrixf(_gs_state.world_view * Matrix::from_scale(Vector(world_scale, world_scale, world_scale)));
-
-		glMatrixMode(GL_MODELVIEW);
-
-		pglBeginGeometry();
-
-		clear_screen();
+		egg::ps2::graphics::clear_screen(0x40, 0x40, 0x40);
 
 		draw_objects(_gs_state);
-
-		{
-			Stats::ScopedTimer flush_timer(Stats::scoped_timers::render_flush);
-			glFlush();
-		}
-
-		pglEndGeometry();
-		if (!firstTime)
-		{
-			Stats::ScopedTimer finish_geo_timer(Stats::scoped_timers::render_finish_geom);
-			pglFinishRenderingGeometry(PGL_DONT_FORCE_IMMEDIATE_STOP);
-		}
-		else
-		{
-			firstTime = false;
-		}
 	}
 
-	// Either block until a vsync, or keep rendering until there's one
-	// available.
-	{
-		Stats::ScopedTimer vsync_timer(Stats::scoped_timers::render_vsync_wait);
-		pglWaitForVSync();
-	}
-
-	pglSwapBuffers();
-	pglRenderGeometry();
+	egg::ps2::graphics::wait_vsync();
 }
 
 void render() { gs_render(); }

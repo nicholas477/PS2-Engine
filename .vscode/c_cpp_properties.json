@@ -4,10 +4,13 @@
             "name": "Linux",
             "includePath": [
                 "${default}",
+                "${workspaceFolder}/include",
                 "/usr/local/ps2dev/ee/include",
                 "/usr/local/ps2dev/ps2sdk/ee/include",
                 "/usr/local/ps2dev/ps2sdk/ports/include",
-                "/usr/local/ps2dev/ps2sdk/common/include"
+                "/usr/local/ps2dev/ps2sdk/common/include",
+                "${workspaceFolder}/dependencies/egg-ps2-graphics-lib/include",
+                "${workspaceFolder}/vu1"
             ],
             "compilerPath": "/usr/local/ps2dev/ee/bin/mips64r5900el-ps2-elf-g++",
             "cStandard": "c17",

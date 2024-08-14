@@ -4,11 +4,12 @@
 #include <cstdio>
 #include <stdio.h>
 
-#if _EE
+#ifdef _EE
 #include <kernel.h>
 #include "debug.h"
 
 #if 1
+
 #define check(expr)                                                               \
 	{                                                                             \
 		if (!(expr))                                                              \
@@ -39,7 +40,9 @@
 			throw std::runtime_error("Check failed!\n");                          \
 		}                                                                         \
 	}
-#else
+
+#else // 1
+
 #define check(expr) \
 	{               \
 		expr;       \
@@ -49,7 +52,9 @@
 	{                     \
 		expr;             \
 	}
-#endif
+
+#endif // 1
+
 static void print_stack_trace()
 {
 	unsigned int* stackTrace[256];
@@ -69,8 +74,11 @@ static void print_stack_trace()
 	printf("----------------------\n");
 	scr_printf("----------------------\n");
 }
+
 #else // _EE
+
 #if 1
+
 #define check(expr)                                                                                          \
 	{                                                                                                        \
 		if (!(expr))                                                                                         \
@@ -90,7 +98,9 @@ static void print_stack_trace()
 			throw std::runtime_error("Check failed!\n");                      \
 		}                                                                     \
 	}
-#else
+
+#else // 1
+
 #define check(expr) \
 	{               \
 		expr;       \
@@ -100,5 +110,7 @@ static void print_stack_trace()
 	{                     \
 		expr;             \
 	}
+
 #endif
+
 #endif

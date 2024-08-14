@@ -5,7 +5,7 @@ set -e
 if [ ! "$1" ] || [ $1 != "ci" ]; then
     # Check if apt is installed before trying to run prereqs
     if command -v apt 2>&1 /dev/null; then
-        sudo apt install -y build-essential binutils-dev git cmake genisoimage libassimp-dev libmagick++-dev sox autoconf automake
+        sudo apt install -y build-essential binutils-dev git cmake genisoimage libassimp-dev libmagick++-dev sox autoconf automake autopoint
     fi
 
     if command -v pacman 2>&1 /dev/null; then
@@ -41,6 +41,8 @@ popd
 
 echo "------Compiling egg-library------"
 pushd dependencies/egg-library && ./compile.sh; popd
+echo "------Compiling egg-ps2-graphics-library------"
+pushd dependencies/egg-ps2-graphics-lib && ./compile.sh; popd
 echo "------Compiling ps2-manifest-generator------"
 pushd tools/ps2-manifest-generator && ./compile.sh; popd
 echo "------Compiling ps2-mesh-converter------"
@@ -70,23 +72,6 @@ pushd dependencies/openvcl
 sudo -E make install -j$(nproc)
 popd
 
-# PS2Stuff
-if [ ! -d "dependencies/ps2stuff" ]; then
-    echo "------Cloning ps2stuff------"
-    git clone https://github.com/ps2dev/ps2stuff.git dependencies/ps2stuff
-fi
-echo "------Compiling ps2gl------"
-pushd dependencies/ps2stuff && make install -j$(nproc); popd
-
-# PS2GL
-if [ ! -d "dependencies/ps2gl" ]; then
-    echo "------Cloning ps2gl------"
-    git clone https://github.com/nicholas477/ps2gl.git dependencies/ps2gl
-fi
-echo "------Compiling ps2gl------"
-pushd dependencies/ps2gl && make clean && make install -j$(nproc); popd
-pushd dependencies/ps2gl/glut && make clean && make install -j$(nproc) ; popd
-
 # PS2GDB
 if [ ! -d "dependencies/ps2gdb" ]; then
     echo "------Cloning ps2gdb------"
@@ -97,7 +82,9 @@ pushd dependencies/ps2gdb && make clean && make install; popd
 
 echo "------Compiling ps2-engine------"
 
-if [ ! "$1" ] || [ $1 != "deploy" ]; then
+if [ ! -z "$1" ] && [ $1 = "ci" ]; then
+    make iso -j$(nproc)
+elif [ ! "$1" ] || [ $1 != "deploy" ]; then
     make iso -j$(nproc)
 else
     make deploy_iso -j$(nproc)

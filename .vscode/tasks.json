@@ -14,7 +14,7 @@
             "command": "bash",
             "args": [
                 "-ic",
-                "make clean && make all -j16"
+                "make clean && make all -j$(nproc)"
             ],
             "problemMatcher": [],
             "group": {

@@ -26,8 +26,7 @@ void Level::render(const GS::GSState& gs_state)
 {
 	for (int i = 0; i < level->meshes.mesh_files.num_elements(); ++i)
 	{
-		ScopedMatrix m(level->meshes.mesh_transforms[i]);
-		meshes[level->meshes.mesh_files[i]].draw();
+		meshes[level->meshes.mesh_files[i]].draw(level->meshes.mesh_transforms[i] * gs_state.world_view);
 	}
 }
 

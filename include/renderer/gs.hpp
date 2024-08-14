@@ -15,6 +15,7 @@ struct GSState
 {
 	Matrix world_view;
 	Matrix view_screen;
+	Matrix world_screen; // World to screen matrix. Use this for drawing
 	Vector camera_rotation;
 
 	Matrix get_camera_matrix() const;
@@ -27,6 +28,5 @@ struct GSState
 bool has_gs_initialized();
 void init();
 void render();
-void clear_screen();
 IntVector2 get_screen_res();
 } // namespace GS
