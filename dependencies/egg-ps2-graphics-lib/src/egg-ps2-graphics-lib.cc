@@ -22,6 +22,7 @@ texbuffer_t texbuff;
 /** Some initialization of GS and VRAM allocation */
 void init_gs(framebuffer_t* t_frame, zbuffer_t* t_z, texbuffer_t* t_texbuff)
 {
+	printf("egg-ps2-graphics-lib: init gs\n");
 	// Define a 32-bit 640x480 framebuffer.
 	t_frame->width   = 640;
 	t_frame->height  = 512;
@@ -48,6 +49,7 @@ void init_gs(framebuffer_t* t_frame, zbuffer_t* t_z, texbuffer_t* t_texbuff)
 /** Some initialization of GS 2 */
 void init_drawing_environment(framebuffer_t* t_frame, zbuffer_t* t_z)
 {
+	printf("egg-ps2-graphics-lib: init_drawing_environment\n");
 	packet2_t* packet2 = packet2_create(20, P2_TYPE_NORMAL, P2_MODE_NORMAL, 0);
 
 	// This will setup a default drawing environment.
@@ -68,6 +70,7 @@ void init_drawing_environment(framebuffer_t* t_frame, zbuffer_t* t_z)
 
 void vu1_set_double_buffer_settings()
 {
+	printf("egg-ps2-graphics-lib: vu1_set_double_buffer_settings\n");
 	packet2_t* packet2 = packet2_create(1, P2_TYPE_NORMAL, P2_MODE_CHAIN, 1);
 	packet2_utils_vu_add_double_buffer(packet2, 8, 496);
 	packet2_utils_vu_add_end_tag(packet2);
@@ -132,6 +135,8 @@ void clear_screen(int r, int g, int b)
 
 void wait_vsync()
 {
+	//draw_wait_finish();
+
 	graph_wait_vsync();
 }
 

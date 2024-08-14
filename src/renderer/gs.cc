@@ -89,12 +89,12 @@ static void draw_objects(const GSState& gs_state)
 		i++;
 	}
 
-	printf("rendered %d objects\n", i);
+	//printf("rendered %d objects\n", i);
 } // namespace GS
 
 static void gs_render()
 {
-	printf("Rendering...\n");
+	//printf("Rendering...\n");
 	{
 		Stats::ScopedTimer draw_timer(Stats::scoped_timers::draw);
 

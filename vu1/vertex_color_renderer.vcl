@@ -35,30 +35,28 @@
 --enter
 --endenter
 
-    ;//////////// --- Load data 1 --- /////////////
-    ; Updated once per mesh
-    lq      matrixRow[0],     0(vi00) ; load view-projection matrix
-    lq      matrixRow[1],     1(vi00)
-    lq      matrixRow[2],     2(vi00)
-    lq      matrixRow[3],     3(vi00)
     ;/////////////////////////////////////////////
 
 	fcset   0x000000	; VCL won't let us use CLIP without first zeroing
 				     ; the clip flags
 
-    ;//////////// --- Load data 2 --- /////////////
+    ;//////////// --- Load data --- /////////////
     ; Updated dynamically
     xtop    iBase
 
-    lq.xyz  scale,          0(iBase) ; load program params
+    lq      matrixRow[0],     0(iBase) ; load view-projection matrix
+    lq      matrixRow[1],     1(iBase)
+    lq      matrixRow[2],     2(iBase)
+    lq      matrixRow[3],     3(iBase)
+
+    lq.xyz  scale,            4(iBase) ; load program params
                                      ; float : X, Y, Z - scale vector that we will use to scale the verts after projecting them.
                                      ; float : W - vert count.
-    ilw.w   vertCount,      0(iBase) ; load vert count from scale vector
-    lq      primTag,        1(iBase) ; GIF tag - tell GS how many data we will send
-    lq      rgba,           2(iBase) ; RGBA
-                                     ; u32 : R, G, B, A (0-128)
-    ;ilw.w   vertCount,      3(iBase)
-    iaddiu  vertexData,     iBase,      3           ; pointer to vertex data
+    ilw.w   vertCount,        4(iBase)
+    lq      primTag,          5(iBase) ; GIF tag - tell GS how many data we will send
+    lq      rgba,             6(iBase) ; RGBA
+                                       ; u32 : R, G, B, A (0-128)
+    iaddiu  vertexData,     iBase,         7           ; pointer to vertex data
     iadd    kickAddress,    vertexData,    vertCount   ; pointer for XGKICK
     iadd    destAddress,    vertexData,    vertCount   ; helper pointer for data inserting
     ;////////////////////////////////////////////
@@ -72,9 +70,9 @@
     vertexLoop:
 
         ;////////// --- Load loop data --- //////////
-        lq.xyz vertex, 0(vertexData)    ; load xyz
-                                    ; float : X, Y, Z
-                                    ; any32 : _ = 0
+        lq.xyz vertex, 0(vertexData) ; load xyz
+                                     ; float : X, Y, Z
+                                     ; any32 : _ = 0
         move.w vertex, vf00
 
 

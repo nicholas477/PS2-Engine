@@ -141,10 +141,10 @@ void Mesh::draw(const Matrix& render_matrix, bool flush)
 	{
 		const auto start_index = strip.strip_start_index;
 		const auto end_index   = strip.strip_end_index;
-		for (int32_t i = start_index; i <= end_index; i += 200)
+		for (int32_t i = start_index; i <= end_index; i += 64)
 		{
 			const auto i_start = std::max(i - 2, (int32_t)start_index);
-			const auto i_end   = std::min((uint32_t)i + 200, end_index);
+			const auto i_end   = std::min((uint32_t)i + 64, end_index);
 			assert(i_start != i_end);
 			//printf("Start index: %d\n", i_start);
 			//printf("End index: %d\n", i_end);

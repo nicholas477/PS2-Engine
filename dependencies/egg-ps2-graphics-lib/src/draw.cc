@@ -30,9 +30,14 @@ clutbuffer_t clut;
 lod_t lod;
 
 u8 context = 0;
-packet2_t* zbyszek_packet;
+packet2_t* base_packet[2] __attribute__((aligned(64)));
 packet2_t* vif_packets[2] __attribute__((aligned(64)));
 packet2_t* curr_vif_packet;
+packet2_t* curr_base_packet;
+
+VECTOR* c_verts[2] __attribute__((aligned(128)));
+VECTOR* curr_vert_array;
+
 } // namespace
 
 namespace egg::ps2::graphics
@@ -40,6 +45,8 @@ namespace egg::ps2::graphics
 void draw_mesh(const Matrix& mesh_to_screen_matrix, int num_verts, const Vector* pos, const Vector* colors)
 {
 	static bool initialized = false;
+
+	assert(num_verts > 0);
 
 	if (!initialized)
 	{
@@ -53,49 +60,66 @@ void draw_mesh(const Matrix& mesh_to_screen_matrix, int num_verts, const Vector*
 		prim.mapping_type = PRIM_MAP_ST;
 		prim.colorfix     = PRIM_UNFIXED;
 
-		printf("initializing vif packet...\n");
-		zbyszek_packet = packet2_create(10, P2_TYPE_NORMAL, P2_MODE_CHAIN, 1);
+		printf("initializing vif packets...\n");
+		base_packet[0] = packet2_create(16, P2_TYPE_NORMAL, P2_MODE_CHAIN, 1);
+		base_packet[1] = packet2_create(16, P2_TYPE_NORMAL, P2_MODE_CHAIN, 1);
 		vif_packets[0] = packet2_create(1000, P2_TYPE_NORMAL, P2_MODE_CHAIN, 1);
 		vif_packets[1] = packet2_create(1000, P2_TYPE_NORMAL, P2_MODE_CHAIN, 1);
+
+		c_verts[0] = (VECTOR*)memalign(128, sizeof(VECTOR) * 128);
+		c_verts[1] = (VECTOR*)memalign(128, sizeof(VECTOR) * 128);
 
 		initialized = true;
 		printf("Initialized\n");
 	}
 
-	packet2_reset(zbyszek_packet, 0);
-	packet2_add_float(zbyszek_packet, 2048.0F);                   // scale
-	packet2_add_float(zbyszek_packet, 2048.0F);                   // scale
-	packet2_add_float(zbyszek_packet, ((float)0xFFFFFF) / 32.0F); // scale
-	packet2_add_s32(zbyszek_packet, num_verts);                   // vertex count
-	packet2_utils_gs_add_prim_giftag(zbyszek_packet, &prim, num_verts, DRAW_RGBAQ_REGLIST, 2, 0);
+	curr_base_packet = base_packet[context];
+	curr_vif_packet  = vif_packets[context];
+	curr_vert_array  = c_verts[context];
+
+	packet2_reset(curr_vif_packet, 0);
+	packet2_reset(curr_base_packet, 0);
+
+	memcpy(curr_vert_array, pos, num_verts * sizeof(Vector));
+
+	// 0
+	for (int i = 0; i < 4; ++i)
+	{
+		packet2_add_u128(curr_base_packet, ((u128*)&mesh_to_screen_matrix)[i]);
+	}
+
+	// 4
+	packet2_add_float(curr_base_packet, 2048.0F);                   // scale
+	packet2_add_float(curr_base_packet, 2048.0F);                   // scale
+	packet2_add_float(curr_base_packet, ((float)0xFFFFFF) / 32.0F); // scale
+	packet2_add_s32(curr_base_packet, num_verts);                   // vert count
+
+	// 5
+	packet2_utils_gs_add_prim_giftag(curr_base_packet, &prim, num_verts, DRAW_RGBAQ_REGLIST, 2, 0);
+
+	// 6
 	u8 j = 0; // RGBA
 	for (j = 0; j < 4; j++)
-		packet2_add_u32(zbyszek_packet, 128);
+		packet2_add_u32(curr_base_packet, 128);
 
-	curr_vif_packet = vif_packets[context];
-	packet2_reset(curr_vif_packet, 0);
+	u32 vif_added_qws = 0; // zero because now we will use TOP register (double buffer)
+	                       // we don't wan't to unpack at 8 + beggining of buffer, but at
+	                       // the beggining of the buffer
 
-	packet2_utils_vu_add_unpack_data(curr_vif_packet, 0, (void*)&mesh_to_screen_matrix, 4, 0);
+	packet2_utils_vu_add_unpack_data(curr_vif_packet, vif_added_qws, curr_base_packet->base, packet2_get_qw_count(curr_base_packet), 1);
+	vif_added_qws += packet2_get_qw_count(curr_base_packet);
 
-	u32 vif_added_bytes = 0; // zero because now we will use TOP register (double buffer)
-	                         // we don't wan't to unpack at 8 + beggining of buffer, but at
-	                         // the beggining of the buffer
-
-	// Merge packets
-	packet2_utils_vu_add_unpack_data(curr_vif_packet, vif_added_bytes, zbyszek_packet->base, packet2_get_qw_count(zbyszek_packet), 1);
-	vif_added_bytes += packet2_get_qw_count(zbyszek_packet);
-
-	packet2_utils_vu_add_unpack_data(curr_vif_packet, vif_added_bytes, (void*)pos, num_verts, 1);
-	vif_added_bytes += num_verts;
+	packet2_utils_vu_add_unpack_data(curr_vif_packet, vif_added_qws, (void*)curr_vert_array, num_verts, 1);
+	vif_added_qws += num_verts;
 
 	packet2_utils_vu_add_start_program(curr_vif_packet, 0);
 	packet2_utils_vu_add_end_tag(curr_vif_packet);
 
+	//printf("Waiting for vif1...\n");
 	dma_channel_wait(DMA_CHANNEL_VIF1, 0);
-
 	dma_channel_send_packet2(curr_vif_packet, DMA_CHANNEL_VIF1, 1);
 
 	// Switch packet, so we can proceed during DMA transfer
-	context = !context;
+	context ^= 1;
 }
 } // namespace egg::ps2::graphics
