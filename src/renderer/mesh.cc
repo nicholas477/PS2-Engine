@@ -3,13 +3,11 @@
 
 #include "egg/filesystem.hpp"
 #include <egg/mesh_header.hpp>
-#include <GL/gl.h>
-#include <GL/ps2gl.h>
 #include <egg/assert.hpp>
 
 #include "egg-ps2-graphics-lib/egg-ps2-graphics-lib.hpp"
 
-static GLint num_lists = 0;
+//static GLint num_lists = 0;
 
 Mesh::Mesh()
 {
