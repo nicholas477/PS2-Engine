@@ -57,6 +57,7 @@
     lq      primTag,        1(iBase) ; GIF tag - tell GS how many data we will send
     lq      rgba,           2(iBase) ; RGBA
                                      ; u32 : R, G, B, A (0-128)
+    ;ilw.w   vertCount,      3(iBase)
     iaddiu  vertexData,     iBase,      3           ; pointer to vertex data
     iadd    kickAddress,    vertexData,    vertCount   ; pointer for XGKICK
     iadd    destAddress,    vertexData,    vertCount   ; helper pointer for data inserting
@@ -71,10 +72,10 @@
     vertexLoop:
 
         ;////////// --- Load loop data --- //////////
-        lq vertex, 0(vertexData)    ; load xyz
+        lq.xyz vertex, 0(vertexData)    ; load xyz
                                     ; float : X, Y, Z
                                     ; any32 : _ = 0
-        ;lq.w vertex, vf00
+        move.w vertex, vf00
 
 
         ;////////////// --- Vertex --- //////////////

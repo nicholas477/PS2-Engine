@@ -137,31 +137,21 @@ void Mesh::draw(const Matrix& render_matrix, bool flush)
 	}
 
 
-	//printf("mesh Total verts: %d\n", mesh->pos.num_elements());
 	for (const MeshTriangleStripHeader& strip : mesh->strips)
 	{
 		const auto start_index = strip.strip_start_index;
 		const auto end_index   = strip.strip_end_index;
-		for (uint32_t i = start_index; i < strip.strip_end_index; i += 198)
+		for (int32_t i = start_index; i <= end_index; i += 200)
 		{
-			const auto i_start = std::max(i - 2, start_index);
-			const auto i_end   = std::min(i + 198, strip.strip_end_index);
+			const auto i_start = std::max(i - 2, (int32_t)start_index);
+			const auto i_end   = std::min((uint32_t)i + 200, end_index);
+			assert(i_start != i_end);
+			//printf("Start index: %d\n", i_start);
+			//printf("End index: %d\n", i_end);
 
 			egg::ps2::graphics::draw_mesh(render_matrix, i_end - i_start, mesh->pos.get_ptr() + i_start, mesh->colors.get_ptr() + i_start);
 		}
 	}
-
-	// if (!is_valid())
-	// {
-	// 	printf("Mesh::draw: Mesh not compiled! shame on you!\n");
-	// 	compile();
-	// }
-
-	// glCallList(list);
-	// if (flush)
-	// {
-	// 	glFlush();
-	// }
 }
 
 int Mesh::get_triangle_count() const

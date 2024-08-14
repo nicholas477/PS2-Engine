@@ -98,13 +98,11 @@ static void gs_render()
 	{
 		Stats::ScopedTimer draw_timer(Stats::scoped_timers::draw);
 
-		printf("camera matrix: \n%s\n", Camera::get().transform.get_matrix().to_string().c_str());
 		_gs_state.world_view = Camera::get().transform.get_matrix().invert() * Matrix::from_scale(Vector(1.f, 1.f, 1.f));
 		//_gs_state.view_screen = Matrix::perspective(Camera::get().fov, (GLfloat)screen_width / (GLfloat)screen_height, 1.f, 2000.f);
-		_gs_state.view_screen     = Matrix::frustum(-3.00f, 3.00f, -3.00f, 3.00f, 1.00f, 2000.f);
+		_gs_state.view_screen     = Matrix::frustum(-3.00f, 3.00f, 3.00f, -3.00f, 1.00f, 2000.f);
 		_gs_state.world_screen    = _gs_state.world_view * _gs_state.view_screen;
 		_gs_state.camera_rotation = Camera::get().transform.get_rotation();
-		printf("world screen matrix: \n%s\n", _gs_state.world_screen.to_string().c_str());
 
 		egg::ps2::graphics::clear_screen(0x40, 0x40, 0x40);
 

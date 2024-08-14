@@ -59,6 +59,7 @@ void draw_mesh(const Matrix& mesh_to_screen_matrix, int num_verts, const Vector*
 		vif_packets[1] = packet2_create(1000, P2_TYPE_NORMAL, P2_MODE_CHAIN, 1);
 
 		initialized = true;
+		printf("Initialized\n");
 	}
 
 	packet2_reset(zbyszek_packet, 0);
@@ -84,21 +85,14 @@ void draw_mesh(const Matrix& mesh_to_screen_matrix, int num_verts, const Vector*
 	packet2_utils_vu_add_unpack_data(curr_vif_packet, vif_added_bytes, zbyszek_packet->base, packet2_get_qw_count(zbyszek_packet), 1);
 	vif_added_bytes += packet2_get_qw_count(zbyszek_packet);
 
-	for (int i = 0; i < num_verts; ++i)
-	{
-		Vector* modpos = (Vector*)pos;
-		modpos[i].w    = 1.f;
-	}
-
 	packet2_utils_vu_add_unpack_data(curr_vif_packet, vif_added_bytes, (void*)pos, num_verts, 1);
 	vif_added_bytes += num_verts;
 
-	//packet2_utils_vu_add_unpack_data(curr_vif_packet, vif_added_bytes, (void*)colors, num_verts, 1);
-	//vif_added_bytes += num_verts;
-
 	packet2_utils_vu_add_start_program(curr_vif_packet, 0);
 	packet2_utils_vu_add_end_tag(curr_vif_packet);
+
 	dma_channel_wait(DMA_CHANNEL_VIF1, 0);
+
 	dma_channel_send_packet2(curr_vif_packet, DMA_CHANNEL_VIF1, 1);
 
 	// Switch packet, so we can proceed during DMA transfer
