@@ -111,7 +111,10 @@ static void gs_render()
 		egg::ps2::graphics::end_draw();
 	}
 
-	egg::ps2::graphics::wait_vsync();
+	{
+		Stats::ScopedTimer draw_timer(Stats::scoped_timers::render_vsync_wait);
+		egg::ps2::graphics::wait_vsync();
+	}
 }
 
 void render() { gs_render(); }

@@ -82,7 +82,7 @@ void vu1_set_double_buffer_settings()
 {
 	printf("egg-ps2-graphics-lib: vu1_set_double_buffer_settings\n");
 	packet2_t* packet2 = packet2_create(1, P2_TYPE_NORMAL, P2_MODE_CHAIN, 1);
-	packet2_utils_vu_add_double_buffer(packet2, 0, 500);
+	//packet2_utils_vu_add_double_buffer(packet2, 0, 500);
 	packet2_utils_vu_add_end_tag(packet2);
 	dma_channel_send_packet2(packet2, DMA_CHANNEL_VIF1, 1);
 	dma_channel_wait(DMA_CHANNEL_VIF1, 0);

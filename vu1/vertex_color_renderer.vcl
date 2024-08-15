@@ -82,7 +82,7 @@
         clipw.xyz	vertex, vertex			; Dr. Fortuna: This instruction checks if the vertex is outside
 							; the viewing frustum. If it is, then the appropriate
 							; clipping flags are set
-        fcand		vi01,   0x003ffff       ; Bitwise AND the clipping flags with 0x3FFFF, this makes
+        fcand		vi01,   0xFFFF       ; Bitwise AND the clipping flags with 0x3FFFF, this makes
 							; sure that we get the clipping judgement for the last three
 							; verts (i.e. that make up the triangle we are about to draw)
         iaddiu		iClipBit,   vi01,       0x7FFF      ; Add 0x7FFF. If any of the clipping flags were set this will
@@ -100,7 +100,7 @@
         ;//////////// --- Store data --- ////////////
         sq rgba,            0(destAddress)      ; RGBA
         sq.xyz vertex,      1(destAddress)      ; XYZ2
-        isw.w	iClipBit,   1(destAddress)
+        isw.w  iClipBit,    1(destAddress)
         ;////////////////////////////////////////////
 
         iaddiu          vertexData,     vertexData,     1                         

@@ -103,10 +103,10 @@ void draw_strip(const Matrix& mesh_to_screen_matrix, int num_verts, const Vector
 	                       // we don't wan't to unpack at 8 + beggining of buffer, but at
 	                       // the beggining of the buffer
 
-	packet2_utils_vu_add_unpack_data(curr_vif_packet, vif_added_qws, curr_base_packet->base, packet2_get_qw_count(curr_base_packet), 1);
+	packet2_utils_vu_add_unpack_data(curr_vif_packet, vif_added_qws, curr_base_packet->base, packet2_get_qw_count(curr_base_packet), 0);
 	vif_added_qws += packet2_get_qw_count(curr_base_packet);
 
-	packet2_utils_vu_add_unpack_data(curr_vif_packet, vif_added_qws, (void*)curr_vert_array, num_verts, 1);
+	packet2_utils_vu_add_unpack_data(curr_vif_packet, vif_added_qws, (void*)curr_vert_array, num_verts, 0);
 	vif_added_qws += num_verts;
 
 	packet2_utils_vu_add_start_program(curr_vif_packet, 0);
