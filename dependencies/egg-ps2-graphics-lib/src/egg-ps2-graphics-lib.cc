@@ -14,20 +14,35 @@
 
 namespace
 {
+// Which framebuffer we are drawing to
+int context = 0;
+
 // The buffers to be used.
-framebuffer_t frame;
+framebuffer_t frame[2];
+framebuffer_t* current_frame;
 zbuffer_t z;
-texbuffer_t texbuff;
 
 /** Some initialization of GS and VRAM allocation */
-void init_gs(framebuffer_t* t_frame, zbuffer_t* t_z, texbuffer_t* t_texbuff)
+void init_gs(framebuffer_t* t_frame, zbuffer_t* t_z)
 {
 	printf("egg-ps2-graphics-lib: init gs\n");
-	// Define a 32-bit 640x480 framebuffer.
-	t_frame->width   = 640;
-	t_frame->height  = 512;
-	t_frame->mask    = 0;
-	t_frame->psm     = GS_PSM_32;
+	// Define a 32-bit 640x512 framebuffer.
+	t_frame->width  = 640;
+	t_frame->height = 512;
+	t_frame->mask   = 0;
+	t_frame->psm    = GS_PSM_32;
+
+	// Allocate some vram for our framebuffer.
+	t_frame->address = graph_vram_allocate(t_frame->width, t_frame->height, t_frame->psm, GRAPH_ALIGN_PAGE);
+
+	t_frame++;
+
+	t_frame->width  = 640;
+	t_frame->height = 512;
+	t_frame->mask   = 0;
+	t_frame->psm    = GS_PSM_32;
+
+	// Allocate some vram for our framebuffer.
 	t_frame->address = graph_vram_allocate(t_frame->width, t_frame->height, t_frame->psm, GRAPH_ALIGN_PAGE);
 
 	// Enable the zbuffer.
@@ -36,11 +51,6 @@ void init_gs(framebuffer_t* t_frame, zbuffer_t* t_z, texbuffer_t* t_texbuff)
 	t_z->method  = ZTEST_METHOD_GREATER_EQUAL;
 	t_z->zsm     = GS_ZBUF_32;
 	t_z->address = graph_vram_allocate(t_frame->width, t_frame->height, t_z->zsm, GRAPH_ALIGN_PAGE);
-
-	// Allocate some vram for the texture buffer
-	t_texbuff->width   = 128;
-	t_texbuff->psm     = GS_PSM_24;
-	t_texbuff->address = graph_vram_allocate(128, 128, GS_PSM_24, GRAPH_ALIGN_BLOCK);
 
 	// Initialize the screen and tie the first framebuffer to the read circuits.
 	graph_initialize(t_frame->address, t_frame->width, t_frame->height, t_frame->psm, 0, 0);
@@ -72,12 +82,28 @@ void vu1_set_double_buffer_settings()
 {
 	printf("egg-ps2-graphics-lib: vu1_set_double_buffer_settings\n");
 	packet2_t* packet2 = packet2_create(1, P2_TYPE_NORMAL, P2_MODE_CHAIN, 1);
-	packet2_utils_vu_add_double_buffer(packet2, 8, 496);
+	packet2_utils_vu_add_double_buffer(packet2, 0, 500);
 	packet2_utils_vu_add_end_tag(packet2);
 	dma_channel_send_packet2(packet2, DMA_CHANNEL_VIF1, 1);
 	dma_channel_wait(DMA_CHANNEL_VIF1, 0);
 	packet2_free(packet2);
 }
+
+void flip_buffers(framebuffer_t* t_frame)
+{
+	packet2_t* flip = packet2_create(3, P2_TYPE_NORMAL, P2_MODE_NORMAL, 0);
+
+	packet2_update(flip, draw_framebuffer(flip->next, 0, t_frame));
+	packet2_update(flip, draw_finish(flip->next));
+
+	dma_wait_fast();
+	dma_channel_send_packet2(flip, DMA_CHANNEL_GIF, 1);
+
+	draw_wait_finish();
+
+	packet2_free(flip);
+}
+
 } // namespace
 
 namespace egg::ps2::graphics
@@ -93,10 +119,12 @@ void init()
 
 	vu1_set_double_buffer_settings();
 
-	// Init the GS, framebuffer, zbuffer, and texture buffer.
-	init_gs(&frame, &z, &texbuff);
+	// Init the GS, framebuffer, zbuffer
+	init_gs(frame, &z);
 
-	init_drawing_environment(&frame, &z);
+	init_drawing_environment(frame, &z);
+
+	current_frame = frame;
 }
 
 void init_vu_program(void* program_start_address, void* program_end_address)
@@ -119,7 +147,7 @@ void clear_screen(int r, int g, int b)
 
 	// Clear framebuffer but don't update zbuffer.
 	packet2_update(clear, draw_disable_tests(clear->next, 0, &z));
-	packet2_update(clear, draw_clear(clear->next, 0, 2048.0f - 320.f, 2048.0f - 256.f, frame.width, frame.height, r, g, b));
+	packet2_update(clear, draw_clear(clear->next, 0, 2048.0f - 320.f, 2048.0f - 256.f, current_frame->width, current_frame->height, r, g, b));
 	packet2_update(clear, draw_enable_tests(clear->next, 0, &z));
 	packet2_update(clear, draw_finish(clear->next));
 
@@ -135,18 +163,33 @@ void clear_screen(int r, int g, int b)
 
 void wait_vsync()
 {
-	//draw_wait_finish();
-
+	printf("waiting vsync.........\n");
 	graph_wait_vsync();
+
+	graph_set_framebuffer_filtered(current_frame->address, current_frame->width, current_frame->psm, 0, 0);
+
+	context ^= 1;
+	current_frame = &frame[context];
+
+	flip_buffers(current_frame);
 }
 
 void end_draw()
 {
-	// packet2_t* packet2 = packet2_create(1, P2_TYPE_NORMAL, P2_MODE_CHAIN, 1);
-	// packet2_utils_vu_add_end_tag(packet2);
-	// dma_channel_send_packet2(packet2, DMA_CHANNEL_VIF1, 1);
-	// dma_channel_wait(DMA_CHANNEL_VIF1, 0);
-	// packet2_free(packet2);
+	printf("end_draw.........\n");
+
+	packet2_t* finish = packet2_create(35, P2_TYPE_NORMAL, P2_MODE_NORMAL, 0);
+
+	// Clear framebuffer but don't update zbuffer.
+	packet2_update(finish, draw_finish(finish->next));
+
+	// Now send our current dma chain.
+	dma_wait_fast();
+	dma_channel_send_packet2(finish, DMA_CHANNEL_GIF, 1);
+
+	draw_wait_finish();
+
+	packet2_free(finish);
 }
 
 } // namespace egg::ps2::graphics

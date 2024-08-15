@@ -79,19 +79,19 @@
         ;////////////// --- Vertex --- //////////////
         matrixMultiplyVertex vertex, matrixRow, vertex
        
-        clipw.xyz	vertex, vertex			; Dr. Fortuna: This instruction checks if the vertex is outside
+        ;clipw.xyz	vertex, vertex			; Dr. Fortuna: This instruction checks if the vertex is outside
 							; the viewing frustum. If it is, then the appropriate
 							; clipping flags are set
-        fcand		VI01,   0x3FFFF                 ; Bitwise AND the clipping flags with 0x3FFFF, this makes
+        ;fcand		VI01,   0x0003ffff       ; Bitwise AND the clipping flags with 0x3FFFF, this makes
 							; sure that we get the clipping judgement for the last three
 							; verts (i.e. that make up the triangle we are about to draw)
-        iaddiu		iADC,   VI01,       0x7FFF      ; Add 0x7FFF. If any of the clipping flags were set this will
+        ;iaddiu		iADC,   VI01,       0x7FFF      ; Add 0x7FFF. If any of the clipping flags were set this will
 							; cause the triangle not to be drawn (any values above 0x8000
 							; that are stored in the w component of XYZ2 will set the ADC
 							; bit, which tells the GS not to perform a drawing kick on this
 							; triangle.
 
-        isw.w		iADC,   1(destAddress)
+        ;isw.w		iADC,   1(destAddress)
         
         div         q,      vf00[w],    vertex[w]   ; perspective divide (1/vert[w]):
         mul.xyz     vertex, vertex,     q

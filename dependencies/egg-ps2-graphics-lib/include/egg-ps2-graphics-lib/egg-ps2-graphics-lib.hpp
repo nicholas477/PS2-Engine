@@ -14,6 +14,6 @@ void clear_screen(int r, int g, int b);
 
 void wait_vsync();
 
-void draw_mesh(const Matrix& mesh_to_screen_matrix, int num_verts, const Vector* pos, const Vector* colors);
+void draw_mesh(const Matrix& mesh_to_screen_matrix, int num_verts, const Vector* pos);
 void end_draw();
 } // namespace egg::ps2::graphics

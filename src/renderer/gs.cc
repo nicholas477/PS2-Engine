@@ -107,6 +107,8 @@ static void gs_render()
 		egg::ps2::graphics::clear_screen(0x40, 0x40, 0x40);
 
 		draw_objects(_gs_state);
+
+		egg::ps2::graphics::end_draw();
 	}
 
 	egg::ps2::graphics::wait_vsync();

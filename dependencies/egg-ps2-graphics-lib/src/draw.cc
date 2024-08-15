@@ -32,21 +32,18 @@ lod_t lod;
 u8 context = 0;
 packet2_t* base_packet[2] __attribute__((aligned(64)));
 packet2_t* vif_packets[2] __attribute__((aligned(64)));
+
 packet2_t* curr_vif_packet;
 packet2_t* curr_base_packet;
 
 VECTOR* c_verts[2] __attribute__((aligned(128)));
 VECTOR* curr_vert_array;
 
-} // namespace
-
-namespace egg::ps2::graphics
-{
-void draw_mesh(const Matrix& mesh_to_screen_matrix, int num_verts, const Vector* pos, const Vector* colors)
+void draw_strip(const Matrix& mesh_to_screen_matrix, int num_verts, const Vector* pos)
 {
 	static bool initialized = false;
 
-	assert(num_verts > 0);
+	assert(num_verts > 2);
 
 	if (!initialized)
 	{
@@ -63,8 +60,8 @@ void draw_mesh(const Matrix& mesh_to_screen_matrix, int num_verts, const Vector*
 		printf("initializing vif packets...\n");
 		base_packet[0] = packet2_create(16, P2_TYPE_NORMAL, P2_MODE_CHAIN, 1);
 		base_packet[1] = packet2_create(16, P2_TYPE_NORMAL, P2_MODE_CHAIN, 1);
-		vif_packets[0] = packet2_create(1000, P2_TYPE_NORMAL, P2_MODE_CHAIN, 1);
-		vif_packets[1] = packet2_create(1000, P2_TYPE_NORMAL, P2_MODE_CHAIN, 1);
+		vif_packets[0] = packet2_create(4000, P2_TYPE_NORMAL, P2_MODE_CHAIN, 1);
+		vif_packets[1] = packet2_create(4000, P2_TYPE_NORMAL, P2_MODE_CHAIN, 1);
 
 		c_verts[0] = (VECTOR*)memalign(128, sizeof(VECTOR) * 128);
 		c_verts[1] = (VECTOR*)memalign(128, sizeof(VECTOR) * 128);
@@ -121,5 +118,22 @@ void draw_mesh(const Matrix& mesh_to_screen_matrix, int num_verts, const Vector*
 
 	// Switch packet, so we can proceed during DMA transfer
 	context ^= 1;
+}
+
+} // namespace
+
+namespace egg::ps2::graphics
+{
+void draw_mesh(const Matrix& mesh_to_screen_matrix, int num_verts, const Vector* pos)
+{
+	// Draw in blocks of 16 verts each
+	for (int32_t i = 0; i <= num_verts; i += 16)
+	{
+		const auto i_start = std::max(i - 2, (int32_t)0);
+		const auto i_end   = std::min((int)i + 16, num_verts);
+		assert(i_start != i_end);
+
+		draw_strip(mesh_to_screen_matrix, i_end - i_start, pos + i_start);
+	}
 }
 } // namespace egg::ps2::graphics
