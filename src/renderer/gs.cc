@@ -92,7 +92,7 @@ static void draw_objects(const GSState& gs_state)
 	//printf("rendered %d objects\n", i);
 } // namespace GS
 
-static void gs_render()
+void render()
 {
 	//printf("Rendering...\n");
 	{
@@ -106,6 +106,8 @@ static void gs_render()
 
 		egg::ps2::graphics::clear_screen(0x40, 0x40, 0x40);
 
+		egg::ps2::graphics::start_draw();
+
 		draw_objects(_gs_state);
 
 		egg::ps2::graphics::end_draw();
@@ -116,8 +118,6 @@ static void gs_render()
 		egg::ps2::graphics::wait_vsync();
 	}
 }
-
-void render() { gs_render(); }
 
 Vector GSState::get_camera_pos() const
 {

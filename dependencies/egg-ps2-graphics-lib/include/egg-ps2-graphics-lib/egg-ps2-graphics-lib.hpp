@@ -1,5 +1,7 @@
 #pragma once
 
+#include <packet2.h>
+
 struct Matrix;
 struct Vector;
 
@@ -15,5 +17,10 @@ void clear_screen(int r, int g, int b);
 void wait_vsync();
 
 void draw_mesh(const Matrix& mesh_to_screen_matrix, int num_verts, const Vector* pos);
+
+void start_draw();
 void end_draw();
+
+packet2_t* get_curr_vif_packet();
+
 } // namespace egg::ps2::graphics

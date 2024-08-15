@@ -7,11 +7,11 @@ EE_OBJS := $(patsubst %.cpp, build/%.o, $(EE_OBJS))
 EE_INCS := -I$(PS2SDK)/ports/include -Iinclude -Ivu1 -Idependencies/egg-ps2-graphics-lib/include $(EE_INCS)
 EE_LDFLAGS  += -L$(PS2SDK)/ports/lib -Ldependencies/egg-ps2-graphics-lib/lib
 EE_LIBS = -legg-ps2-graphics-lib -lpatches -lnetman -legg -ldraw -lgraph -lmath3d -ldma -lpad -lc -lstdc++ -lgs -ldebug -leedebug -laudsrv -lcdvd -lxcdvd -lkbd -lps2gdbStub -lps2ips -lpacket2 
-EE_OPTFLAGS = -O3 -g -std=gnu++20
-EE_CFLAGS += -DNO_VU0_VECTORS -DNO_ASM
-EE_CXXFLAGS += -DNO_VU0_VECTORS -DNO_ASM -frtti
+EE_OPTFLAGS = -g -std=gnu++20
+EE_CFLAGS += -DNO_VU0_VECTORS -DNO_ASM -g
+EE_CXXFLAGS += -DNO_VU0_VECTORS -DNO_ASM -frtti -g
 EE_WARNFLAGS = -Wall -Wno-unused-function -Wno-unused-variable -Wno-strict-aliasing -Wno-conversion-null -Werror=return-type
-LINKFLAGS	= -O3 -g -Wl,-zmax-page-size=128
+LINKFLAGS	= -g -Wl,-zmax-page-size=128
 
 OUTPUT_DIR     = build
 ISO_FOLDER_DIR = build/iso

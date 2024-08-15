@@ -174,6 +174,11 @@ void wait_vsync()
 	flip_buffers(current_frame);
 }
 
+void start_draw()
+{
+	printf("start_draw.........\n");
+}
+
 void end_draw()
 {
 	printf("end_draw.........\n");
