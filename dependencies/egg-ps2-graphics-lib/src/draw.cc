@@ -36,9 +36,6 @@ packet2_t* vif_packets[2] __attribute__((aligned(64)));
 packet2_t* curr_vif_packet;
 packet2_t* curr_base_packet;
 
-VECTOR* c_verts[2] __attribute__((aligned(128)));
-VECTOR* curr_vert_array;
-
 void draw_strip(const Matrix& mesh_to_screen_matrix, int num_verts, const Vector* pos)
 {
 	static bool initialized = false;
@@ -63,21 +60,15 @@ void draw_strip(const Matrix& mesh_to_screen_matrix, int num_verts, const Vector
 		vif_packets[0] = packet2_create(4000, P2_TYPE_NORMAL, P2_MODE_CHAIN, 1);
 		vif_packets[1] = packet2_create(4000, P2_TYPE_NORMAL, P2_MODE_CHAIN, 1);
 
-		c_verts[0] = (VECTOR*)memalign(128, sizeof(VECTOR) * 128);
-		c_verts[1] = (VECTOR*)memalign(128, sizeof(VECTOR) * 128);
-
 		initialized = true;
 		printf("Initialized\n");
 	}
 
 	curr_base_packet = base_packet[context];
 	curr_vif_packet  = vif_packets[context];
-	curr_vert_array  = c_verts[context];
 
 	packet2_reset(curr_vif_packet, 0);
 	packet2_reset(curr_base_packet, 0);
-
-	memcpy(curr_vert_array, pos, num_verts * sizeof(Vector));
 
 	// 0
 	for (int i = 0; i < 4; ++i)
@@ -106,18 +97,13 @@ void draw_strip(const Matrix& mesh_to_screen_matrix, int num_verts, const Vector
 	packet2_utils_vu_add_unpack_data(curr_vif_packet, vif_added_qws, curr_base_packet->base, packet2_get_qw_count(curr_base_packet), 0);
 	vif_added_qws += packet2_get_qw_count(curr_base_packet);
 
-	packet2_utils_vu_add_unpack_data(curr_vif_packet, vif_added_qws, (void*)curr_vert_array, num_verts, 0);
+	packet2_utils_vu_add_unpack_data(curr_vif_packet, vif_added_qws, (void*)pos, num_verts, 0);
 	vif_added_qws += num_verts;
 
 	packet2_utils_vu_add_start_program(curr_vif_packet, 0);
 	packet2_utils_vu_add_end_tag(curr_vif_packet);
-
-	//printf("Waiting for vif1...\n");
 	dma_channel_wait(DMA_CHANNEL_VIF1, 0);
 	dma_channel_send_packet2(curr_vif_packet, DMA_CHANNEL_VIF1, 1);
-
-	// Switch packet, so we can proceed during DMA transfer
-	context ^= 1;
 }
 
 } // namespace
