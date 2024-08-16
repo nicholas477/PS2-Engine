@@ -17,7 +17,7 @@ OUTPUT_DIR     = build
 ISO_FOLDER_DIR = build/iso
 
 include src/Makefile.iso
-include src/Makefile.vuprogs
+# include src/Makefile.vuprogs
 
 .PHONY: compile cleancompile
 compile: $(EE_BIN)

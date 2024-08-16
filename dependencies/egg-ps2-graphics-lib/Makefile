@@ -24,5 +24,7 @@ clean:
 	rm -f -r $(EE_OBJS_DIR) $(EE_LIB_DIR)
 	rm -rf ./src/*.o
 
+include Makefile.vuprogs
+
 include $(PS2SDK)/samples/Makefile.pref
 include $(PS2SDK)/samples/Makefile.eeglobal

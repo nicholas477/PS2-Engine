@@ -1,4 +1,5 @@
 #include "egg-ps2-graphics-lib/egg-ps2-graphics-lib.hpp"
+#include "egg-ps2-graphics-lib/types.hpp"
 
 #include <kernel.h>
 #include <malloc.h>
@@ -11,6 +12,8 @@
 #include <draw.h>
 
 #include "egg/math_types.hpp"
+
+using namespace egg::ps2::graphics;
 
 namespace
 {
@@ -60,7 +63,7 @@ void init_gs(framebuffer_t* t_frame, zbuffer_t* t_z)
 void init_drawing_environment(framebuffer_t* t_frame, zbuffer_t* t_z)
 {
 	printf("egg-ps2-graphics-lib: init_drawing_environment\n");
-	packet2_t* packet2 = packet2_create(20, P2_TYPE_NORMAL, P2_MODE_NORMAL, 0);
+	utils::inline_packet2<20> packet2(P2_TYPE_NORMAL, P2_MODE_NORMAL, 1);
 
 	// This will setup a default drawing environment.
 	packet2_update(packet2, draw_setup_environment(packet2->next, 0, t_frame, t_z));
@@ -74,25 +77,21 @@ void init_drawing_environment(framebuffer_t* t_frame, zbuffer_t* t_z)
 	// Now send the packet, no need to wait since it's the first.
 	dma_channel_send_packet2(packet2, DMA_CHANNEL_GIF, 1);
 	dma_wait_fast();
-
-	packet2_free(packet2);
 }
 
 void vu1_set_double_buffer_settings()
 {
 	printf("egg-ps2-graphics-lib: vu1_set_double_buffer_settings\n");
-	packet2_t* packet2 = packet2_create(1, P2_TYPE_NORMAL, P2_MODE_CHAIN, 1);
+	utils::inline_packet2<1> packet2(P2_TYPE_NORMAL, P2_MODE_CHAIN, 1);
 	//packet2_utils_vu_add_double_buffer(packet2, 0, 500);
 	packet2_utils_vu_add_end_tag(packet2);
 	dma_channel_send_packet2(packet2, DMA_CHANNEL_VIF1, 1);
 	dma_channel_wait(DMA_CHANNEL_VIF1, 0);
-	packet2_free(packet2);
 }
 
 void flip_buffers(framebuffer_t* t_frame)
 {
-	packet2_t* flip = packet2_create(3, P2_TYPE_NORMAL, P2_MODE_NORMAL, 0);
-
+	utils::inline_packet2<3> flip(P2_TYPE_NORMAL, P2_MODE_NORMAL, 0);
 	packet2_update(flip, draw_framebuffer(flip->next, 0, t_frame));
 	packet2_update(flip, draw_finish(flip->next));
 
@@ -100,8 +99,6 @@ void flip_buffers(framebuffer_t* t_frame)
 	dma_channel_send_packet2(flip, DMA_CHANNEL_GIF, 1);
 
 	draw_wait_finish();
-
-	packet2_free(flip);
 }
 
 } // namespace
@@ -143,7 +140,7 @@ void init_vu_program(void* program_start_address, void* program_end_address)
 
 void clear_screen(int r, int g, int b)
 {
-	packet2_t* clear = packet2_create(35, P2_TYPE_NORMAL, P2_MODE_NORMAL, 0);
+	utils::inline_packet2<35> clear(P2_TYPE_NORMAL, P2_MODE_NORMAL, 0);
 
 	// Clear framebuffer but don't update zbuffer.
 	packet2_update(clear, draw_disable_tests(clear->next, 0, &z));
@@ -154,8 +151,6 @@ void clear_screen(int r, int g, int b)
 	// Now send our current dma chain.
 	dma_wait_fast();
 	dma_channel_send_packet2(clear, DMA_CHANNEL_GIF, 1);
-
-	packet2_free(clear);
 
 	// Wait for scene to finish drawing
 	draw_wait_finish();
@@ -183,7 +178,7 @@ void end_draw()
 {
 	printf("end_draw.........\n");
 
-	packet2_t* finish = packet2_create(35, P2_TYPE_NORMAL, P2_MODE_NORMAL, 0);
+	utils::inline_packet2<35> finish(P2_TYPE_NORMAL, P2_MODE_NORMAL, 0);
 
 	// Clear framebuffer but don't update zbuffer.
 	packet2_update(finish, draw_finish(finish->next));
@@ -193,8 +188,6 @@ void end_draw()
 	dma_channel_send_packet2(finish, DMA_CHANNEL_GIF, 1);
 
 	draw_wait_finish();
-
-	packet2_free(finish);
 }
 
 } // namespace egg::ps2::graphics
