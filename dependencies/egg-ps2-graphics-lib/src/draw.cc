@@ -83,22 +83,36 @@ void draw_strip(const Matrix& mesh_to_screen_matrix, int num_verts, const Vector
 	packet2_add_s32(curr_base_packet, num_verts);                   // vert count
 
 	// 5
-	packet2_utils_gs_add_prim_giftag(curr_base_packet, &prim, num_verts, DRAW_RGBAQ_REGLIST, 2, 0);
+	{
+		packet2_add_2x_s64(
+		    curr_base_packet,
+		    VU_GS_GIFTAG(
+		        num_verts, // Information for GS. Amount of loops
+		        1,
+		        1,
+		        VU_GS_PRIM(
+		            prim.type,
+		            prim.shading,
+		            prim.mapping,
+		            prim.fogging,
+		            prim.blending,
+		            prim.antialiasing,
+		            prim.mapping_type,
+		            0, // context
+		            prim.colorfix),
+		        0,
+		        2),
+		    DRAW_RGBAQ_REGLIST);
+	}
 
 	// 6
 	u8 j = 0; // RGBA
 	for (j = 0; j < 4; j++)
 		packet2_add_u32(curr_base_packet, 128);
 
-	u32 vif_added_qws = 0; // zero because now we will use TOP register (double buffer)
-	                       // we don't wan't to unpack at 8 + beggining of buffer, but at
-	                       // the beggining of the buffer
-
-	packet2_utils_vu_add_unpack_data(curr_vif_packet, vif_added_qws, curr_base_packet->base, packet2_get_qw_count(curr_base_packet), 0);
-	vif_added_qws += packet2_get_qw_count(curr_base_packet);
-
-	packet2_utils_vu_add_unpack_data(curr_vif_packet, vif_added_qws, (void*)pos, num_verts, 0);
-	vif_added_qws += num_verts;
+	// How the fuck does unpacking at memory location 0 work if there's already the projection matrix there?
+	packet2_utils_vu_add_unpack_data(curr_vif_packet, 0, curr_base_packet->base, packet2_get_qw_count(curr_base_packet), 0);
+	packet2_utils_vu_add_unpack_data(curr_vif_packet, packet2_get_qw_count(curr_base_packet), (void*)pos, num_verts, 0);
 
 	packet2_utils_vu_add_start_program(curr_vif_packet, 0);
 	packet2_utils_vu_add_end_tag(curr_vif_packet);

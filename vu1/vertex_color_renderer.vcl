@@ -45,19 +45,19 @@
     ; Updated dynamically
     xtop    iBase
 
-    lq      matrixRow[0],     0(iBase) ; load view-projection matrix
-    lq      matrixRow[1],     1(iBase)
-    lq      matrixRow[2],     2(iBase)
-    lq      matrixRow[3],     3(iBase)
+    lq      matrixRow[0],     0(vi00) ; load view-projection matrix
+    lq      matrixRow[1],     1(vi00)
+    lq      matrixRow[2],     2(vi00)
+    lq      matrixRow[3],     3(vi00)
 
-    lq.xyz  scale,            4(iBase) ; load program params
+    lq.xyz  scale,            4(vi00) ; load program params
                                      ; float : X, Y, Z - scale vector that we will use to scale the verts after projecting them.
                                      ; float : W - vert count.
-    ilw.w   vertCount,        4(iBase)
-    lq      primTag,          5(iBase) ; GIF tag - tell GS how many data we will send
-    lq      rgba,             6(iBase) ; RGBA
+    ilw.w   vertCount,        4(vi00)
+    lq      primTag,          5(vi00) ; GIF tag - tell GS how many data we will send
+    lq      rgba,             6(vi00) ; RGBA
                                        ; u32 : R, G, B, A (0-128)
-    iaddiu  vertexData,     iBase,         7           ; pointer to vertex data
+    iaddiu  vertexData,     vi00,         7           ; pointer to vertex data
     iadd    kickAddress,    vertexData,    vertCount   ; pointer for XGKICK
     iadd    destAddress,    vertexData,    vertCount   ; helper pointer for data inserting
     ;////////////////////////////////////////////
@@ -67,7 +67,7 @@
     ;////////////////////////////////////////////
 
     ;/////////////// --- Loop --- ///////////////
-    iadd vertexCounter, iBase, vertCount ; loop vertCount times
+    iadd vertexCounter, vi00, vertCount ; loop vertCount times
     vertexLoop:
 
         ;////////// --- Load loop data --- //////////
@@ -107,7 +107,7 @@
         iaddiu          destAddress,    destAddress,    2
 
         iaddi   vertexCounter,  vertexCounter,  -1	; decrement the loop counter 
-        ibne    vertexCounter,  iBase,   vertexLoop	; and repeat if needed
+        ibne    vertexCounter,  vi00,   vertexLoop	; and repeat if needed
 
     ;//////////////////////////////////////////// 
 
