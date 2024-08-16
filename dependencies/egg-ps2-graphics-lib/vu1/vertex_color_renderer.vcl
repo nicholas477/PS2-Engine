@@ -57,9 +57,10 @@
     lq      primTag,          5(vi00) ; GIF tag - tell GS how many data we will send
     lq      rgba,             6(vi00) ; RGBA
                                        ; u32 : R, G, B, A (0-128)
-    iaddiu  vertexData,     vi00,         7           ; pointer to vertex data
-    iadd    kickAddress,    vertexData,    vertCount   ; pointer for XGKICK
-    iadd    destAddress,    vertexData,    vertCount   ; helper pointer for data inserting
+    iaddiu  vertexData,     vi00,         7            ; pointer to vertex data
+    iadd    colorData,      vertexData,    vertCount   ; pointer to color data
+    iadd    kickAddress,    colorData,     vertCount   ; pointer for XGKICK
+    iadd    destAddress,    colorData,     vertCount   ; helper pointer for data inserting
     ;////////////////////////////////////////////
 
     ;/////////// --- Store tags --- /////////////

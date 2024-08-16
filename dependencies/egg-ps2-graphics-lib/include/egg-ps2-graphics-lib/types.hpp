@@ -17,9 +17,14 @@ struct inline_packet2
 
 	inline_packet2() = default;
 
-	// Copied from packet2.c
 	inline_packet2(enum Packet2Type type, enum Packet2Mode mode, u8 tte)
 	{
+		initialize(type, mode, tte);
+	}
+
+	void initialize(enum Packet2Type type, enum Packet2Mode mode, u8 tte)
+	{
+		// Copied from packet2.c
 		packet.max_qwords_count   = qwords;
 		packet.base               = data;
 		packet.next               = data;

@@ -2,7 +2,8 @@ EE_DVP = dvp-as
 VCL = openvcl
 
 RENDERERS = \
-	vertex_color_renderer 
+	vertex_color_renderer \
+	draw_finish
 
 EE_OBJS += $(addsuffix .vo, $(addprefix vu1/, $(RENDERERS)))
 VSM_SOURCES = $(addsuffix _vcl.vsm, $(addprefix vu1/, $(RENDERERS)))

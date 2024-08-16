@@ -6,8 +6,7 @@
 #include <egg/assert.hpp>
 
 #include "egg-ps2-graphics-lib/egg-ps2-graphics-lib.hpp"
-
-//static GLint num_lists = 0;
+#include "egg-ps2-graphics-lib/mesh.hpp"
 
 Mesh::Mesh()
 {
@@ -68,6 +67,7 @@ void Mesh::compile()
 
 void Mesh::draw(const Matrix& render_matrix, bool flush)
 {
+	using namespace egg::ps2::graphics;
 	if (mesh == nullptr)
 	{
 		printf("Mesh::draw: Mesh nullptr, not drawing!\n");
@@ -78,7 +78,14 @@ void Mesh::draw(const Matrix& render_matrix, bool flush)
 	{
 		const auto start_index = strip.strip_start_index;
 		const auto end_index   = strip.strip_end_index;
-		egg::ps2::graphics::draw_mesh(render_matrix, end_index - start_index, mesh->pos.get_ptr() + start_index);
+
+		mesh_descriptor m;
+		m.pos             = mesh->pos.get_ptr() + start_index;
+		m.color           = mesh->colors.get_ptr() + start_index;
+		m.num_verts       = end_index - start_index;
+		m.vu_program_addr = 0;
+
+		draw_mesh(render_matrix, m);
 	}
 }
 

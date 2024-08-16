@@ -76,7 +76,7 @@ void init()
 
 	egg::ps2::graphics::init();
 
-	egg::ps2::graphics::init_vu_program(mVsmStartAddr(VertexColorRenderer), mVsmEndAddr(VertexColorRenderer));
+	egg::ps2::graphics::load_vu_program(mVsmStartAddr(VertexColorRenderer), mVsmEndAddr(VertexColorRenderer));
 }
 
 static void draw_objects(const GSState& gs_state)
@@ -94,7 +94,11 @@ static void draw_objects(const GSState& gs_state)
 
 void render()
 {
-	//printf("Rendering...\n");
+	if (Engine::get_frame_counter() % 60 == 0)
+	{
+		printf("Rendering frame %d\n", Engine::get_frame_counter());
+	}
+
 	{
 		Stats::ScopedTimer draw_timer(Stats::scoped_timers::draw);
 

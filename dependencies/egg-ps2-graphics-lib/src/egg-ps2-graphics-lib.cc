@@ -106,6 +106,8 @@ void flip_buffers(framebuffer_t* t_frame)
 namespace egg::ps2::graphics
 {
 
+static u32 current_program_addr = 0;
+
 void init()
 {
 	// Init DMA channels.
@@ -113,6 +115,8 @@ void init()
 	dma_channel_initialize(DMA_CHANNEL_VIF1, NULL, 0);
 	dma_channel_fast_waits(DMA_CHANNEL_GIF);
 	dma_channel_fast_waits(DMA_CHANNEL_VIF1);
+
+	current_program_addr = 0;
 
 	vu1_set_double_buffer_settings();
 
@@ -124,18 +128,26 @@ void init()
 	current_frame = frame;
 }
 
-void init_vu_program(void* program_start_address, void* program_end_address)
+u32 load_vu_program(void* program_start_address, void* program_end_address)
 {
 	printf("Loaded vu program at: %u\n", (uintptr_t)program_start_address);
 
-	const u32 packet_size =
-	    packet2_utils_get_packet_size_for_program((u32*)program_start_address, (u32*)program_end_address) + 1; // + 1 for end tag
+	const u32 program_addr = current_program_addr;
+	const u32 program_size = packet2_utils_get_packet_size_for_program((u32*)program_start_address, (u32*)program_end_address);
+	const u32 packet_size  = program_size + 1;
+
+	//if ()
+
 	packet2_t* packet2 = packet2_create(packet_size, P2_TYPE_NORMAL, P2_MODE_CHAIN, 1);
-	packet2_vif_add_micro_program(packet2, 0, (u32*)program_start_address, (u32*)program_end_address);
+	packet2_vif_add_micro_program(packet2, program_addr, (u32*)program_start_address, (u32*)program_end_address);
 	packet2_utils_vu_add_end_tag(packet2);
 	dma_channel_send_packet2(packet2, DMA_CHANNEL_VIF1, 1);
 	dma_channel_wait(DMA_CHANNEL_VIF1, 0);
 	packet2_free(packet2);
+
+	current_program_addr += packet_size - 1;
+
+	return program_addr;
 }
 
 void clear_screen(int r, int g, int b)
@@ -158,7 +170,7 @@ void clear_screen(int r, int g, int b)
 
 void wait_vsync()
 {
-	printf("waiting vsync.........\n");
+	//printf("waiting vsync.........\n");
 	graph_wait_vsync();
 
 	graph_set_framebuffer_filtered(current_frame->address, current_frame->width, current_frame->psm, 0, 0);
@@ -171,12 +183,12 @@ void wait_vsync()
 
 void start_draw()
 {
-	printf("start_draw.........\n");
+	//printf("start_draw.........\n");
 }
 
 void end_draw()
 {
-	printf("end_draw.........\n");
+	//printf("end_draw.........\n");
 
 	utils::inline_packet2<35> finish(P2_TYPE_NORMAL, P2_MODE_NORMAL, 0);
 
