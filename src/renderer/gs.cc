@@ -103,7 +103,7 @@ void render()
 		Stats::ScopedTimer draw_timer(Stats::scoped_timers::draw);
 
 		_gs_state.world_view = Camera::get().transform.get_matrix().invert() * Matrix::from_scale(Vector(1.f, 1.f, 1.f));
-		//_gs_state.view_screen = Matrix::perspective(Camera::get().fov, (GLfloat)screen_width / (GLfloat)screen_height, 1.f, 2000.f);
+		//_gs_state.view_screen = Matrix::perspective(Camera::get().fov * 2.f, (float)screen_width / (float)screen_height, 1.f, 2000.f);
 		_gs_state.view_screen     = Matrix::frustum(-3.00f, 3.00f, 3.00f, -3.00f, 1.00f, 2000.f);
 		_gs_state.world_screen    = _gs_state.world_view * _gs_state.view_screen;
 		_gs_state.camera_rotation = Camera::get().transform.get_rotation();

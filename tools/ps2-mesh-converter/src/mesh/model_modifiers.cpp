@@ -44,9 +44,19 @@ static void apply_vegetation_mod(Mesh& mesh)
 	}
 }
 
+static void reverse_winding(Mesh& mesh)
+{
+	std::reverse(mesh.indices.begin(), mesh.indices.end());
+}
+
 bool apply_modification(const std::string& mod, Mesh& mesh)
 {
-	if (mod == "vegetation")
+	if (mod == "reverse_winding")
+	{
+		//reverse_winding(mesh);
+		return true;
+	}
+	else if (mod == "vegetation")
 	{
 		apply_vegetation_mod(mesh);
 		return true;
@@ -102,9 +112,6 @@ bool stripify(const std::vector<Mesh>& meshes, std::vector<MeshStrip>& out_strip
 		normals.reserve(strip.size());
 		texture_coords.reserve(strip.size());
 		colors.reserve(strip.size());
-
-		// Reverse winding order
-		std::reverse(strip.begin(), strip.end());
 
 		constexpr unsigned int restart_index = ~0u;
 		for (unsigned int index : strip)

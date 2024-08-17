@@ -76,6 +76,15 @@
                                      ; float : X, Y, Z
                                      ; any32 : _ = 0
 
+        lq.xyzw       color,     0(colorData)
+
+        ;////////////// --- Color --- //////////////
+        ; Multiply diff by AO, then convert back to 255 land
+
+        loi              255.0
+        muli.xyzw        color, color, i
+        ftoi0.xyzw       color, color
+
 
         ;////////////// --- Vertex --- //////////////
         matrixMultiplyVertex vertex, matrixRow, vertex
@@ -99,12 +108,13 @@
         ftoi4.xyz   vertex, vertex                  ; convert vertex to 12:4 fixed point format
         
         ;//////////// --- Store data --- ////////////
-        sq rgba,            0(destAddress)      ; RGBA
-        sq.xyz vertex,      1(destAddress)      ; XYZ2
-        isw.w  iClipBit,    1(destAddress)
+        sq.xyzw color,       0(destAddress)
+        sq.xyz  vertex,      1(destAddress)      ; XYZ2
+        isw.w   iClipBit,    1(destAddress)
         ;////////////////////////////////////////////
 
-        iaddiu          vertexData,     vertexData,     1                         
+        iaddiu          vertexData,     vertexData,     1
+        iaddiu          colorData,      colorData,      1
         iaddiu          destAddress,    destAddress,    2
 
         iaddi   vertexCounter,  vertexCounter,  -1	; decrement the loop counter 
