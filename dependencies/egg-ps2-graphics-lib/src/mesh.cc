@@ -109,11 +109,11 @@ void draw_strip(const Matrix& mesh_to_screen_matrix, const mesh_descriptor& mesh
 	}
 	packet2_utils_vu_close_unpack(curr_vif_packet);
 
-	packet2_utils_vu_add_unpack_data(curr_vif_packet, 7, (void*)mesh.pos, mesh.num_verts, 0);
+	packet2_utils_vu_add_unpack_data(curr_vif_packet, 7, (void*)mesh.pos, mesh.num_verts, false);
 
 	assert(mesh.color != nullptr);
 	{
-		packet2_utils_vu_add_unpack_data(curr_vif_packet, 7 + mesh.num_verts, (void*)mesh.color, mesh.num_verts, 0);
+		packet2_utils_vu_add_unpack_data(curr_vif_packet, 7 + mesh.num_verts, (void*)mesh.color, mesh.num_verts, false);
 	}
 
 	packet2_utils_vu_add_start_program(curr_vif_packet, mesh.vu_program_addr);

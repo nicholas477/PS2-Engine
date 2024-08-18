@@ -103,6 +103,42 @@ void flip_buffers(framebuffer_t* t_frame)
 	draw_wait_finish();
 }
 
+
+static utils::inline_packet2<10> draw_finish_packet;
+
+void init_draw_finish()
+{
+	// Load the draw finish program
+	const auto [draw_finish_start, draw_finish_end] = vu1_programs::get_draw_finish_program_mem_address();
+	vu1_programs::get_draw_finish_program_addr()    = load_vu_program(draw_finish_start, draw_finish_end);
+
+
+	// Set up the draw_finish packet
+	draw_finish_packet.initialize(P2_TYPE_NORMAL, P2_MODE_NORMAL, 1);
+
+	prim_t prim;
+	prim.type         = PRIM_TRIANGLE;
+	prim.shading      = PRIM_SHADE_GOURAUD;
+	prim.mapping      = 1;
+	prim.fogging      = 0;
+	prim.blending     = 1;
+	prim.antialiasing = 0;
+	prim.mapping_type = PRIM_MAP_ST;
+	prim.colorfix     = PRIM_UNFIXED;
+
+	packet2_utils_vu_open_unpack(draw_finish_packet, 10, false);
+	{
+		packet2_utils_gif_add_set(draw_finish_packet, 1);
+		packet2_utils_gs_add_draw_finish_giftag(draw_finish_packet);
+		packet2_utils_gs_add_prim_giftag(draw_finish_packet, &prim, 0,
+		                                 ((u64)GIF_REG_RGBAQ) << 0, 1, 0);
+	}
+	packet2_utils_vu_close_unpack(draw_finish_packet);
+
+	packet2_utils_vu_add_start_program(draw_finish_packet, vu1_programs::get_draw_finish_program_addr());
+	packet2_utils_vu_add_end_tag(draw_finish_packet);
+}
+
 } // namespace
 
 namespace egg::ps2::graphics
@@ -127,9 +163,7 @@ void init()
 
 	init_drawing_environment(frame, &z);
 
-	const auto [draw_finish_start, draw_finish_end] = vu1_programs::get_draw_finish_program_mem_address();
-
-	vu1_programs::get_draw_finish_program_addr() = load_vu_program(draw_finish_start, draw_finish_end);
+	init_draw_finish();
 
 	current_frame = frame;
 }
@@ -200,31 +234,8 @@ void end_draw()
 {
 	return;
 
-	static utils::inline_packet2<10> finish(P2_TYPE_NORMAL, P2_MODE_NORMAL, 1);
-	prim_t prim;
-	prim.type         = PRIM_TRIANGLE;
-	prim.shading      = PRIM_SHADE_GOURAUD;
-	prim.mapping      = 1;
-	prim.fogging      = 0;
-	prim.blending     = 1;
-	prim.antialiasing = 0;
-	prim.mapping_type = PRIM_MAP_ST;
-	prim.colorfix     = PRIM_UNFIXED;
-
-	packet2_utils_vu_open_unpack(finish, 10, true);
-	{
-		packet2_utils_gif_add_set(finish, 1);
-		packet2_utils_gs_add_draw_finish_giftag(finish);
-		packet2_utils_gs_add_prim_giftag(finish, &prim, 0,
-		                                 ((u64)GIF_REG_RGBAQ) << 0, 1, 0);
-	}
-	packet2_utils_vu_close_unpack(finish);
-
-	packet2_utils_vu_add_start_program(finish, vu1_programs::get_draw_finish_program_addr());
-	packet2_utils_vu_add_end_tag(finish);
-
 	dma_channel_wait(DMA_CHANNEL_VIF1, 0);
-	dma_channel_send_packet2(finish, DMA_CHANNEL_VIF1, true);
+	dma_channel_send_packet2(draw_finish_packet, DMA_CHANNEL_VIF1, true);
 
 	while (!(*GS_REG_CSR & 2))
 	{
