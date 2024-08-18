@@ -15,7 +15,7 @@
 #include "graph.h"
 
 #include "renderer/text.hpp"
-#include "renderer/vu1/vertex_color_program.hpp"
+#include "renderer/vu1/vu_programs.hpp"
 
 #include "egg-ps2-graphics-lib/egg-ps2-graphics-lib.hpp"
 
@@ -76,7 +76,7 @@ void init()
 
 	egg::ps2::graphics::init();
 
-	egg::ps2::graphics::load_vu_program(mVsmStartAddr(VertexColorRenderer), mVsmEndAddr(VertexColorRenderer));
+	get_vertex_color_program_addr() = egg::ps2::graphics::load_vu_program(mVsmStartAddr(VertexColorRenderer), mVsmEndAddr(VertexColorRenderer));
 }
 
 static void draw_objects(const GSState& gs_state)
@@ -89,7 +89,7 @@ static void draw_objects(const GSState& gs_state)
 		i++;
 	}
 
-	//printf("rendered %d objects\n", i);
+	printf("rendered %d objects\n", i);
 } // namespace GS
 
 void render()
@@ -110,11 +110,13 @@ void render()
 
 		egg::ps2::graphics::clear_screen(0x40, 0x40, 0x40);
 
-		egg::ps2::graphics::start_draw();
+		{
+			egg::ps2::graphics::start_draw();
 
-		draw_objects(_gs_state);
+			draw_objects(_gs_state);
 
-		egg::ps2::graphics::end_draw();
+			egg::ps2::graphics::end_draw();
+		}
 	}
 
 	{

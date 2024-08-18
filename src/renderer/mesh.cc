@@ -1,5 +1,6 @@
 #include "renderer/mesh.hpp"
 #include "renderer/renderable.hpp"
+#include "renderer/vu1/vu_programs.hpp"
 
 #include "egg/filesystem.hpp"
 #include <egg/mesh_header.hpp>
@@ -83,7 +84,7 @@ void Mesh::draw(const Matrix& render_matrix, bool flush)
 		m.pos             = mesh->pos.get_ptr() + start_index;
 		m.color           = mesh->colors.get_ptr() + start_index;
 		m.num_verts       = end_index - start_index;
-		m.vu_program_addr = 0;
+		m.vu_program_addr = get_vertex_color_program_addr();
 
 		draw_mesh(render_matrix, m);
 	}

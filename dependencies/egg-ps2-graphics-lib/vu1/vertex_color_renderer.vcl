@@ -77,10 +77,10 @@
                                      ; any32 : _ = 0
 
         lq.xyzw       color,     0(colorData)
+        move.w        color,     vf00[w]
 
         ;////////////// --- Color --- //////////////
-        ; Multiply diff by AO, then convert back to 255 land
-
+        ; Color in the model is from 0-1, we need to convert it to 0-255 fixed point
         loi              255.0
         muli.xyzw        color, color, i
         ftoi0.xyzw       color, color
@@ -92,7 +92,7 @@
         clipw.xyz	vertex, vertex			; Dr. Fortuna: This instruction checks if the vertex is outside
 							; the viewing frustum. If it is, then the appropriate
 							; clipping flags are set
-        fcand		vi01,   0xFFFF       ; Bitwise AND the clipping flags with 0x3FFFF, this makes
+        fcand		vi01,   0x3FFFF       ; Bitwise AND the clipping flags with 0x3FFFF, this makes
 							; sure that we get the clipping judgement for the last three
 							; verts (i.e. that make up the triangle we are about to draw)
         iaddiu		iClipBit,   vi01,       0x7FFF      ; Add 0x7FFF. If any of the clipping flags were set this will

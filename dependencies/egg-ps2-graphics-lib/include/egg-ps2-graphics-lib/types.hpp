@@ -8,21 +8,16 @@
 
 namespace egg::ps2::graphics::utils
 {
-// packet2 with memory allocated inline
-template <size_t qwords>
-struct inline_packet2
+struct inline_packet2_base
 {
 	packet2_t packet;
-	qword_t data[qwords] __attribute__((aligned(16)));
 
-	inline_packet2() = default;
+protected:
+	inline_packet2_base() = default;
 
-	inline_packet2(enum Packet2Type type, enum Packet2Mode mode, u8 tte)
-	{
-		initialize(type, mode, tte);
-	}
-
-	void initialize(enum Packet2Type type, enum Packet2Mode mode, u8 tte)
+	// Initialize is defined in the base here so that it doesn't have a billion
+	// template definitions
+	void initialize(enum Packet2Type type, enum Packet2Mode mode, u8 tte, u32 qwords, qword_t* data)
 	{
 		// Copied from packet2.c
 		packet.max_qwords_count   = qwords;
@@ -37,7 +32,7 @@ struct inline_packet2
 		// Dma buffer size should be a whole number of cache lines (64 bytes = 4 quads)
 		assert(!((packet.type == P2_TYPE_UNCACHED || packet.type == P2_TYPE_UNCACHED_ACCL) && packet.max_qwords_count & (4 - 1)));
 
-		constexpr u32 byte_size = qwords << 4;
+		u32 byte_size = qwords << 4;
 		memset(packet.base, 0, byte_size);
 
 		// "I hate to do this, but I've wasted FAR too much time hunting down cache incoherency"
@@ -45,6 +40,25 @@ struct inline_packet2
 		{
 			FlushCache(0);
 		}
+	}
+};
+
+// packet2 with memory allocated inline
+template <size_t qwords>
+struct inline_packet2: public inline_packet2_base
+{
+	qword_t data[qwords] __attribute__((aligned(16)));
+
+	inline_packet2() = default;
+
+	inline_packet2(enum Packet2Type type, enum Packet2Mode mode, u8 tte)
+	{
+		initialize(type, mode, tte);
+	}
+
+	void initialize(enum Packet2Type type, enum Packet2Mode mode, u8 tte)
+	{
+		inline_packet2_base::initialize(type, mode, tte, qwords, data);
 	}
 
 	operator packet2_t*() { return &packet; }

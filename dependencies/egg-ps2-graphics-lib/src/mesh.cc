@@ -116,7 +116,7 @@ void draw_strip(const Matrix& mesh_to_screen_matrix, const mesh_descriptor& mesh
 		packet2_utils_vu_add_unpack_data(curr_vif_packet, 7 + mesh.num_verts, (void*)mesh.color, mesh.num_verts, 0);
 	}
 
-	packet2_utils_vu_add_start_program(curr_vif_packet, 0);
+	packet2_utils_vu_add_start_program(curr_vif_packet, mesh.vu_program_addr);
 	packet2_utils_vu_add_end_tag(curr_vif_packet);
 	dma_channel_wait(DMA_CHANNEL_VIF1, 0);
 	dma_channel_send_packet2(curr_vif_packet, DMA_CHANNEL_VIF1, 1);
@@ -124,34 +124,46 @@ void draw_strip(const Matrix& mesh_to_screen_matrix, const mesh_descriptor& mesh
 
 } // namespace
 
-// TODO: calculate this dynamically based on how much stuff is being put into vu mem
-static constexpr s32 verts_per_call = 128;
-
 namespace egg::ps2::graphics
 {
 void draw_mesh(const Matrix& mesh_to_screen_matrix, const mesh_descriptor& mesh)
 {
 	assert(mesh.is_valid());
 
-	// Draw in blocks of 16 verts each
-	for (u32 i = 0; i <= mesh.num_verts; i += verts_per_call)
-	{
-		const u32 i_start   = (u32)std::max((s32)i - 2, 0);
-		const u32 i_end     = std::min(i + verts_per_call, mesh.num_verts);
-		const u32 num_verts = i_end - i_start;
-		assert(i_start != i_end);
-		assert(num_verts >= 3);
+	// TODO: calculate this dynamically based on how much stuff is being put into vu mem
+	static constexpr s32 verts_per_call = 50;
 
-		mesh_descriptor strip = mesh;
-		strip.pos             = strip.pos + i_start;
-		if (strip.color != nullptr)
+	for (u32 i = 0;;)
+	{
+		const u32 i_end     = std::min(i + verts_per_call, mesh.num_verts);
+		const u32 num_verts = i_end - i;
+		assert(i != i_end);
+		assert(num_verts >= 3);
+		assert(num_verts <= verts_per_call);
+
 		{
-			strip.color = strip.color + i_start;
+			mesh_descriptor strip = mesh;
+			strip.pos             = strip.pos + i;
+			if (strip.color != nullptr)
+			{
+				strip.color = strip.color + i;
+			}
+
+			strip.num_verts = num_verts;
+
+			draw_strip(mesh_to_screen_matrix, strip);
 		}
 
-		strip.num_verts = num_verts;
-
-		draw_strip(mesh_to_screen_matrix, strip);
+		if (i_end >= mesh.num_verts)
+		{
+			break;
+		}
+		else
+		{
+			// For the next batch, we also have to draw the 2 verts from the
+			// previous patch so that we don't miss drawing any triangles
+			i = i_end - 2;
+		}
 	}
 }
 

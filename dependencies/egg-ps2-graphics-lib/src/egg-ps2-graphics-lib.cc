@@ -1,5 +1,6 @@
 #include "egg-ps2-graphics-lib/egg-ps2-graphics-lib.hpp"
 #include "egg-ps2-graphics-lib/types.hpp"
+#include "egg-ps2-graphics-lib/vu_programs.hpp"
 
 #include <kernel.h>
 #include <malloc.h>
@@ -10,6 +11,7 @@
 #include <packet2_utils.h>
 #include <graph.h>
 #include <draw.h>
+#include <gs_privileged.h>
 
 #include "egg/math_types.hpp"
 
@@ -125,29 +127,37 @@ void init()
 
 	init_drawing_environment(frame, &z);
 
+	const auto [draw_finish_start, draw_finish_end] = vu1_programs::get_draw_finish_program_mem_address();
+
+	vu1_programs::get_draw_finish_program_addr() = load_vu_program(draw_finish_start, draw_finish_end);
+
 	current_frame = frame;
 }
 
 u32 load_vu_program(void* program_start_address, void* program_end_address)
 {
-	printf("Loaded vu program at: %u\n", (uintptr_t)program_start_address);
+	const u32 packet_size  = packet2_utils_get_packet_size_for_program((u32*)program_start_address, (u32*)program_end_address) + 1;
+	const u32 program_size = (packet_size * 512) / 16;
 
-	const u32 program_addr = current_program_addr;
-	const u32 program_size = packet2_utils_get_packet_size_for_program((u32*)program_start_address, (u32*)program_end_address);
-	const u32 packet_size  = program_size + 1;
-
-	//if ()
+	// Make sure we aren't going to run out of memory before we load it into memory
+	assert((current_program_addr + program_size) <= 1000);
 
 	packet2_t* packet2 = packet2_create(packet_size, P2_TYPE_NORMAL, P2_MODE_CHAIN, 1);
-	packet2_vif_add_micro_program(packet2, program_addr, (u32*)program_start_address, (u32*)program_end_address);
+	packet2_vif_add_micro_program(packet2, current_program_addr, (u32*)program_start_address, (u32*)program_end_address);
 	packet2_utils_vu_add_end_tag(packet2);
+
+	dma_channel_wait(DMA_CHANNEL_VIF1, 0);
 	dma_channel_send_packet2(packet2, DMA_CHANNEL_VIF1, 1);
+
 	dma_channel_wait(DMA_CHANNEL_VIF1, 0);
 	packet2_free(packet2);
 
-	current_program_addr += packet_size - 1;
+	current_program_addr += program_size;
 
-	return program_addr;
+	printf("Loaded vu program at: %u\n", current_program_addr - program_size);
+	printf("Program size (qwords): %u\n", program_size);
+
+	return current_program_addr - program_size;
 }
 
 void clear_screen(int r, int g, int b)
@@ -188,18 +198,39 @@ void start_draw()
 
 void end_draw()
 {
-	//printf("end_draw.........\n");
+	return;
 
-	utils::inline_packet2<35> finish(P2_TYPE_NORMAL, P2_MODE_NORMAL, 0);
+	static utils::inline_packet2<10> finish(P2_TYPE_NORMAL, P2_MODE_NORMAL, 1);
+	prim_t prim;
+	prim.type         = PRIM_TRIANGLE;
+	prim.shading      = PRIM_SHADE_GOURAUD;
+	prim.mapping      = 1;
+	prim.fogging      = 0;
+	prim.blending     = 1;
+	prim.antialiasing = 0;
+	prim.mapping_type = PRIM_MAP_ST;
+	prim.colorfix     = PRIM_UNFIXED;
 
-	// Clear framebuffer but don't update zbuffer.
-	packet2_update(finish, draw_finish(finish->next));
+	packet2_utils_vu_open_unpack(finish, 10, true);
+	{
+		packet2_utils_gif_add_set(finish, 1);
+		packet2_utils_gs_add_draw_finish_giftag(finish);
+		packet2_utils_gs_add_prim_giftag(finish, &prim, 0,
+		                                 ((u64)GIF_REG_RGBAQ) << 0, 1, 0);
+	}
+	packet2_utils_vu_close_unpack(finish);
 
-	// Now send our current dma chain.
-	dma_wait_fast();
-	dma_channel_send_packet2(finish, DMA_CHANNEL_GIF, 1);
+	packet2_utils_vu_add_start_program(finish, vu1_programs::get_draw_finish_program_addr());
+	packet2_utils_vu_add_end_tag(finish);
 
-	draw_wait_finish();
+	dma_channel_wait(DMA_CHANNEL_VIF1, 0);
+	dma_channel_send_packet2(finish, DMA_CHANNEL_VIF1, true);
+
+	while (!(*GS_REG_CSR & 2))
+	{
+	}
+
+	*GS_REG_CSR |= 2;
 }
 
 } // namespace egg::ps2::graphics
