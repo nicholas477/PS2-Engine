@@ -45,19 +45,19 @@
     ; Updated dynamically
     xtop    iBase
 
-    lq      matrixRow[0],     0(vi00) ; load view-projection matrix
-    lq      matrixRow[1],     1(vi00)
-    lq      matrixRow[2],     2(vi00)
-    lq      matrixRow[3],     3(vi00)
+    lq      matrixRow[0],     0(iBase) ; load view-projection matrix
+    lq      matrixRow[1],     1(iBase)
+    lq      matrixRow[2],     2(iBase)
+    lq      matrixRow[3],     3(iBase)
 
-    lq.xyz  scale,            4(vi00) ; load program params
+    lq.xyz  scale,            4(iBase) ; load program params
                                      ; float : X, Y, Z - scale vector that we will use to scale the verts after projecting them.
                                      ; float : W - vert count.
-    ilw.w   vertCount,        4(vi00)
-    lq      primTag,          5(vi00) ; GIF tag - tell GS how many data we will send
-    lq      rgba,             6(vi00) ; RGBA
+    ilw.w   vertCount,        4(iBase)
+    lq      primTag,          5(iBase) ; GIF tag - tell GS how many data we will send
+    lq      rgba,             6(iBase) ; RGBA
                                        ; u32 : R, G, B, A (0-128)
-    iaddiu  vertexData,     vi00,         7            ; pointer to vertex data
+    iaddiu  vertexData,     iBase,         8            ; pointer to vertex data
     iadd    colorData,      vertexData,    vertCount   ; pointer to color data
     iadd    kickAddress,    colorData,     vertCount   ; pointer for XGKICK
     iadd    destAddress,    colorData,     vertCount   ; helper pointer for data inserting
@@ -68,7 +68,7 @@
     ;////////////////////////////////////////////
 
     ;/////////////// --- Loop --- ///////////////
-    iadd vertexCounter, vi00, vertCount ; loop vertCount times
+    iadd vertexCounter, iBase, vertCount ; loop vertCount times
     vertexLoop:
 
         ;////////// --- Load loop data --- //////////
@@ -92,14 +92,15 @@
         clipw.xyz	vertex, vertex			; Dr. Fortuna: This instruction checks if the vertex is outside
 							; the viewing frustum. If it is, then the appropriate
 							; clipping flags are set
-        fcand		vi01,   0x3FFFF       ; Bitwise AND the clipping flags with 0x3FFFF, this makes
+        fcand		VI01,   0x3FFFF       ; Bitwise AND the clipping flags with 0x3FFFF, this makes
 							; sure that we get the clipping judgement for the last three
 							; verts (i.e. that make up the triangle we are about to draw)
-        iaddiu		iClipBit,   vi01,       0x7FFF      ; Add 0x7FFF. If any of the clipping flags were set this will
+        iaddiu		iClipBit,   VI01,       0x7FFF      ; Add 0x7FFF. If any of the clipping flags were set this will
 							; cause the triangle not to be drawn (any values above 0x8000
 							; that are stored in the w component of XYZ2 will set the ADC
 							; bit, which tells the GS not to perform a drawing kick on this
 							; triangle.
+        isw.w		iClipBit,   1(destAddress)
         
         div         q,      vf00[w],    vertex[w]   ; perspective divide (1/vert[w]):
         mul.xyz     vertex, vertex,     q
@@ -110,7 +111,6 @@
         ;//////////// --- Store data --- ////////////
         sq.xyzw color,       0(destAddress)
         sq.xyz  vertex,      1(destAddress)      ; XYZ2
-        isw.w   iClipBit,    1(destAddress)
         ;////////////////////////////////////////////
 
         iaddiu          vertexData,     vertexData,     1
@@ -118,7 +118,7 @@
         iaddiu          destAddress,    destAddress,    2
 
         iaddi   vertexCounter,  vertexCounter,  -1	; decrement the loop counter 
-        ibne    vertexCounter,  vi00,   vertexLoop	; and repeat if needed
+        ibne    vertexCounter,  iBase,   vertexLoop	; and repeat if needed
 
     ;//////////////////////////////////////////// 
 

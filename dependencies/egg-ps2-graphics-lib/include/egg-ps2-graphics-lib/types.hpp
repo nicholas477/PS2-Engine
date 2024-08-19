@@ -26,10 +26,15 @@ struct inline_packet2: public inline_packet2_base
 {
 	qword_t data[qwords] __attribute__((aligned(16)));
 
-	inline_packet2() = default;
+	inline_packet2()
+	{
+		assert(__is_aligned(&data[0], 16));
+	};
 
 	inline_packet2(enum Packet2Type type, enum Packet2Mode mode, u8 tte)
 	{
+		assert(__is_aligned(&data[0], 16));
+
 		initialize(type, mode, tte);
 	}
 

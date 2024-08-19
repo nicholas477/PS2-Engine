@@ -84,8 +84,8 @@ void init_drawing_environment(framebuffer_t* t_frame, zbuffer_t* t_z)
 void vu1_set_double_buffer_settings()
 {
 	printf("egg-ps2-graphics-lib: vu1_set_double_buffer_settings\n");
-	utils::inline_packet2<1> packet2(P2_TYPE_NORMAL, P2_MODE_CHAIN, 1);
-	//packet2_utils_vu_add_double_buffer(packet2, 0, 500);
+	utils::inline_packet2<2> packet2(P2_TYPE_NORMAL, P2_MODE_CHAIN, 1);
+	//packet2_utils_vu_add_double_buffer(packet2, 0, 512);
 	packet2_utils_vu_add_end_tag(packet2);
 	dma_channel_send_packet2(packet2, DMA_CHANNEL_VIF1, 1);
 	dma_channel_wait(DMA_CHANNEL_VIF1, 0);
@@ -139,6 +139,9 @@ void init_draw_finish()
 	packet2_utils_vu_add_end_tag(draw_finish_packet);
 }
 
+static u8 vif_packets_context = 0;
+static std::array<vif_packet_t, 2> vif_packets;
+
 } // namespace
 
 namespace egg::ps2::graphics
@@ -166,6 +169,10 @@ void init()
 	init_draw_finish();
 
 	current_frame = frame;
+
+	vif_packets[0].initialize(P2_TYPE_NORMAL, P2_MODE_CHAIN, 1);
+	vif_packets[1].initialize(P2_TYPE_NORMAL, P2_MODE_CHAIN, 1);
+	vif_packets_context = 0;
 }
 
 u32 load_vu_program(void* program_start_address, void* program_end_address)
@@ -242,6 +249,26 @@ void end_draw()
 	}
 
 	*GS_REG_CSR |= 2;
+}
+
+std::array<vif_packet_t, 2>& get_vif_packets()
+{
+	return vif_packets;
+}
+
+packet2_t* get_current_vif_packet()
+{
+	return vif_packets[vif_packets_context];
+}
+
+u8 get_vif_packet_context()
+{
+	return vif_packets_context;
+}
+
+void flip_vip_packet_context()
+{
+	vif_packets_context ^= 1;
 }
 
 } // namespace egg::ps2::graphics

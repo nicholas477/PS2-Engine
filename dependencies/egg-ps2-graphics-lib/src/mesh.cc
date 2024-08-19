@@ -32,11 +32,6 @@ clutbuffer_t clut;
  */
 lod_t lod;
 
-u8 context = 0;
-packet2_t* vif_packets[2] __attribute__((aligned(64)));
-
-packet2_t* curr_vif_packet;
-
 void draw_strip(const Matrix& mesh_to_screen_matrix, const mesh_descriptor& mesh)
 {
 	static bool initialized = false;
@@ -53,73 +48,50 @@ void draw_strip(const Matrix& mesh_to_screen_matrix, const mesh_descriptor& mesh
 		prim.mapping_type = PRIM_MAP_ST;
 		prim.colorfix     = PRIM_UNFIXED;
 
-		printf("initializing vif packets...\n");
-		vif_packets[0] = packet2_create(4000, P2_TYPE_NORMAL, P2_MODE_CHAIN, 1);
-		vif_packets[1] = packet2_create(4000, P2_TYPE_NORMAL, P2_MODE_CHAIN, 1);
-
 		initialized = true;
 		printf("Initialized\n");
 	}
 
-	curr_vif_packet = vif_packets[context];
+	packet2_reset(get_current_vif_packet(), 0);
 
-	packet2_reset(curr_vif_packet, 0);
-
-	packet2_utils_vu_open_unpack(curr_vif_packet, 0, false);
+	packet2_utils_vu_open_unpack(get_current_vif_packet(), 0, true);
 	{
 		// 0
 		for (int i = 0; i < 4; ++i)
 		{
-			packet2_add_u128(curr_vif_packet, ((u128*)&mesh_to_screen_matrix)[i]);
+			packet2_add_u128(get_current_vif_packet(), ((u128*)&mesh_to_screen_matrix)[i]);
 		}
 
 		// 4
-		packet2_add_float(curr_vif_packet, 2048.0F);                    // scale
-		packet2_add_float(curr_vif_packet, 2048.0F);                    // scale
-		packet2_add_float(curr_vif_packet, ((float)0xFFFFFF) / -32.0F); // scale
-		packet2_add_s32(curr_vif_packet, mesh.num_verts);               // vert count
+		packet2_add_float(get_current_vif_packet(), 2048.0F);                    // scale
+		packet2_add_float(get_current_vif_packet(), 2048.0F);                    // scale
+		packet2_add_float(get_current_vif_packet(), ((float)0xFFFFFF) / -32.0F); // scale
+		packet2_add_u32(get_current_vif_packet(), mesh.num_verts);               // vert count
 
 		// 5
-		{
-			packet2_add_2x_s64(
-			    curr_vif_packet,
-			    VU_GS_GIFTAG(
-			        mesh.num_verts, // Information for GS. Amount of loops
-			        1,
-			        1,
-			        VU_GS_PRIM(
-			            prim.type,
-			            prim.shading,
-			            prim.mapping,
-			            prim.fogging,
-			            prim.blending,
-			            prim.antialiasing,
-			            prim.mapping_type,
-			            0, // context
-			            prim.colorfix),
-			        0,
-			        2),
-			    DRAW_RGBAQ_REGLIST);
-		}
+		packet2_utils_gs_add_prim_giftag(get_current_vif_packet(), &prim, mesh.num_verts, DRAW_RGBAQ_REGLIST, 2, 0);
 
 		// 6
 		u8 j = 0; // RGBA
 		for (j = 0; j < 4; j++)
-			packet2_add_u32(curr_vif_packet, 128);
+			packet2_add_u32(get_current_vif_packet(), 128);
 	}
-	packet2_utils_vu_close_unpack(curr_vif_packet);
+	packet2_utils_vu_close_unpack(get_current_vif_packet());
 
-	packet2_utils_vu_add_unpack_data(curr_vif_packet, 7, (void*)mesh.pos, mesh.num_verts, false);
+	packet2_utils_vu_add_unpack_data(get_current_vif_packet(), 8, (void*)mesh.pos, mesh.num_verts, true);
 
 	assert(mesh.color != nullptr);
 	{
-		packet2_utils_vu_add_unpack_data(curr_vif_packet, 7 + mesh.num_verts, (void*)mesh.color, mesh.num_verts, false);
+		packet2_utils_vu_add_unpack_data(get_current_vif_packet(), 8 + mesh.num_verts, (void*)mesh.color, mesh.num_verts, true);
 	}
 
-	packet2_utils_vu_add_start_program(curr_vif_packet, mesh.vu_program_addr);
-	packet2_utils_vu_add_end_tag(curr_vif_packet);
+	packet2_utils_vu_add_start_program(get_current_vif_packet(), mesh.vu_program_addr);
+	packet2_utils_vu_add_end_tag(get_current_vif_packet());
 	dma_channel_wait(DMA_CHANNEL_VIF1, 0);
-	dma_channel_send_packet2(curr_vif_packet, DMA_CHANNEL_VIF1, 1);
+	dma_channel_send_packet2(get_current_vif_packet(), DMA_CHANNEL_VIF1, 1);
+	dma_wait_fast();
+
+	flip_vip_packet_context();
 }
 
 } // namespace
