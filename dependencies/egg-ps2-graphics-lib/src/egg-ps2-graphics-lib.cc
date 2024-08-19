@@ -85,7 +85,7 @@ void vu1_set_double_buffer_settings()
 {
 	printf("egg-ps2-graphics-lib: vu1_set_double_buffer_settings\n");
 	utils::inline_packet2<2> double_buffer_pkt(P2_TYPE_NORMAL, P2_MODE_CHAIN, 1);
-	packet2_utils_vu_add_double_buffer(double_buffer_pkt, 8, 496);
+	//packet2_utils_vu_add_double_buffer(double_buffer_pkt, 8, 496);
 	packet2_utils_vu_add_end_tag(double_buffer_pkt);
 
 	dma_channel_send_packet2(double_buffer_pkt, DMA_CHANNEL_VIF1, 1);
@@ -219,8 +219,6 @@ void clear_screen(int r, int g, int b)
 
 void wait_vsync()
 {
-	//printf("waiting vsync.........\n");
-	draw_wait_finish();
 	graph_wait_vsync();
 
 	graph_set_framebuffer_filtered(current_frame->address, current_frame->width, current_frame->psm, 0, 0);
@@ -233,11 +231,21 @@ void wait_vsync()
 
 void start_draw()
 {
-	//printf("start_draw.........\n");
+	printf("start_draw.........\n");
+
+	//flip_vip_packet_context();
+	packet2_reset(get_current_vif_packet(), 0);
 }
 
 void end_draw()
 {
+	printf("end_draw.........\n");
+	dma_channel_wait(DMA_CHANNEL_VIF1, 0);
+	dma_channel_send_packet2(get_current_vif_packet(), DMA_CHANNEL_VIF1, 1);
+	dma_channel_wait(DMA_CHANNEL_VIF1, 0);
+
+	draw_wait_finish();
+
 	return;
 
 	dma_channel_wait(DMA_CHANNEL_VIF1, 0);

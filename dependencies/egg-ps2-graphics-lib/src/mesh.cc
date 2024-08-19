@@ -34,8 +34,6 @@ void draw_strip(const Matrix& mesh_to_screen_matrix, const mesh_descriptor& mesh
 	prim.mapping_type = PRIM_MAP_ST;
 	prim.colorfix     = PRIM_UNFIXED;
 
-	packet2_reset(get_current_vif_packet(), 0);
-
 	packet2_utils_vu_open_unpack(get_current_vif_packet(), 0, 1);
 	{
 		// 0
@@ -66,16 +64,10 @@ void draw_strip(const Matrix& mesh_to_screen_matrix, const mesh_descriptor& mesh
 	// Color data
 	packet2_utils_vu_add_unpack_data(get_current_vif_packet(), 8 + mesh.num_verts, (void*)mesh.color, mesh.num_verts, 1);
 
-	//assert((8 + (mesh.num_verts * 4)) < 496);
+	assert((8 + (mesh.num_verts * 4)) < 496);
 
 	packet2_utils_vu_add_start_program(get_current_vif_packet(), mesh.vu_program_addr);
 	packet2_utils_vu_add_end_tag(get_current_vif_packet());
-
-	dma_channel_wait(DMA_CHANNEL_VIF1, 0);
-	dma_channel_send_packet2(get_current_vif_packet(), DMA_CHANNEL_VIF1, 1);
-	dma_channel_wait(DMA_CHANNEL_VIF1, 0);
-
-	flip_vip_packet_context();
 }
 
 } // namespace

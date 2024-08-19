@@ -22,7 +22,7 @@ void start_draw();
 void end_draw();
 
 
-using vif_packet_t = utils::inline_packet2<1024>;
+using vif_packet_t = utils::inline_packet2<4096>;
 
 // Returns the two vif packets in use
 std::array<vif_packet_t, 2>& get_vif_packets();

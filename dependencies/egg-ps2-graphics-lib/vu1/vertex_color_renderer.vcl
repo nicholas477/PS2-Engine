@@ -19,13 +19,6 @@
 ; - Guilherme Lampert                                          |
 ;---------------------------------------------------------------
 
-.macro   matrixMultiplyVertex vertexResult,matrix,vertexIn
-  mul            acc,           \matrix[0], \vertexIn[x]
-  madd           acc,           \matrix[1], \vertexIn[y]
-  madd           acc,           \matrix[2], \vertexIn[z]
-  madd           \vertexResult, \matrix[3], vf00[w]
-.endm
-
 .syntax new
 .name vsmVertexColorRenderer
 .vu
@@ -45,10 +38,10 @@
     ; Updated dynamically
     xtop    iBase
 
-    lq      matrixRow[0],     0(iBase) ; load view-projection matrix
-    lq      matrixRow[1],     1(iBase)
-    lq      matrixRow[2],     2(iBase)
-    lq      matrixRow[3],     3(iBase)
+    lq      matrixRow0,     0(iBase) ; load view-projection matrix
+    lq      matrixRow1,     1(iBase)
+    lq      matrixRow2,     2(iBase)
+    lq      matrixRow3,     3(iBase)
 
     lq.xyz  scale,            4(iBase) ; load program params
                                      ; float : X, Y, Z - scale vector that we will use to scale the verts after projecting them.
@@ -72,7 +65,7 @@
     vertexLoop:
 
         ;////////// --- Load loop data --- //////////
-        lq.xyzw vertex, 0(vertexData) ; load xyz
+        lq.xyz vertex, 0(vertexData) ; load xyz
                                      ; float : X, Y, Z
                                      ; any32 : _ = 0
 
@@ -87,7 +80,10 @@
 
 
         ;////////////// --- Vertex --- //////////////
-        matrixMultiplyVertex vertex, matrixRow, vertex
+        mul            acc,           matrixRow0, vertex[x]
+        madd           acc,           matrixRow1, vertex[y]
+        madd           acc,           matrixRow2, vertex[z]
+        madd           vertex,        matrixRow3, vf00[w]
        
         clipw.xyz	vertex, vertex			; Dr. Fortuna: This instruction checks if the vertex is outside
 							; the viewing frustum. If it is, then the appropriate
