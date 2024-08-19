@@ -20,41 +20,23 @@ namespace
 /** Set GS primitive type of drawing. */
 prim_t prim;
 
-/**
- * Color look up table.
- * Needed for texture.
- */
-clutbuffer_t clut;
-
-/**
- * Level of details.
- * Needed for texture.
- */
-lod_t lod;
-
 void draw_strip(const Matrix& mesh_to_screen_matrix, const mesh_descriptor& mesh)
 {
-	static bool initialized = false;
+	assert(mesh.is_valid());
 
-	if (!initialized)
-	{
-		// Define the triangle primitive we want to use.
-		prim.type         = PRIM_TRIANGLE_STRIP;
-		prim.shading      = PRIM_SHADE_GOURAUD;
-		prim.mapping      = DRAW_DISABLE;
-		prim.fogging      = DRAW_DISABLE;
-		prim.blending     = DRAW_DISABLE;
-		prim.antialiasing = DRAW_DISABLE;
-		prim.mapping_type = PRIM_MAP_ST;
-		prim.colorfix     = PRIM_UNFIXED;
-
-		initialized = true;
-		printf("Initialized\n");
-	}
+	// Define the triangle primitive we want to use.
+	prim.type         = PRIM_TRIANGLE_STRIP;
+	prim.shading      = PRIM_SHADE_GOURAUD;
+	prim.mapping      = DRAW_DISABLE;
+	prim.fogging      = DRAW_DISABLE;
+	prim.blending     = DRAW_DISABLE;
+	prim.antialiasing = DRAW_DISABLE;
+	prim.mapping_type = PRIM_MAP_ST;
+	prim.colorfix     = PRIM_UNFIXED;
 
 	packet2_reset(get_current_vif_packet(), 0);
 
-	packet2_utils_vu_open_unpack(get_current_vif_packet(), 0, true);
+	packet2_utils_vu_open_unpack(get_current_vif_packet(), 0, 1);
 	{
 		// 0
 		for (int i = 0; i < 4; ++i)
@@ -78,18 +60,20 @@ void draw_strip(const Matrix& mesh_to_screen_matrix, const mesh_descriptor& mesh
 	}
 	packet2_utils_vu_close_unpack(get_current_vif_packet());
 
-	packet2_utils_vu_add_unpack_data(get_current_vif_packet(), 8, (void*)mesh.pos, mesh.num_verts, true);
+	// Position data
+	packet2_utils_vu_add_unpack_data(get_current_vif_packet(), 8, (void*)mesh.pos, mesh.num_verts, 1);
 
-	assert(mesh.color != nullptr);
-	{
-		packet2_utils_vu_add_unpack_data(get_current_vif_packet(), 8 + mesh.num_verts, (void*)mesh.color, mesh.num_verts, true);
-	}
+	// Color data
+	packet2_utils_vu_add_unpack_data(get_current_vif_packet(), 8 + mesh.num_verts, (void*)mesh.color, mesh.num_verts, 1);
+
+	//assert((8 + (mesh.num_verts * 4)) < 496);
 
 	packet2_utils_vu_add_start_program(get_current_vif_packet(), mesh.vu_program_addr);
 	packet2_utils_vu_add_end_tag(get_current_vif_packet());
+
 	dma_channel_wait(DMA_CHANNEL_VIF1, 0);
 	dma_channel_send_packet2(get_current_vif_packet(), DMA_CHANNEL_VIF1, 1);
-	dma_wait_fast();
+	dma_channel_wait(DMA_CHANNEL_VIF1, 0);
 
 	flip_vip_packet_context();
 }
@@ -103,7 +87,7 @@ void draw_mesh(const Matrix& mesh_to_screen_matrix, const mesh_descriptor& mesh)
 	assert(mesh.is_valid());
 
 	// TODO: calculate this dynamically based on how much stuff is being put into vu mem
-	static constexpr s32 verts_per_call = 50;
+	static constexpr s32 verts_per_call = 96;
 
 	for (u32 i = 0;;)
 	{
@@ -142,20 +126,20 @@ void draw_mesh(const Matrix& mesh_to_screen_matrix, const mesh_descriptor& mesh)
 bool mesh_descriptor::is_valid(bool print_why_invalid) const
 {
 	bool all_valid = true;
-	if (!__is_aligned(pos, 16))
-	{
-		if (print_why_invalid)
-		{
-			printf("Mesh invalid! Pos pointer not aligned to a 16 byte address!\n");
-		}
-		all_valid &= false;
-	}
-
 	if ((__uintptr_t)pos == 0)
 	{
 		if (print_why_invalid)
 		{
 			printf("Mesh invalid! Pos pointer is nullptr!\n");
+		}
+		all_valid &= false;
+	}
+
+	if (!__is_aligned(pos, 16))
+	{
+		if (print_why_invalid)
+		{
+			printf("Mesh invalid! Pos pointer not aligned to a 16 byte address!\n");
 		}
 		all_valid &= false;
 	}

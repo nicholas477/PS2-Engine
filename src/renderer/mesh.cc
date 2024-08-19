@@ -28,12 +28,6 @@ Mesh::Mesh(const Filesystem::Path& in_path, bool in_auto_compile)
 	checkf(Filesystem::load_file(in_path, mesh_bytes, mesh_size, 16), in_path.data());
 	debug_name = in_path.data();
 	mesh       = reinterpret_cast<MeshFileHeader*>(mesh_bytes.get());
-
-	auto_compile = in_auto_compile;
-	if (auto_compile && GS::has_gs_initialized())
-	{
-		compile();
-	}
 }
 
 Mesh::Mesh(Asset::Reference mesh_asset, bool in_auto_compile)
@@ -41,30 +35,6 @@ Mesh::Mesh(Asset::Reference mesh_asset, bool in_auto_compile)
 {
 }
 
-void Mesh::on_gs_init()
-{
-	if (auto_compile)
-	{
-		compile();
-	}
-}
-
-void Mesh::compile()
-{
-	if (is_valid())
-	{
-		printf("Trying to compile already compiled mesh!\nMesh list: %d\n", list);
-		return;
-	}
-
-	check(!is_valid());
-
-	if (mesh == nullptr)
-	{
-		printf("Trying to compile null mesh!\n");
-		return;
-	}
-}
 
 void Mesh::draw(const Matrix& render_matrix, bool flush)
 {

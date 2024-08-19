@@ -78,27 +78,29 @@ void init_drawing_environment(framebuffer_t* t_frame, zbuffer_t* t_z)
 
 	// Now send the packet, no need to wait since it's the first.
 	dma_channel_send_packet2(packet2, DMA_CHANNEL_GIF, 1);
-	dma_wait_fast();
+	dma_channel_wait(DMA_CHANNEL_GIF, 0);
 }
 
 void vu1_set_double_buffer_settings()
 {
 	printf("egg-ps2-graphics-lib: vu1_set_double_buffer_settings\n");
-	utils::inline_packet2<2> packet2(P2_TYPE_NORMAL, P2_MODE_CHAIN, 1);
-	//packet2_utils_vu_add_double_buffer(packet2, 0, 512);
-	packet2_utils_vu_add_end_tag(packet2);
-	dma_channel_send_packet2(packet2, DMA_CHANNEL_VIF1, 1);
+	utils::inline_packet2<2> double_buffer_pkt(P2_TYPE_NORMAL, P2_MODE_CHAIN, 1);
+	packet2_utils_vu_add_double_buffer(double_buffer_pkt, 8, 496);
+	packet2_utils_vu_add_end_tag(double_buffer_pkt);
+
+	dma_channel_send_packet2(double_buffer_pkt, DMA_CHANNEL_VIF1, 1);
 	dma_channel_wait(DMA_CHANNEL_VIF1, 0);
 }
 
 void flip_buffers(framebuffer_t* t_frame)
 {
-	utils::inline_packet2<3> flip(P2_TYPE_NORMAL, P2_MODE_NORMAL, 0);
+	static utils::inline_packet2<8> flip(P2_TYPE_UNCACHED_ACCL, P2_MODE_NORMAL, 0);
+	packet2_reset(flip, 0);
 	packet2_update(flip, draw_framebuffer(flip->next, 0, t_frame));
 	packet2_update(flip, draw_finish(flip->next));
 
-	dma_wait_fast();
-	dma_channel_send_packet2(flip, DMA_CHANNEL_GIF, 1);
+	dma_channel_wait(DMA_CHANNEL_GIF, 0);
+	dma_channel_send_packet2(flip, DMA_CHANNEL_GIF, 0);
 
 	draw_wait_finish();
 }
@@ -166,7 +168,7 @@ void init()
 
 	init_drawing_environment(frame, &z);
 
-	init_draw_finish();
+	//init_draw_finish();
 
 	current_frame = frame;
 
@@ -212,16 +214,13 @@ void clear_screen(int r, int g, int b)
 	packet2_update(clear, draw_finish(clear->next));
 
 	// Now send our current dma chain.
-	dma_wait_fast();
 	dma_channel_send_packet2(clear, DMA_CHANNEL_GIF, 1);
-
-	// Wait for scene to finish drawing
-	draw_wait_finish();
 }
 
 void wait_vsync()
 {
 	//printf("waiting vsync.........\n");
+	draw_wait_finish();
 	graph_wait_vsync();
 
 	graph_set_framebuffer_filtered(current_frame->address, current_frame->width, current_frame->psm, 0, 0);

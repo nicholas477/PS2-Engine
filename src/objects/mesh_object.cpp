@@ -17,14 +17,6 @@ MeshObject::MeshObject(Asset::Reference mesh_reference)
 {
 }
 
-void MeshObject::on_gs_init()
-{
-	if (mesh)
-	{
-		mesh->compile();
-	}
-}
-
 void MeshObject::render(const GS::GSState& gs_state)
 {
 	if (mesh)
