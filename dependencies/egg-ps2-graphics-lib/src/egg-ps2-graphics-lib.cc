@@ -114,7 +114,6 @@ void init_draw_finish()
 	const auto [draw_finish_start, draw_finish_end] = vu1_programs::get_draw_finish_program_mem_address();
 	vu1_programs::get_draw_finish_program_addr()    = load_vu_program(draw_finish_start, draw_finish_end);
 
-
 	// Set up the draw_finish packet
 	draw_finish_packet.initialize(P2_TYPE_NORMAL, P2_MODE_NORMAL, 1);
 
@@ -233,13 +232,15 @@ void start_draw()
 {
 	printf("start_draw.........\n");
 
-	//flip_vip_packet_context();
+	flip_vip_packet_context();
 	packet2_reset(get_current_vif_packet(), 0);
 }
 
 void end_draw()
 {
 	printf("end_draw.........\n");
+
+	packet2_utils_vu_add_end_tag(get_current_vif_packet());
 	dma_channel_wait(DMA_CHANNEL_VIF1, 0);
 	dma_channel_send_packet2(get_current_vif_packet(), DMA_CHANNEL_VIF1, 1);
 	dma_channel_wait(DMA_CHANNEL_VIF1, 0);
@@ -248,14 +249,14 @@ void end_draw()
 
 	return;
 
-	dma_channel_wait(DMA_CHANNEL_VIF1, 0);
-	dma_channel_send_packet2(draw_finish_packet, DMA_CHANNEL_VIF1, true);
+	// dma_channel_wait(DMA_CHANNEL_VIF1, 0);
+	// dma_channel_send_packet2(draw_finish_packet, DMA_CHANNEL_VIF1, true);
 
-	while (!(*GS_REG_CSR & 2))
-	{
-	}
+	// while (!(*GS_REG_CSR & 2))
+	// {
+	// }
 
-	*GS_REG_CSR |= 2;
+	// *GS_REG_CSR |= 2;
 }
 
 std::array<vif_packet_t, 2>& get_vif_packets()

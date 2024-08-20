@@ -59,15 +59,14 @@ void draw_strip(const Matrix& mesh_to_screen_matrix, const mesh_descriptor& mesh
 	packet2_utils_vu_close_unpack(get_current_vif_packet());
 
 	// Position data
-	packet2_utils_vu_add_unpack_data(get_current_vif_packet(), 8, (void*)mesh.pos, mesh.num_verts, 1);
+	packet2_utils_vu_add_unpack_data(get_current_vif_packet(), 8, mesh.pos, mesh.num_verts, 1);
 
 	// Color data
-	packet2_utils_vu_add_unpack_data(get_current_vif_packet(), 8 + mesh.num_verts, (void*)mesh.color, mesh.num_verts, 1);
+	packet2_utils_vu_add_unpack_data(get_current_vif_packet(), 8 + mesh.num_verts, mesh.color, mesh.num_verts, 1);
 
 	assert((8 + (mesh.num_verts * 4)) < 496);
 
 	packet2_utils_vu_add_start_program(get_current_vif_packet(), mesh.vu_program_addr);
-	packet2_utils_vu_add_end_tag(get_current_vif_packet());
 }
 
 } // namespace

@@ -96,7 +96,6 @@
 							; that are stored in the w component of XYZ2 will set the ADC
 							; bit, which tells the GS not to perform a drawing kick on this
 							; triangle.
-        isw.w		iClipBit,   1(destAddress)
         
         div         q,      vf00[w],    vertex[w]   ; perspective divide (1/vert[w]):
         mul.xyz     vertex, vertex,     q
@@ -107,6 +106,7 @@
         ;//////////// --- Store data --- ////////////
         sq.xyzw color,       0(destAddress)
         sq.xyz  vertex,      1(destAddress)      ; XYZ2
+        isw.w		iClipBit,   1(destAddress)
         ;////////////////////////////////////////////
 
         iaddiu          vertexData,     vertexData,     1

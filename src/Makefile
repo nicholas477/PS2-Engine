@@ -4,9 +4,9 @@ SRC_FILES = $(shell find $(PREFIX) -name "*.cc" -o -name "*.cpp" -o -name "*.c")
 EE_OBJS = $(patsubst %.cc, build/%.o, $(SRC_FILES))
 EE_OBJS := $(patsubst %.c, build/%.o, $(EE_OBJS))
 EE_OBJS := $(patsubst %.cpp, build/%.o, $(EE_OBJS))
-EE_INCS := -I$(PS2SDK)/ports/include -Iinclude -Ivu1 -Idependencies/egg-ps2-graphics-lib/include $(EE_INCS)
+EE_INCS := -I$(PS2SDK)/ports/include -Iinclude -Idependencies/egg-ps2-graphics-lib/include $(EE_INCS)
 EE_LDFLAGS  += -L$(PS2SDK)/ports/lib -Ldependencies/egg-ps2-graphics-lib/lib
-EE_LIBS = -legg-ps2-graphics-lib -lpatches -lnetman -legg -ldraw -lgraph -lmath3d -ldma -lpad -lc -lstdc++ -lgs -ldebug -leedebug -laudsrv -lcdvd -lxcdvd -lkbd -lps2gdbStub -lps2ips -lpacket2 
+EE_LIBS = -legg-ps2-graphics-lib -legg -ldraw -lgraph -lmath3d -ldma -lpad -lc -lstdc++ -lgs -ldebug -leedebug -laudsrv -lcdvd -lxcdvd -lkbd -lpacket2 
 EE_OPTFLAGS = -g -std=gnu++20
 EE_CFLAGS += -DNO_VU0_VECTORS -DNO_ASM -g
 EE_CXXFLAGS += -DNO_VU0_VECTORS -DNO_ASM -frtti -g
