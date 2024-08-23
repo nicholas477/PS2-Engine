@@ -27,7 +27,7 @@ void draw_strip(const Matrix& mesh_to_screen_matrix, const mesh_descriptor& mesh
 	// Define the triangle primitive we want to use.
 	prim.type         = PRIM_TRIANGLE_STRIP;
 	prim.shading      = PRIM_SHADE_GOURAUD;
-	prim.mapping      = DRAW_DISABLE;
+	prim.mapping      = PRIM_MAP_ST;
 	prim.fogging      = DRAW_DISABLE;
 	prim.blending     = DRAW_DISABLE;
 	prim.antialiasing = DRAW_DISABLE;
@@ -44,12 +44,14 @@ void draw_strip(const Matrix& mesh_to_screen_matrix, const mesh_descriptor& mesh
 
 		// 4
 		packet2_add_float(get_current_vif_packet(), 2048.0F);                    // scale
-		packet2_add_float(get_current_vif_packet(), 2048.0F);                    // scale
+		packet2_add_float(get_current_vif_packet(), -2048.0F);                   // scale
 		packet2_add_float(get_current_vif_packet(), ((float)0xFFFFFF) / -32.0F); // scale
 		packet2_add_u32(get_current_vif_packet(), mesh.num_verts);               // vert count
 
 		// 5
-		packet2_utils_gs_add_prim_giftag(get_current_vif_packet(), &prim, mesh.num_verts, DRAW_RGBAQ_REGLIST, 2, 0);
+		packet2_utils_gs_add_prim_giftag(get_current_vif_packet(), &prim, mesh.num_verts,
+		                                 DRAW_RGBAQ_REGLIST,
+		                                 2, 0);
 
 		// 6
 		u8 j = 0; // RGBA

@@ -1,23 +1,3 @@
-; _____     ___ ____     ___ ____
-;  ____|   |    ____|   |        | |____|
-; |     ___|   |____ ___|    ____| |    \    PS2DEV Open Source Project.
-;-----------------------------------------------------------------------
-; (c) 2020 h4570 Sandro Sobczyński <sandro.sobczynski@gmail.com>
-; Licenced under Academic Free License version 2.0
-; Review ps2sdk README & LICENSE files for further details.
-;
-;
-;---------------------------------------------------------------
-; draw_3D.vcl                                                   |
-;---------------------------------------------------------------
-; A VU1 microprogram to draw 3D object using XYZ2, RGBAQ and ST|
-; This program uses double buffering (xtop)                    |
-;                                                              |
-; Many thanks to:                                              |
-; - Dr Henry Fortuna                                           |
-; - Jesper Svennevid, Daniel Collin                            |
-; - Guilherme Lampert                                          |
-;---------------------------------------------------------------
 
 .syntax new
 .name vsmVertexColorRenderer
@@ -70,7 +50,7 @@
                                      ; any32 : _ = 0
 
         lq.xyzw       color,     0(colorData)
-        move.w        color,     vf00[w]
+        ;move.w        color,     vf00[w]
 
         ;////////////// --- Color --- //////////////
         ; Color in the model is from 0-1, we need to convert it to 0-255 fixed point
@@ -91,7 +71,7 @@
         fcand		VI01,   0x3FFFF       ; Bitwise AND the clipping flags with 0x3FFFF, this makes
 							; sure that we get the clipping judgement for the last three
 							; verts (i.e. that make up the triangle we are about to draw)
-        iaddiu		iClipBit,   VI01,       0x7FFF      ; Add 0x7FFF. If any of the clipping flags were set this will
+        iaddiu		adcBit,   VI01,       0x7FFF      ; Add 0x7FFF. If any of the clipping flags were set this will
 							; cause the triangle not to be drawn (any values above 0x8000
 							; that are stored in the w component of XYZ2 will set the ADC
 							; bit, which tells the GS not to perform a drawing kick on this
@@ -102,11 +82,12 @@
         mula.xyz    acc,    scale,      vf00[w]     ; scale to GS screen space
         madd.xyz    vertex, vertex,     scale       ; multiply and add the scales -> vert = vert * scale + scale
         ftoi4.xyz   vertex, vertex                  ; convert vertex to 12:4 fixed point format
+
+        mfir.w      vertex, adcBit
         
         ;//////////// --- Store data --- ////////////
         sq.xyzw color,       0(destAddress)
-        sq.xyz  vertex,      1(destAddress)      ; XYZ2
-        isw.w		iClipBit,   1(destAddress)
+        sq.xyzw  vertex,     1(destAddress)      ; XYZ2
         ;////////////////////////////////////////////
 
         iaddiu          vertexData,     vertexData,     1
@@ -124,4 +105,3 @@
 
 --exit
 --endexit
-.END

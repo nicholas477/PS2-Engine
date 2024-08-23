@@ -115,7 +115,7 @@ struct alignas(16) Vector
 	{
 	}
 
-	float& operator[](size_t n)
+	constexpr float& operator[](size_t n)
 	{
 		return vector[n];
 	}
@@ -376,7 +376,12 @@ static Vector operator*(float Lhs, const Vector& Rhs)
 
 struct alignas(16) Matrix
 {
-	MATRIX matrix;
+	union
+	{
+		MATRIX matrix;
+		Vector vectors[4];
+	};
+
 	Matrix(MATRIX _matrix)
 	{
 		memcpy(matrix, _matrix, sizeof(MATRIX));
@@ -396,11 +401,16 @@ struct alignas(16) Matrix
 	{
 	}
 
+	constexpr Matrix(const Matrix& other)
+	    : Matrix(other.vectors[0], other.vectors[1], other.vectors[2], other.vectors[3])
+	{
+	}
+
 	operator const float*() const { return matrix; }
 	operator float*() { return matrix; }
 
-	operator const Vector*() const { return reinterpret_cast<const Vector*>(matrix); }
-	operator Vector*() { return reinterpret_cast<Vector*>(matrix); }
+	operator const Vector*() const { return vectors; }
+	operator Vector*() { return vectors; }
 
 	constexpr float& operator[](size_t index)
 	{
@@ -428,7 +438,7 @@ struct alignas(16) Matrix
 	                                float bottom, float top,
 	                                float zNear, float zFar)
 	{
-		Matrix xform(
+		return Matrix(
 		    Vector(
 		        (2.0f * zNear) / (right - left),
 		        0.0f,
@@ -449,18 +459,21 @@ struct alignas(16) Matrix
 		        0.0f,
 		        (-2.0f * zFar * zNear) / (zFar - zNear),
 		        0.0f));
-
-		return xform;
 	}
 
-	static constexpr Matrix perspective(float horizontal_fov, float aspect, float zNear, float zFar)
+	static constexpr Matrix perspective(float horizontal_fov, float aspect, float near, float far)
 	{
-		float xmax = zNear * tan(horizontal_fov * M_PI / 360.0f);
-		float xmin = -xmax;
-		float ymin = xmin * (1.f / aspect);
-		float ymax = xmax * (1.f / aspect);
+		const float scale = 1 / tan(horizontal_fov * 0.5 * M_PI / 180.f);
 
-		return frustum(xmin, xmax, ymin, ymax, zNear, zFar);
+		Matrix m;
+		m.vectors[0][0] = scale;
+		m.vectors[1][1] = scale;
+		m.vectors[2][2] = -far / (far - near);
+		m.vectors[3][2] = -far * near / (far - near);
+		m.vectors[2][3] = -1;
+		m.vectors[3][3] = 0;
+
+		return m;
 	}
 
 #ifdef _EE

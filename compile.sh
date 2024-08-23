@@ -49,28 +49,40 @@ echo "------Compiling ps2-mesh-converter------"
 pushd tools/ps2-mesh-converter && ./compile.sh; popd
 
 # OpenVCL/Masp
-if [ ! -d "dependencies/openvcl" ]; then
-    echo "------Cloning OpenVCL/Masp------"
-    git clone https://github.com/nicholas477/openvcl.git dependencies/openvcl
-fi
-echo "------Compiling Masp------"
-pushd dependencies/openvcl/contrib/masp
-if [ ! -f "Makefile" ]; then
-    chmod +x ./configure
-    if [ ! -z "$1" ] && [ $1 = "ci" ]; then
-        ./configure LIBS="-lobstack"
-    else
-        ./configure
-    fi
-fi
-make -j$(nproc)
-sudo -E make install -j$(nproc)
-popd
+# if [ ! -d "dependencies/openvcl" ]; then
+#     echo "------Cloning OpenVCL/Masp------"
+#     git clone https://github.com/nicholas477/openvcl.git dependencies/openvcl
+# fi
+# echo "------Compiling Masp------"
+# pushd dependencies/openvcl/contrib/masp
+# if [ ! -f "Makefile" ]; then
+#     chmod +x ./configure
+#     if [ ! -z "$1" ] && [ $1 = "ci" ]; then
+#         ./configure LIBS="-lobstack"
+#     else
+#         ./configure
+#     fi
+# fi
+# make -j$(nproc)
+# sudo -E make install -j$(nproc)
+# popd
 
-echo "------Compiling OpenVCL------"
-pushd dependencies/openvcl
-sudo -E make install -j$(nproc)
-popd
+# echo "------Compiling OpenVCL------"
+# pushd dependencies/openvcl
+# sudo -E make install -j$(nproc)
+# popd
+
+# Download and install VCL
+if command -v vcl 2>&1 /dev/null; then
+    echo "------Installing VCL------"
+    mkdir -p /temp/vcl
+    pushd /temp/vcl
+    wget https://github.com/h4570/tyra/raw/master/assets/vcl
+    chmod +x vcl
+    cp /temp/vcl/vcl /usr/bin/vcl
+
+    popd
+fi
 
 # PS2GDB
 if [ ! -d "dependencies/ps2gdb" ]; then

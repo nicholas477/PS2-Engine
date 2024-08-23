@@ -24,7 +24,7 @@ Level::Level(Asset::Reference level_reference)
 
 void Level::render(const GS::GSState& gs_state)
 {
-	return;
+	//return;
 
 	for (int i = 0; i < level->meshes.mesh_files.num_elements(); ++i)
 	{

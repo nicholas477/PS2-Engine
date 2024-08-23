@@ -71,7 +71,7 @@ void init_drawing_environment(framebuffer_t* t_frame, zbuffer_t* t_z)
 	packet2_update(packet2, draw_setup_environment(packet2->next, 0, t_frame, t_z));
 
 	// Now reset the primitive origin to 2048-width/2,2048-height/2.
-	packet2_update(packet2, draw_primitive_xyoffset(packet2->next, 0, (2048 - 320), (2048 - 256)));
+	packet2_update(packet2, draw_primitive_xyoffset(packet2->next, 0, (2048 - (frame->width / 2.f)), (2048 - (frame->height / 2.f))));
 
 	// Finish setting up the environment.
 	packet2_update(packet2, draw_finish(packet2->next));
@@ -85,7 +85,7 @@ void vu1_set_double_buffer_settings()
 {
 	printf("egg-ps2-graphics-lib: vu1_set_double_buffer_settings\n");
 	utils::inline_packet2<2> double_buffer_pkt(P2_TYPE_NORMAL, P2_MODE_CHAIN, 1);
-	//packet2_utils_vu_add_double_buffer(double_buffer_pkt, 8, 496);
+	packet2_utils_vu_add_double_buffer(double_buffer_pkt, 8, 496);
 	packet2_utils_vu_add_end_tag(double_buffer_pkt);
 
 	dma_channel_send_packet2(double_buffer_pkt, DMA_CHANNEL_VIF1, 1);
@@ -106,39 +106,39 @@ void flip_buffers(framebuffer_t* t_frame)
 }
 
 
-static utils::inline_packet2<10> draw_finish_packet;
+//static utils::inline_packet2<10> draw_finish_packet;
 
-void init_draw_finish()
-{
-	// Load the draw finish program
-	const auto [draw_finish_start, draw_finish_end] = vu1_programs::get_draw_finish_program_mem_address();
-	vu1_programs::get_draw_finish_program_addr()    = load_vu_program(draw_finish_start, draw_finish_end);
+// void init_draw_finish()
+// {
+// 	// Load the draw finish program
+// 	const auto [draw_finish_start, draw_finish_end] = vu1_programs::get_draw_finish_program_mem_address();
+// 	vu1_programs::get_draw_finish_program_addr()    = load_vu_program(draw_finish_start, draw_finish_end);
 
-	// Set up the draw_finish packet
-	draw_finish_packet.initialize(P2_TYPE_NORMAL, P2_MODE_NORMAL, 1);
+// 	// Set up the draw_finish packet
+// 	draw_finish_packet.initialize(P2_TYPE_NORMAL, P2_MODE_NORMAL, 1);
 
-	prim_t prim;
-	prim.type         = PRIM_TRIANGLE;
-	prim.shading      = PRIM_SHADE_GOURAUD;
-	prim.mapping      = 1;
-	prim.fogging      = 0;
-	prim.blending     = 1;
-	prim.antialiasing = 0;
-	prim.mapping_type = PRIM_MAP_ST;
-	prim.colorfix     = PRIM_UNFIXED;
+// 	prim_t prim;
+// 	prim.type         = PRIM_TRIANGLE;
+// 	prim.shading      = PRIM_SHADE_GOURAUD;
+// 	prim.mapping      = 1;
+// 	prim.fogging      = 0;
+// 	prim.blending     = 1;
+// 	prim.antialiasing = 0;
+// 	prim.mapping_type = PRIM_MAP_ST;
+// 	prim.colorfix     = PRIM_UNFIXED;
 
-	packet2_utils_vu_open_unpack(draw_finish_packet, 10, false);
-	{
-		packet2_utils_gif_add_set(draw_finish_packet, 1);
-		packet2_utils_gs_add_draw_finish_giftag(draw_finish_packet);
-		packet2_utils_gs_add_prim_giftag(draw_finish_packet, &prim, 0,
-		                                 ((u64)GIF_REG_RGBAQ) << 0, 1, 0);
-	}
-	packet2_utils_vu_close_unpack(draw_finish_packet);
+// 	packet2_utils_vu_open_unpack(draw_finish_packet, 10, false);
+// 	{
+// 		packet2_utils_gif_add_set(draw_finish_packet, 1);
+// 		packet2_utils_gs_add_draw_finish_giftag(draw_finish_packet);
+// 		packet2_utils_gs_add_prim_giftag(draw_finish_packet, &prim, 0,
+// 		                                 ((u64)GIF_REG_RGBAQ) << 0, 1, 0);
+// 	}
+// 	packet2_utils_vu_close_unpack(draw_finish_packet);
 
-	packet2_utils_vu_add_start_program(draw_finish_packet, vu1_programs::get_draw_finish_program_addr());
-	packet2_utils_vu_add_end_tag(draw_finish_packet);
-}
+// 	packet2_utils_vu_add_start_program(draw_finish_packet, vu1_programs::get_draw_finish_program_addr());
+// 	packet2_utils_vu_add_end_tag(draw_finish_packet);
+// }
 
 static u8 vif_packets_context = 0;
 static std::array<vif_packet_t, 2> vif_packets;
@@ -208,7 +208,7 @@ void clear_screen(int r, int g, int b)
 
 	// Clear framebuffer but don't update zbuffer.
 	packet2_update(clear, draw_disable_tests(clear->next, 0, &z));
-	packet2_update(clear, draw_clear(clear->next, 0, 2048.0f - 320.f, 2048.0f - 256.f, current_frame->width, current_frame->height, r, g, b));
+	packet2_update(clear, draw_clear(clear->next, 0, 2048.0f - (current_frame->width / 2.f), 2048.0f - (current_frame->height / 2.f), current_frame->width, current_frame->height, r, g, b));
 	packet2_update(clear, draw_enable_tests(clear->next, 0, &z));
 	packet2_update(clear, draw_finish(clear->next));
 
@@ -230,15 +230,15 @@ void wait_vsync()
 
 void start_draw()
 {
-	printf("start_draw.........\n");
+	//printf("start_draw.........\n");
 
-	flip_vip_packet_context();
+	//flip_vip_packet_context();
 	packet2_reset(get_current_vif_packet(), 0);
 }
 
 void end_draw()
 {
-	printf("end_draw.........\n");
+	//printf("end_draw.........\n");
 
 	packet2_utils_vu_add_end_tag(get_current_vif_packet());
 	dma_channel_wait(DMA_CHANNEL_VIF1, 0);
