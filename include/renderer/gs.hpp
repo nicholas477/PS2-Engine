@@ -1,6 +1,5 @@
 #pragma once
 
-#include "renderer/renderer_types.hpp"
 #include "egg/math_types.hpp"
 
 #include "draw_buffers.h"

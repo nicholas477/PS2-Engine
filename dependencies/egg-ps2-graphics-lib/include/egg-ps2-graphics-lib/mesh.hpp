@@ -2,8 +2,7 @@
 
 #include <tamtypes.h>
 
-struct Matrix;
-struct Vector;
+#include "egg/math_types.hpp"
 
 namespace egg::ps2::graphics
 {
@@ -22,8 +21,16 @@ struct mesh_descriptor
 	// are 0-1023
 	u32 vu_program_addr = 0;
 
+	Vector scale = Vector(2048.f, -2048.f, ((float)0xFFFFFF) / -32.0F);
+
+	// Fog settings
+	bool enable_fog  = false;
+	float fog_offset = 500.f;
+	float fog_scale  = -1.f / 2.f;
+
+public:
 	bool is_valid(bool print_why_invalid = true) const;
 };
 
-void draw_mesh(const Matrix& mesh_to_screen_matrix, const mesh_descriptor& mesh);
+void draw_mesh_strip(const Matrix& mesh_to_screen_matrix, const mesh_descriptor& mesh);
 } // namespace egg::ps2::graphics

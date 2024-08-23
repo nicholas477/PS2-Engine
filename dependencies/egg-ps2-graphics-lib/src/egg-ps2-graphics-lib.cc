@@ -169,6 +169,10 @@ void init()
 
 	//init_draw_finish();
 
+	// Load the kick program
+	const auto [kick_start, kick_end]     = vu1_programs::get_kick_program_mem_address();
+	vu1_programs::get_kick_program_addr() = load_vu_program(kick_start, kick_end);
+
 	current_frame = frame;
 
 	vif_packets[0].initialize(P2_TYPE_NORMAL, P2_MODE_CHAIN, 1);

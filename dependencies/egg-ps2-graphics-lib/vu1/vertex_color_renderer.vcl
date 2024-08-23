@@ -30,6 +30,9 @@
     lq      primTag,          5(iBase) ; GIF tag - tell GS how many data we will send
     lq      rgba,             6(iBase) ; RGBA
                                        ; u32 : R, G, B, A (0-128)
+
+    lq      fogSetting,        7(iBase) ; x = offset, y = scale
+
     iaddiu  vertexData,     iBase,         8            ; pointer to vertex data
     iadd    colorData,      vertexData,    vertCount   ; pointer to color data
     iadd    kickAddress,    colorData,     vertCount   ; pointer for XGKICK
@@ -65,6 +68,7 @@
         madd           acc,           matrixRow2, vertex[z]
         madd           vertex,        matrixRow3, vf00[w]
        
+        ; Clipping
         clipw.xyz	vertex, vertex			; Dr. Fortuna: This instruction checks if the vertex is outside
 							; the viewing frustum. If it is, then the appropriate
 							; clipping flags are set
@@ -76,18 +80,49 @@
 							; that are stored in the w component of XYZ2 will set the ADC
 							; bit, which tells the GS not to perform a drawing kick on this
 							; triangle.
-        
+
+        ; Fog mask (why is this like this? strange...)
+        iaddiu fogMask, vi00, 0x7fff
+        iaddiu fogMask, fogMask, 1
+        iand   adcBit, fogMask, adcBit
+
+
+        ; Perspective divide
         div         q,      vf00[w],    vertex[w]   ; perspective divide (1/vert[w]):
         mul.xyz     vertex, vertex,     q
+
+
+
+        ; Fog
+        muly.w  fog, vertex, fogSetting    ; multiply the vertex's w by the fog scale (fogSetting[y])
+        addx.w  fog, fog,    fogSetting    ; add the fog start offset (fogSetting[x])
+
+        ; Clamp fog from 0-255
+        loi 255.0
+        minii.w fog, fog,    i
+        maxx.w  fog, fog,    vf00
+
+        ; Convert the fog to an integer, move it to an integer register (fogColor)
+        ftoi4.w fog, fog
+        mtir    fogColor, fog[w]
+
+        ; Combine clipping + fog settings
+        ior     adcBit, adcBit, fogColor
+
+
+
+        ; Scale to screen space
         mula.xyz    acc,    scale,      vf00[w]     ; scale to GS screen space
         madd.xyz    vertex, vertex,     scale       ; multiply and add the scales -> vert = vert * scale + scale
         ftoi4.xyz   vertex, vertex                  ; convert vertex to 12:4 fixed point format
 
+        ; Add clipping bit
         mfir.w      vertex, adcBit
+
         
         ;//////////// --- Store data --- ////////////
         sq.xyzw color,       0(destAddress)
-        sq.xyzw  vertex,     1(destAddress)      ; XYZ2
+        sq.xyzw vertex,      1(destAddress)      ; XYZ2
         ;////////////////////////////////////////////
 
         iaddiu          vertexData,     vertexData,     1

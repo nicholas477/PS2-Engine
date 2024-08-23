@@ -39,6 +39,18 @@ cmake ..
 sudo make install -j$(nproc)
 popd
 
+# Download and install VCL
+if ! command -v vcl 2>&1 /dev/null; then
+    echo "------Installing VCL------"
+    mkdir -p /temp/vcl
+    pushd /temp/vcl
+    wget https://github.com/h4570/tyra/raw/master/assets/vcl
+    chmod +x vcl
+    cp /temp/vcl/vcl /usr/bin/vcl
+
+    popd
+fi
+
 echo "------Compiling egg-library------"
 pushd dependencies/egg-library && ./compile.sh; popd
 echo "------Compiling egg-ps2-graphics-library------"
@@ -71,18 +83,6 @@ pushd tools/ps2-mesh-converter && ./compile.sh; popd
 # pushd dependencies/openvcl
 # sudo -E make install -j$(nproc)
 # popd
-
-# Download and install VCL
-if command -v vcl 2>&1 /dev/null; then
-    echo "------Installing VCL------"
-    mkdir -p /temp/vcl
-    pushd /temp/vcl
-    wget https://github.com/h4570/tyra/raw/master/assets/vcl
-    chmod +x vcl
-    cp /temp/vcl/vcl /usr/bin/vcl
-
-    popd
-fi
 
 # PS2GDB
 if [ ! -d "dependencies/ps2gdb" ]; then

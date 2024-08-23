@@ -18,6 +18,7 @@
 #include "renderer/vu1/vu_programs.hpp"
 
 #include "egg-ps2-graphics-lib/egg-ps2-graphics-lib.hpp"
+#include "egg-ps2-graphics-lib/draw.hpp"
 
 
 namespace GS
@@ -112,6 +113,8 @@ void render()
 
 		{
 			egg::ps2::graphics::start_draw();
+
+			egg::ps2::graphics::set_fog_color(0x40, 0x40, 0x40);
 
 			draw_objects(_gs_state);
 

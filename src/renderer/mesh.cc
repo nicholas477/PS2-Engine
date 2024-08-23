@@ -64,8 +64,9 @@ void Mesh::draw(const Matrix& render_matrix, bool flush)
 		m.color           = get_mesh()->colors.get_ptr() + start_index;
 		m.num_verts       = end_index - start_index;
 		m.vu_program_addr = get_vertex_color_program_addr();
+		m.enable_fog      = true;
 
-		draw_mesh(render_matrix, m);
+		draw_mesh_strip(render_matrix, m);
 	}
 }
 
