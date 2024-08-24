@@ -392,6 +392,11 @@ struct alignas(16) Matrix
 	{
 	}
 
+	constexpr Matrix(float _0, float _1, float _2, float _3, float _4, float _5, float _6, float _7, float _8, float _9, float _10, float _11, float _12, float _13, float _14, float _15)
+	    : matrix {_0, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15}
+	{
+	}
+
 	constexpr Matrix(const Vector& col0, const Vector& col1, const Vector& col2, const Vector& col3)
 	    : matrix {
 	          col0.x, col0.y, col0.z, col0.w,
@@ -461,22 +466,24 @@ struct alignas(16) Matrix
 		        0.0f));
 	}
 
-	static constexpr Matrix perspective(float horizontal_fov, float aspect, float near, float far)
+	static constexpr Matrix perspective(float vertical_fov, float width, float height, float z_near, float z_far, float proj_scale = 2048.f)
 	{
-		const float scale = 1 / tan(horizontal_fov * 0.5 * M_PI / 180.f);
+		const float aspect = width / height;
 
-		Matrix m;
-		m.vectors[0][0] = scale;
-		m.vectors[1][1] = scale;
-		m.vectors[2][2] = -far / (far - near);
-		m.vectors[3][2] = -far * near / (far - near);
-		m.vectors[2][3] = -1;
-		m.vectors[3][3] = 0;
+		const float half_fovy = vertical_fov * 0.5f;
+		const float cot_fov   = 1.0f / (sin(half_fovy) / cos(half_fovy));
+
+		const float w = cot_fov * (width / proj_scale) / aspect;
+		const float h = cot_fov * (height / proj_scale);
+
+		Matrix m(w, 0.0f, 0.0f, 0.0f,
+		         0.0f, -h, 0.0f, 0.0f,
+		         0.0f, 0.0f, (z_far + z_near) / (z_far - z_near), -1.0f,
+		         0.0f, 0.0f, (2.0f * z_far * z_near) / (z_far - z_near), 0.0f);
 
 		return m;
 	}
 
-#ifdef _EE
 	static constexpr Matrix UnitMatrix()
 	{
 		Matrix output;
@@ -487,6 +494,7 @@ struct alignas(16) Matrix
 		return output;
 	}
 
+#ifdef _EE
 	Vector transform_vector(const Vector& input) const
 	{
 		Vector output;

@@ -13,12 +13,13 @@ class Level1Player
 {
 public:
 	Level1Player()
-	//: teeth_model("assets/models/level1/Mouth.mdl"_asset)
 	{
 		camera_transform.set_parent(*teapot_model.get_root_component());
-		camera_transform.set_location(Vector(0.f, teapot_model.collision.get_local_bounds().get_half_extents().y));
+		camera_transform.set_location(Vector(0.f, 8.f));
 
 		Camera::get().transform.set_parent(camera_transform);
+		Camera::get().transform.set_location(Vector(0.f, 0.f, 100.f)); // This is the length of the spring arm
+		Camera::get().fov = 77.32f;
 
 		movement.updated_rotation_component = &camera_transform;
 		movement.updated_location_component = teapot_model.get_root_component();

@@ -107,7 +107,7 @@ mesh_descriptor::mesh_descriptor()
 	// are 0-1023
 	vu_program_addr = 0;
 
-	screen_scale = Vector(2048.f, -2048.f, ((float)0xFFFFFF) / -32.0F);
+	screen_scale = Vector(2048.f, 2048.f, ((float)0xFFFFFF) / 32.0F);
 
 	// Fog settings
 	enable_fog = false;
