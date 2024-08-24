@@ -24,7 +24,7 @@ public:
 	void load_from_path(const Filesystem::Path& path);
 	void load_from_asset_ref(Asset::Reference mesh_asset);
 
-	void draw(const Matrix& render_matrix, bool flush = false);
+	void draw(const GS::GSState& gs_state, const Matrix& render_matrix, bool flush = false);
 
 	bool is_valid() const { return get_mesh() != nullptr; }
 	int get_triangle_count() const;

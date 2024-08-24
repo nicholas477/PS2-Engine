@@ -26,7 +26,7 @@ void Level::render(const GS::GSState& gs_state)
 {
 	for (int i = 0; i < level->meshes.mesh_files.num_elements(); ++i)
 	{
-		meshes[level->meshes.mesh_files[i]].draw(level->meshes.mesh_transforms[i] * gs_state.world_screen);
+		meshes[level->meshes.mesh_files[i]].draw(gs_state, level->meshes.mesh_transforms[i] * gs_state.world_screen);
 	}
 }
 

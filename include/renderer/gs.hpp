@@ -17,6 +17,8 @@ struct GSState
 	Matrix world_screen; // World to screen matrix. Use this for drawing
 	Vector camera_rotation;
 
+	std::pair<float, float> fog_start_end;
+
 	Matrix get_camera_matrix() const;
 	Vector get_camera_pos() const;
 	Vector get_camera_rotation() const;

@@ -43,14 +43,15 @@ void draw_strip(const Matrix& mesh_to_screen_matrix, const mesh_descriptor& mesh
 		}
 
 		// 4
-		packet2_add_float(get_current_vif_packet(), mesh.scale.x); // scale
-		packet2_add_float(get_current_vif_packet(), mesh.scale.y); // scale
-		packet2_add_float(get_current_vif_packet(), mesh.scale.z); // scale
-		packet2_add_u32(get_current_vif_packet(), mesh.num_verts); // vert count
+		packet2_add_float(get_current_vif_packet(), mesh.screen_scale.x); // scale
+		packet2_add_float(get_current_vif_packet(), mesh.screen_scale.y); // scale
+		packet2_add_float(get_current_vif_packet(), mesh.screen_scale.z); // scale
+		packet2_add_u32(get_current_vif_packet(), mesh.num_verts);        // vert count
 
 		if (mesh.enable_fog)
 		{
 			// 5
+			// The F in XYZF2 stands for fog
 			packet2_utils_gs_add_prim_giftag(get_current_vif_packet(), &prim, mesh.num_verts,
 			                                 ((u64)GIF_REG_RGBAQ) << 0 | ((u64)GIF_REG_XYZF2) << 4,
 			                                 2, 0);
@@ -91,6 +92,39 @@ void draw_strip(const Matrix& mesh_to_screen_matrix, const mesh_descriptor& mesh
 
 namespace egg::ps2::graphics
 {
+mesh_descriptor::mesh_descriptor()
+{
+	pos   = nullptr;
+	color = nullptr;
+
+	// Has to be at least 3
+	num_verts = 0;
+
+	// Address of the VU program loaded in memory used to perform vertex
+	// processing on this mesh.
+	//
+	// Note: this is a vu1 memory address! Valid values for a vu1 memory address
+	// are 0-1023
+	vu_program_addr = 0;
+
+	screen_scale = Vector(2048.f, -2048.f, ((float)0xFFFFFF) / -32.0F);
+
+	// Fog settings
+	enable_fog = false;
+
+	// The start offset of the fog
+	fog_offset = 100.f;
+
+	// fog distance scaling
+	fog_scale = -256.f / 1024.f;
+}
+
+void mesh_descriptor::set_fog_start_and_end(float fog_start, float fog_end)
+{
+	fog_offset = fog_start;
+	fog_scale  = -256.f / std::max(0.01f, (fog_end - fog_start));
+}
+
 void draw_mesh_strip(const Matrix& mesh_to_screen_matrix, const mesh_descriptor& mesh)
 {
 	assert(mesh.is_valid());

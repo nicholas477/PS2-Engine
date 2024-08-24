@@ -45,7 +45,7 @@ void Mesh::load_from_asset_ref(Asset::Reference mesh_asset)
 }
 
 
-void Mesh::draw(const Matrix& render_matrix, bool flush)
+void Mesh::draw(const GS::GSState& gs_state, const Matrix& render_matrix, bool flush)
 {
 	using namespace egg::ps2::graphics;
 	if (get_mesh() == nullptr)
@@ -65,6 +65,8 @@ void Mesh::draw(const Matrix& render_matrix, bool flush)
 		m.num_verts       = end_index - start_index;
 		m.vu_program_addr = get_vertex_color_program_addr();
 		m.enable_fog      = true;
+
+		m.set_fog_start_and_end(gs_state.fog_start_end.first, gs_state.fog_start_end.second);
 
 		draw_mesh_strip(render_matrix, m);
 	}

@@ -21,7 +21,7 @@ void MeshObject::render(const GS::GSState& gs_state)
 {
 	if (mesh)
 	{
-		mesh->draw(transform.get_matrix() * gs_state.world_screen);
+		mesh->draw(gs_state, transform.get_matrix() * gs_state.world_screen);
 	}
 }
 

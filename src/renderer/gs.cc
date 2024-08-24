@@ -105,16 +105,19 @@ void render()
 
 		_gs_state.world_view = Camera::get().transform.get_matrix().invert() * Matrix::from_scale(Vector(1.f, 1.f, 1.f));
 		//_gs_state.view_screen = Matrix::perspective(90.f, (float)screen_width / (float)screen_height, 1.f, 2000.f);
-		_gs_state.view_screen     = Matrix::frustum(-3.00f, 3.00f, -3.00f, 3.00f, 1.00f, 2000.f);
+		_gs_state.view_screen = Matrix::frustum(-3.00f, 3.00f, -3.00f, 3.00f, 1.00f, 5000.f);
+
+		_gs_state.fog_start_end = {300.f, 2000.f};
+
 		_gs_state.world_screen    = _gs_state.world_view * _gs_state.view_screen;
 		_gs_state.camera_rotation = Camera::get().transform.get_rotation();
 
-		egg::ps2::graphics::clear_screen(0x40, 0x40, 0x40);
+		egg::ps2::graphics::clear_screen(255, 192, 203);
 
 		{
 			egg::ps2::graphics::start_draw();
 
-			egg::ps2::graphics::set_fog_color(0x40, 0x40, 0x40);
+			egg::ps2::graphics::set_fog_color(255, 192, 203);
 
 			draw_objects(_gs_state);
 
