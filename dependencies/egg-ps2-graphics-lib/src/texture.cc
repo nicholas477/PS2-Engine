@@ -39,16 +39,22 @@ texture_descriptor::texture_descriptor()
 }
 
 
-void texture_descriptor::set_width_height(u32 width, u32 height)
+void texture_descriptor::set_width_height(u32 in_width, u32 in_height)
 {
 	// Check the dimensions are powers of 2
-	assert((width & (width - 1)) == 0);
-	assert((height & (height - 1)) == 0);
+	assert((in_width & (in_width - 1)) == 0);
+	assert((in_height & (in_height - 1)) == 0);
 
-	t_texbuff.width = width;
+	t_texbuff.width = in_width;
+	height          = in_height;
 
-	t_texbuff.info.width  = draw_log2(width);
-	t_texbuff.info.height = draw_log2(height);
+	t_texbuff.info.width  = draw_log2(in_width);
+	t_texbuff.info.height = draw_log2(in_height);
+}
+
+std::pair<u32, u32> texture_descriptor::get_width_height() const
+{
+	return {t_texbuff.width, height};
 }
 
 void upload_texture(texture_descriptor& texture, void* texture_data)
@@ -59,12 +65,24 @@ void upload_texture(texture_descriptor& texture, void* texture_data)
 	}
 
 	utils::inline_packet2<50> texture_packet(P2_TYPE_NORMAL, P2_MODE_CHAIN, 0);
-	packet2_update(texture_packet, draw_texture_transfer(texture_packet->next, texture_data, 128, 128, GS_PSM_24, texture.t_texbuff.address, texture.t_texbuff.width));
+	packet2_update(texture_packet, draw_texture_transfer(
+	                                   texture_packet->next,
+	                                   texture_data,
+	                                   texture.get_width_height().first,
+	                                   texture.get_width_height().second,
+	                                   texture.t_texbuff.psm,
+	                                   texture.t_texbuff.address,
+	                                   texture.t_texbuff.width));
 	packet2_update(texture_packet, draw_texture_flush(texture_packet->next));
 	dma_channel_send_packet2(texture_packet, DMA_CHANNEL_GIF, 1);
 	dma_wait_fast();
 
 	texture.is_uploaded = true;
+}
+
+void unload_texture(texture_descriptor& texture)
+{
+	texture.is_uploaded = false;
 }
 
 void set_texture(texture_descriptor& texture)

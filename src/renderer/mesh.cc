@@ -11,10 +11,9 @@
 
 Mesh::Mesh()
 {
-	mesh_asset   = nullptr;
-	path         = nullptr;
-	auto_compile = false;
-	debug_name   = "uninitialized mesh";
+	mesh_asset = nullptr;
+	path       = nullptr;
+	debug_name = "uninitialized mesh";
 }
 
 Mesh::Mesh(Asset::Reference mesh_asset_ref)

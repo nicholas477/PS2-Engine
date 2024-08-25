@@ -31,7 +31,6 @@ public:
 
 	// for debug
 	const Filesystem::Path* path;
-	bool auto_compile;
 	virtual const char* get_type_name() const { return typeid(Mesh).name(); }
 
 	// Copy constructor (no copying!)

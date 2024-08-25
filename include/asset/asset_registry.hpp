@@ -14,5 +14,8 @@ struct Asset
 bool get_asset(::Asset::Reference asset, Asset*& out_asset, u16 alignment = 0, bool load_if_not_found = true);
 bool get_asset(const Filesystem::Path& path, Asset*& out_asset, u16 alignment = 0, bool load_if_not_found = true);
 
-//bool unload_asset(::Asset::Reference asset);
+// Unloads an asset from memory, returns true if it was succesful
+bool unload_asset(::Asset::Reference asset);
+
+size_t unload_all_assets();
 }; // namespace AssetRegistry

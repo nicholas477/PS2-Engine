@@ -60,4 +60,16 @@ bool get_asset(const Filesystem::Path& path, Asset*& out_asset, u16 alignment, b
 
 	return false;
 }
+
+bool unload_asset(::Asset::Reference asset)
+{
+	return assets.erase(asset) > 0;
+}
+
+size_t unload_all_assets()
+{
+	const size_t num_assets = assets.size();
+	assets.clear();
+	return num_assets;
+}
 } // namespace AssetRegistry
