@@ -28,24 +28,25 @@ framebuffer_t* current_frame;
 zbuffer_t z;
 
 /** Some initialization of GS and VRAM allocation */
-void init_gs(framebuffer_t* t_frame, zbuffer_t* t_z)
+void init_gs(const init_options& init_options, framebuffer_t* t_frame, zbuffer_t* t_z)
 {
 	printf("egg-ps2-graphics-lib: init gs\n");
-	// Define a 32-bit 640x512 framebuffer.
-	t_frame->width  = 640;
-	t_frame->height = 512;
+
+	// Allocate the two framebuffers
+	t_frame->width  = init_options.framebuffer_width;
+	t_frame->height = init_options.framebuffer_height;
 	t_frame->mask   = 0;
-	t_frame->psm    = GS_PSM_32;
+	t_frame->psm    = init_options.framebuffer_psm;
 
 	// Allocate some vram for our framebuffer.
 	t_frame->address = graph_vram_allocate(t_frame->width, t_frame->height, t_frame->psm, GRAPH_ALIGN_PAGE);
 
 	t_frame++;
 
-	t_frame->width  = 640;
-	t_frame->height = 512;
+	t_frame->width  = init_options.framebuffer_width;
+	t_frame->height = init_options.framebuffer_height;
 	t_frame->mask   = 0;
-	t_frame->psm    = GS_PSM_32;
+	t_frame->psm    = init_options.framebuffer_psm;
 
 	// Allocate some vram for our framebuffer.
 	t_frame->address = graph_vram_allocate(t_frame->width, t_frame->height, t_frame->psm, GRAPH_ALIGN_PAGE);
@@ -58,7 +59,11 @@ void init_gs(framebuffer_t* t_frame, zbuffer_t* t_z)
 	t_z->address = graph_vram_allocate(t_frame->width, t_frame->height, t_z->zsm, GRAPH_ALIGN_PAGE);
 
 	// Initialize the screen and tie the first framebuffer to the read circuits.
-	graph_initialize(t_frame->address, t_frame->width, t_frame->height, t_frame->psm, 0, 0);
+	graph_set_mode(init_options.interlaced, init_options.graph_mode, init_options.ffmd, init_options.flicker_filter);
+
+	graph_set_screen(0, 0, t_frame->width, t_frame->height);
+	graph_set_framebuffer_filtered(t_frame->address, t_frame->width, t_frame->psm, 0, 0);
+	graph_enable_output();
 }
 
 /** Some initialization of GS 2 */
@@ -105,52 +110,31 @@ void flip_buffers(framebuffer_t* t_frame)
 	draw_wait_finish();
 }
 
-
-//static utils::inline_packet2<10> draw_finish_packet;
-
-// void init_draw_finish()
-// {
-// 	// Load the draw finish program
-// 	const auto [draw_finish_start, draw_finish_end] = vu1_programs::get_draw_finish_program_mem_address();
-// 	vu1_programs::get_draw_finish_program_addr()    = load_vu_program(draw_finish_start, draw_finish_end);
-
-// 	// Set up the draw_finish packet
-// 	draw_finish_packet.initialize(P2_TYPE_NORMAL, P2_MODE_NORMAL, 1);
-
-// 	prim_t prim;
-// 	prim.type         = PRIM_TRIANGLE;
-// 	prim.shading      = PRIM_SHADE_GOURAUD;
-// 	prim.mapping      = 1;
-// 	prim.fogging      = 0;
-// 	prim.blending     = 1;
-// 	prim.antialiasing = 0;
-// 	prim.mapping_type = PRIM_MAP_ST;
-// 	prim.colorfix     = PRIM_UNFIXED;
-
-// 	packet2_utils_vu_open_unpack(draw_finish_packet, 10, false);
-// 	{
-// 		packet2_utils_gif_add_set(draw_finish_packet, 1);
-// 		packet2_utils_gs_add_draw_finish_giftag(draw_finish_packet);
-// 		packet2_utils_gs_add_prim_giftag(draw_finish_packet, &prim, 0,
-// 		                                 ((u64)GIF_REG_RGBAQ) << 0, 1, 0);
-// 	}
-// 	packet2_utils_vu_close_unpack(draw_finish_packet);
-
-// 	packet2_utils_vu_add_start_program(draw_finish_packet, vu1_programs::get_draw_finish_program_addr());
-// 	packet2_utils_vu_add_end_tag(draw_finish_packet);
-// }
-
-static u8 vif_packets_context = 0;
-static std::array<vif_packet_t, 2> vif_packets;
+static vif_packet_t vif_packet;
 
 } // namespace
 
 namespace egg::ps2::graphics
 {
 
+init_options::init_options()
+{
+	framebuffer_width  = 640;
+	framebuffer_height = 448;
+
+	framebuffer_psm = GS_PSM_32;
+
+	graph_mode     = GRAPH_MODE_NTSC;
+	interlaced     = GRAPH_MODE_NONINTERLACED;
+	ffmd           = GRAPH_MODE_FRAME;
+	flicker_filter = GRAPH_DISABLE;
+
+	double_buffer_vu = true;
+}
+
 static u32 current_program_addr = 0;
 
-void init()
+void init(const init_options& init_options)
 {
 	// Init DMA channels.
 	dma_channel_initialize(DMA_CHANNEL_GIF, NULL, 0);
@@ -160,14 +144,15 @@ void init()
 
 	current_program_addr = 0;
 
-	vu1_set_double_buffer_settings();
+	if (init_options.double_buffer_vu)
+	{
+		vu1_set_double_buffer_settings();
+	}
 
 	// Init the GS, framebuffer, zbuffer
-	init_gs(frame, &z);
+	init_gs(init_options, frame, &z);
 
 	init_drawing_environment(frame, &z);
-
-	//init_draw_finish();
 
 	// Load the kick program
 	const auto [kick_start, kick_end]     = vu1_programs::get_kick_program_mem_address();
@@ -175,9 +160,7 @@ void init()
 
 	current_frame = frame;
 
-	vif_packets[0].initialize(P2_TYPE_NORMAL, P2_MODE_CHAIN, 1);
-	vif_packets[1].initialize(P2_TYPE_NORMAL, P2_MODE_CHAIN, 1);
-	vif_packets_context = 0;
+	vif_packet.initialize(P2_TYPE_NORMAL, P2_MODE_CHAIN, 1);
 }
 
 u32 load_vu_program(void* program_start_address, void* program_end_address)
@@ -236,7 +219,6 @@ void start_draw()
 {
 	//printf("start_draw.........\n");
 
-	//flip_vip_packet_context();
 	packet2_reset(get_current_vif_packet(), 0);
 }
 
@@ -263,24 +245,9 @@ void end_draw()
 	// *GS_REG_CSR |= 2;
 }
 
-std::array<vif_packet_t, 2>& get_vif_packets()
-{
-	return vif_packets;
-}
-
 packet2_t* get_current_vif_packet()
 {
-	return vif_packets[vif_packets_context];
-}
-
-u8 get_vif_packet_context()
-{
-	return vif_packets_context;
-}
-
-void flip_vip_packet_context()
-{
-	vif_packets_context ^= 1;
+	return vif_packet;
 }
 
 } // namespace egg::ps2::graphics

@@ -94,7 +94,7 @@
 
 
         ; Fog
-        muly.w  fog, vertex, fogSetting    ; multiply the vertex's w by the fog scale (fogSetting[y])
+        muly.w  fog, vertex, fogSetting    ; multiply the vertex's z by the fog scale (fogSetting[y])
         addx.w  fog, fog,    fogSetting    ; add the fog start offset (fogSetting[x])
 
         ; Clamp fog from 0-255

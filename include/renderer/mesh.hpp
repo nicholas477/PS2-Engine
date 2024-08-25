@@ -9,19 +9,19 @@
 #include <vector>
 #include <memory>
 
+#include "asset/asset_registry.hpp"
+
 class Mesh: public Renderable, public Debuggable
 {
 public:
 	Mesh();
 
-	Mesh(const Filesystem::Path& path);
 	Mesh(Asset::Reference mesh_asset);
 
-	class MeshFileHeader* get_mesh() const;
-	std::unique_ptr<std::byte[]> mesh_bytes;
-	size_t mesh_size;
+	AssetRegistry::Asset* mesh_asset;
 
-	void load_from_path(const Filesystem::Path& path);
+	class MeshFileHeader* get_mesh() const;
+
 	void load_from_asset_ref(Asset::Reference mesh_asset);
 
 	void draw(const GS::GSState& gs_state, const Matrix& render_matrix, bool flush = false);

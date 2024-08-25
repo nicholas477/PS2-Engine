@@ -11,39 +11,23 @@
 
 Mesh::Mesh()
 {
-	mesh_bytes   = nullptr;
-	mesh_size    = 0;
+	mesh_asset   = nullptr;
 	path         = nullptr;
 	auto_compile = false;
 	debug_name   = "uninitialized mesh";
 }
 
-Mesh::Mesh(const Filesystem::Path& in_path)
+Mesh::Mesh(Asset::Reference mesh_asset_ref)
     : Mesh()
 {
-	load_from_path(in_path);
-	debug_name = in_path.data();
+	load_from_asset_ref(mesh_asset_ref);
+	debug_name = Asset::lookup_path(mesh_asset_ref).data();
 }
 
-Mesh::Mesh(Asset::Reference mesh_asset)
-    : Mesh(Asset::lookup_path(mesh_asset))
+void Mesh::load_from_asset_ref(Asset::Reference mesh_asset_ref)
 {
+	check(AssetRegistry::get_asset(mesh_asset_ref, mesh_asset, 16, true));
 }
-
-void Mesh::load_from_path(const Filesystem::Path& in_path)
-{
-	path = &in_path;
-	checkf(path->length() > 0, path->data());
-	checkf(Filesystem::load_file(in_path, mesh_bytes, mesh_size, 16), in_path.data());
-
-	check(__is_aligned(mesh_bytes.get(), 16));
-}
-
-void Mesh::load_from_asset_ref(Asset::Reference mesh_asset)
-{
-	load_from_path(Asset::lookup_path(mesh_asset));
-}
-
 
 void Mesh::draw(const GS::GSState& gs_state, const Matrix& render_matrix, bool flush)
 {
@@ -65,6 +49,8 @@ void Mesh::draw(const GS::GSState& gs_state, const Matrix& render_matrix, bool f
 		m.num_verts       = end_index - start_index;
 		m.vu_program_addr = get_vertex_color_program_addr();
 		m.enable_fog      = true;
+
+		m.enable_texture_mapping = false;
 
 		m.set_fog_start_and_end(gs_state.fog_start_end.first, gs_state.fog_start_end.second);
 
@@ -89,5 +75,6 @@ int Mesh::get_triangle_count() const
 
 MeshFileHeader* Mesh::get_mesh() const
 {
-	return reinterpret_cast<MeshFileHeader*>(mesh_bytes.get());
+	check(mesh_asset != nullptr);
+	return reinterpret_cast<MeshFileHeader*>(mesh_asset->data.get());
 }

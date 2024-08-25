@@ -23,12 +23,23 @@
 
 namespace GS
 {
-static const int screen_width  = 640;
-static const int screen_height = 512;
+static struct gs_options: public egg::ps2::graphics::init_options
+{
+	gs_options()
+	    : egg::ps2::graphics::init_options()
+	{
+		framebuffer_width  = 640;
+		framebuffer_height = 512;
+		framebuffer_psm    = GS_PSM_32;
+		graph_mode         = graph_get_region();
+		interlaced         = true;
+		ffmd               = GRAPH_MODE_FIELD;
+	}
+} gs_options;
 
 IntVector2 get_screen_res()
 {
-	return {screen_width, screen_height};
+	return {(int32_t)gs_options.framebuffer_width, (int32_t)gs_options.framebuffer_height};
 }
 
 static GSState _gs_state;
@@ -49,10 +60,10 @@ bool GSState::world_to_screen(const Vector& world_vec, Vector& out_screen_pos) c
 		out_screen_pos.x += 1.0f;
 		out_screen_pos.y += 1.0f;
 
-		out_screen_pos.x *= 0.5f * screen_width;
+		out_screen_pos.x *= 0.5f * get_screen_res().x;
 		out_screen_pos.y *= 0.5f;
 		out_screen_pos.y = 1.0f - out_screen_pos.y;
-		out_screen_pos.y *= screen_height;
+		out_screen_pos.y *= get_screen_res().y;
 
 		return true;
 	}
@@ -75,9 +86,13 @@ void init()
 {
 	printf("Initializing graphics synthesizer\n");
 
-	egg::ps2::graphics::init();
+	egg::ps2::graphics::init(gs_options);
 
 	get_vertex_color_program_addr() = egg::ps2::graphics::load_vu_program(mVsmStartAddr(VertexColorRenderer), mVsmEndAddr(VertexColorRenderer));
+
+	// Clear the screen so we're not left with whatever was left in the framebuffer
+	egg::ps2::graphics::clear_screen(255, 192, 203);
+	egg::ps2::graphics::wait_vsync();
 }
 
 static void draw_objects(const GSState& gs_state)
@@ -104,7 +119,7 @@ void render()
 		Stats::ScopedTimer draw_timer(Stats::scoped_timers::draw);
 
 		_gs_state.world_view   = Camera::get().transform.get_matrix().invert();
-		_gs_state.view_screen  = Matrix::perspective(Camera::get().fov, screen_width, screen_height, 1.f, 5000.f);
+		_gs_state.view_screen  = Matrix::perspective(Camera::get().fov, get_screen_res().x, get_screen_res().y, 1.f, 5000.f);
 		_gs_state.world_screen = _gs_state.world_view * _gs_state.view_screen;
 
 		_gs_state.fog_start_end = {200.f, 2000.f};

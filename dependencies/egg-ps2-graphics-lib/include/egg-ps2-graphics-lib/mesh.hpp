@@ -16,6 +16,8 @@ struct mesh_descriptor
 	// Has to be at least 3
 	u32 num_verts;
 
+	bool enable_texture_mapping;
+
 	// Address of the VU program loaded in memory used to perform vertex
 	// processing on this mesh.
 	//

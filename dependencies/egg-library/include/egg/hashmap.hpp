@@ -6,6 +6,8 @@
 
 #include "egg/assert.hpp"
 
+// Hashmap that doesn't allocate any heap memory
+//
 // Key is not actually stored, just the hashes of the keys
 template <size_t size, typename keyT, typename valueT>
 class HashMap

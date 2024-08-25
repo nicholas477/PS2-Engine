@@ -9,9 +9,9 @@
 
 namespace egg::ps2::graphics
 {
-void set_fog_color(u8 r, u8 g, u8 b)
+prim_t& get_empty_prim()
 {
-	prim_t prim;
+	static prim_t prim;
 	prim.type         = PRIM_TRIANGLE;
 	prim.shading      = PRIM_SHADE_GOURAUD;
 	prim.mapping      = 1;
@@ -21,11 +21,16 @@ void set_fog_color(u8 r, u8 g, u8 b)
 	prim.mapping_type = PRIM_MAP_ST;
 	prim.colorfix     = PRIM_UNFIXED;
 
+	return prim;
+}
+
+void set_fog_color(u8 r, u8 g, u8 b)
+{
 	packet2_utils_vu_open_unpack(get_current_vif_packet(), 0, 1);
 	{
 		packet2_utils_gif_add_set(get_current_vif_packet(), 1);
 		packet2_add_2x_s64(get_current_vif_packet(), GS_SET_FOGCOL(r, g, b), GS_REG_FOGCOL);
-		packet2_utils_gs_add_prim_giftag(get_current_vif_packet(), &prim, 0,
+		packet2_utils_gs_add_prim_giftag(get_current_vif_packet(), &get_empty_prim(), 0,
 		                                 ((u64)GIF_REG_RGBAQ) << 0, 1, 0);
 	}
 	packet2_utils_vu_close_unpack(get_current_vif_packet());
