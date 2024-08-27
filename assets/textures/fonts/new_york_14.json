@@ -1,6 +1,6 @@
 {
     "type": "texture",
-    "palletized": true,
+    "psm": "palette",
     "alpha": true,
     "file": "New_York_14.png"
 }

@@ -12,6 +12,7 @@ struct TextureFileHeader
 
 	uint16_t psm;
 	uint8_t function;
+	uint8_t components;
 
 	OffsetArray<uint32_t> clut;
 	OffsetArray<std::byte> data;
@@ -25,6 +26,7 @@ static size_t serialize(Serializer& serializer, const TextureFileHeader& texture
 	serialize(serializer, texture_header.size_y);
 	serialize(serializer, texture_header.psm);
 	serialize(serializer, texture_header.function);
+	serialize(serializer, texture_header.components);
 	serialize(serializer, texture_header.clut, 1, 16);
 	serialize(serializer, texture_header.data, 1, 16);
 	return begin;

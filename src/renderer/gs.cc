@@ -91,7 +91,7 @@ void init()
 	get_vertex_color_program_addr() = egg::ps2::graphics::load_vu_program(mVsmStartAddr(VertexColorRenderer), mVsmEndAddr(VertexColorRenderer));
 
 	// Clear the screen so we're not left with whatever was left in the framebuffer
-	egg::ps2::graphics::clear_screen(255, 192, 203);
+	egg::ps2::graphics::clear_screen(0, 0, 0);
 	egg::ps2::graphics::wait_vsync();
 }
 
