@@ -5,7 +5,7 @@
 #include <string>
 #include <string_view>
 
-static constexpr std::string_view APP_NAME = "PS2-Mesh-Converter";
+static constexpr std::string_view APP_NAME = "PS2-Asset-Converter";
 
 bool& write_output();
 std::string& input_path();

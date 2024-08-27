@@ -1,4 +1,6 @@
 {
     "type": "texture",
+    "palletized": true,
+    "alpha": true,
     "file": "New_York_14.png"
 }

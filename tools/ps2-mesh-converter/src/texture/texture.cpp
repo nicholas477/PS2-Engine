@@ -9,6 +9,7 @@
 #include <algorithm>
 #include "utils.hpp"
 #include "app.hpp"
+#include "types.hpp"
 
 #define MAGICKCORE_QUANTUM_DEPTH 8
 #define MAGICKCORE_HDRI_ENABLE false
@@ -100,43 +101,105 @@ bool parseTexture(std::string_view path, const Json::Value& obj, std::vector<std
 
 	print("Texture file path: %s", texture_file_path.c_str());
 
-	Magick::Image my_image;
-	my_image.read(texture_file_path);
-
-	TextureFileHeader texture_header;
-	texture_header.size_x   = my_image.columns();
-	texture_header.size_y   = my_image.rows();
-	texture_header.psm      = GS_PSM_32;
-	texture_header.function = TEXTURE_FUNCTION_DECAL;
-
-	print("x: %u y: %u", texture_header.size_x, texture_header.size_y);
-
-	std::unordered_set<PalleteColor> colors;
-	for (size_t x = 0; x < my_image.columns(); ++x)
+	if (obj["palletized"].asBool(), true)
 	{
-		for (size_t y = 0; y < my_image.rows(); ++y)
+		print("Texture is palettized, collecting palette");
+		Magick::Image my_image;
+		my_image.read(texture_file_path);
+
+		TextureFileHeader texture_header;
+		texture_header.size_x   = my_image.columns();
+		texture_header.size_y   = my_image.rows();
+		texture_header.psm      = GS_PSM_8;
+		texture_header.function = TEXTURE_FUNCTION_DECAL;
+
+		print("x: %u y: %u", texture_header.size_x, texture_header.size_y);
+
+		std::unordered_set<PalleteColor> colors;
+		for (size_t x = 0; x < my_image.columns(); ++x)
 		{
-			// The pixel read doesn't work without this line. I don't understand why
-			const void* pixel = my_image.getConstPixels(x, y, 1, 1);
+			for (size_t y = 0; y < my_image.rows(); ++y)
+			{
+				// The pixel read doesn't work without this line. I don't understand why
+				const void* pixel = my_image.getConstPixels(x, y, 1, 1);
 
-			ColorRGB c = my_image.pixelColor(x, y);
+				ColorRGB c = my_image.pixelColor(x, y);
 
-			PalleteColor new_color;
-			new_color.alpha = c.alpha() * 255;
-			new_color.red   = c.red() * 255;
-			new_color.green = c.green() * 255;
-			new_color.blue  = c.blue() * 255;
+				PalleteColor new_color;
+				new_color.alpha = c.alpha() * 255;
+				new_color.red   = c.red() * 255;
+				new_color.green = c.green() * 255;
+				new_color.blue  = c.blue() * 255;
 
-			colors.insert(new_color);
+				colors.insert(new_color);
+			}
+		}
+
+		print("Num colors in image: %lu", colors.size());
+		if (colors.size() <= 16)
+		{
+			print("16 or less colors, choosing 4-bit texture palette");
+
+			std::vector<std::byte> image_data;
+			std::vector<uint32_t> palette_colors;
+			for (const PalleteColor& c : colors)
+			{
+				print("r: %u, g: %u, b: %u, a: %u", c.red, c.green, c.blue, c.alpha);
+				palette_colors.push_back(c.color);
+			}
+			texture_header.clut.set(palette_colors);
+
+
+			int i = 0;
+			for (size_t x = 0; x < my_image.columns(); ++x)
+			{
+				for (size_t y = 0; y < my_image.rows(); ++y)
+				{
+					// The pixel read doesn't work without this line. I don't understand why
+					const void* pixel = my_image.getConstPixels(x, y, 1, 1);
+
+					ColorRGB c = my_image.pixelColor(x, y);
+
+					PalleteColor new_color;
+					new_color.alpha = c.alpha() * 255;
+					new_color.red   = c.red() * 255;
+					new_color.green = c.green() * 255;
+					new_color.blue  = c.blue() * 255;
+
+					if (i % 2 == 0)
+					{
+						image_data.push_back(std::byte(0));
+					}
+
+					ptrdiff_t new_index = std::find(palette_colors.begin(), palette_colors.end(), new_color.color) - palette_colors.begin();
+					assert(new_index < palette_colors.size());
+					assert(new_index < 16);
+
+					std::byte byte_index = (std::byte)new_index;
+					if (i % 2 == 1)
+					{
+						byte_index <<= 4;
+					}
+
+					image_data[i / 2] |= byte_index;
+
+					i++;
+				}
+			}
+			texture_header.data.set(image_data);
+
+			print("Bytes in palletized image: %lu", image_data.size());
+			print("Pixels in palletized image: %lu", my_image.columns() * my_image.rows());
+
+			{
+				Serializer texture_serializer(out_data);
+				serialize(texture_serializer, texture_header);
+				texture_serializer.finish_serialization();
+			}
+
+			return true;
 		}
 	}
 
-	print("Num colors in image: %lu", colors.size());
-
-	for (const PalleteColor& c : colors)
-	{
-		print("r: %u, g: %u, b: %u, a: %u", c.red, c.green, c.blue, c.alpha);
-	}
-
-	return true;
+	return false;
 }

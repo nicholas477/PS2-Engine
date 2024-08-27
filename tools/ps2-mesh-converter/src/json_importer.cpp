@@ -126,15 +126,23 @@ bool parseJson(std::string_view path)
 		return false;
 	}
 
-	if (write_output() && out_data.size() > 0)
+	if (write_output())
 	{
-		print("Writing out file: %s", output_path().c_str());
+		if (out_data.size() > 0)
+		{
+			print("Writing out file: %s", output_path().c_str());
 
-		std::ofstream fout;
-		fout.open(output_path(), std::ios::binary | std::ios::out);
-		fout.write((const char*)out_data.data(), out_data.size());
-		fout.close();
-		return true;
+			std::ofstream fout;
+			fout.open(output_path(), std::ios::binary | std::ios::out);
+			fout.write((const char*)out_data.data(), out_data.size());
+			fout.close();
+			return true;
+		}
+		else
+		{
+			print_error("Couldn't write asset, output data array was empty!");
+			return false;
+		}
 	}
 
 	return false;
