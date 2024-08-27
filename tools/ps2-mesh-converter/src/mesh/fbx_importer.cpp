@@ -1,5 +1,6 @@
 #include "mesh/model_importer.hpp"
 #include "types.hpp"
+#include "app.hpp"
 
 #include <filesystem>
 
@@ -13,10 +14,10 @@ static Mesh fbxProcessMesh(aiNode* node, aiMesh* mesh, const aiScene* scene)
 
 	out.primitive_type = 4; // GL_TRIANGLE_STRIP
 
-	printf("Processing fbx mesh \"%s\"\n", mesh->mName.C_Str());
+	print("Processing fbx mesh \"%s\"", mesh->mName.C_Str());
 	if (mesh->HasVertexColors(0))
 	{
-		printf("Mesh \"%s\" has colors!\n", mesh->mName.C_Str());
+		print("Mesh \"%s\" has colors!", mesh->mName.C_Str());
 	}
 
 	out.vertices.reserve(mesh->mNumVertices);
@@ -111,7 +112,7 @@ bool parseFbx(std::string_view path, std::vector<Mesh>& meshes)
 	// If the import failed, report it
 	if (scene == nullptr)
 	{
-		fprintf(stderr, "%s\n", importer.GetErrorString());
+		print_error("%s", importer.GetErrorString());
 		return false;
 	}
 

@@ -1,4 +1,5 @@
 #include "mesh/model_exporter.hpp"
+#include "app.hpp"
 
 #include <egg/mesh_header.hpp>
 #include <assert.h>
@@ -57,14 +58,14 @@ std::vector<std::byte> serialize_meshes(uint32_t prim_type, const std::vector<Me
 	MeshFileHeader* out_header                = (MeshFileHeader*)out.data();
 	MeshTriangleStripHeader* out_strip_header = out_header->strips.get_ptr();
 
-	printf("Testing mesh header and strip header equality...\n");
+	print("Testing mesh header and strip header equality...");
 	assert(out_header->pos.num_elements() == positions.size());
 	//assert(out_header->nrm.num_elements() == normals.size());
 	assert(out_header->uvs.num_elements() == texture_coords.size());
 	assert(out_header->colors.num_elements() == colors.size());
 	assert(out_header->strips.num_elements() == strips.size());
 
-	printf("All good!\n");
+	print("All good!");
 
 	return out;
 }

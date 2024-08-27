@@ -7,6 +7,7 @@
 #include <egg/math_types.hpp>
 #include <cstddef>
 #include <algorithm>
+#include "app.hpp"
 #include "types.hpp"
 #include "utils.hpp"
 
@@ -46,7 +47,7 @@ bool load_file(std::string_view path)
 
 	if (parsed == false)
 	{
-		printf("Couldn't find/parse asset at path %s\n", path.data());
+		//print_error("Couldn't find/parse asset at path %s", path.data());
 		return false;
 	}
 
@@ -67,17 +68,17 @@ char**& argv()
 
 static void process()
 {
-	printf(ANSI_COLOR_GREEN "[PS2-Mesh-Converter]: Starting" ANSI_COLOR_RESET "\n");
-	printf(ANSI_COLOR_MAGENTA "[PS2-Mesh-Converter]: Loading file" ANSI_COLOR_RESET "\n");
-	printf("Processing file: %s\n", input_path().c_str());
+	print_color_override(ANSI_COLOR_GREEN, "Starting");
+	print("Processing file: %s", input_path().c_str());
 
 	if (!load_file(input_path().c_str()))
 	{
+		print_error("Failed to process file! \"%s\"", input_path().c_str());
 		std::exit(-1);
 		return;
 	}
 
-	printf(ANSI_COLOR_GREEN "[PS2-Mesh-Converter]: Done\n" ANSI_COLOR_RESET);
+	print_color_override(ANSI_COLOR_GREEN, "Done!");
 }
 
 static void parse_args(int argc, char** argv)

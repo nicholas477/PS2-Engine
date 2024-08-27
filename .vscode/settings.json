@@ -1,6 +1,7 @@
 {
     "files.associations": {
         "*.i": "plaintext",
+        "*.vcl": "vuasm",
         "vector": "cpp",
         "text_encoding": "cpp",
         "typeinfo": "cpp",
@@ -62,6 +63,7 @@
         "stdexcept": "cpp",
         "streambuf": "cpp",
         "cinttypes": "cpp",
-        "variant": "cpp"
+        "variant": "cpp",
+        "filesystem": "cpp"
     }
 }

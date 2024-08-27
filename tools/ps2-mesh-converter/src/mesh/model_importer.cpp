@@ -1,4 +1,5 @@
 #include "mesh/model_importer.hpp"
+#include "app.hpp"
 
 #include <algorithm>
 
@@ -17,7 +18,7 @@ bool parseObj(std::string_view path, std::vector<Mesh>& out_meshes)
 	fastObjMesh* obj = fast_obj_read(path.data());
 	if (!obj)
 	{
-		printf("Error loading %s: file not found\n", path.data());
+		print("Error loading \"%s\": file not found", path.data());
 		return false;
 	}
 

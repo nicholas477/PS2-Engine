@@ -60,30 +60,6 @@ pushd tools/ps2-manifest-generator && ./compile.sh; popd
 echo "------Compiling ps2-mesh-converter------"
 pushd tools/ps2-mesh-converter && ./compile.sh; popd
 
-# OpenVCL/Masp
-# if [ ! -d "dependencies/openvcl" ]; then
-#     echo "------Cloning OpenVCL/Masp------"
-#     git clone https://github.com/nicholas477/openvcl.git dependencies/openvcl
-# fi
-# echo "------Compiling Masp------"
-# pushd dependencies/openvcl/contrib/masp
-# if [ ! -f "Makefile" ]; then
-#     chmod +x ./configure
-#     if [ ! -z "$1" ] && [ $1 = "ci" ]; then
-#         ./configure LIBS="-lobstack"
-#     else
-#         ./configure
-#     fi
-# fi
-# make -j$(nproc)
-# sudo -E make install -j$(nproc)
-# popd
-
-# echo "------Compiling OpenVCL------"
-# pushd dependencies/openvcl
-# sudo -E make install -j$(nproc)
-# popd
-
 # PS2GDB
 if [ ! -d "dependencies/ps2gdb" ]; then
     echo "------Cloning ps2gdb------"
