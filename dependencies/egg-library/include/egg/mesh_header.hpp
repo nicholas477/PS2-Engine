@@ -3,6 +3,7 @@
 #include "offset_pointer.hpp"
 #include "serialization.hpp"
 #include "math_types.hpp"
+#include "filesystem.hpp"
 #include <cstdint>
 #include <vector>
 
@@ -25,6 +26,7 @@ struct MeshFileHeader
 	OffsetArray<MeshTriangleStripHeader> strips;
 
 	uint32_t prim_type;
+	Asset::Reference texture;
 };
 
 static_assert(std::is_standard_layout_v<Vector> == true);
@@ -43,6 +45,7 @@ static size_t serialize(Serializer& serializer, const MeshFileHeader& mesh_heade
 	serialize(serializer, mesh_header.colors);
 	serialize(serializer, mesh_header.strips);
 	serialize(serializer, mesh_header.prim_type);
+	serialize(serializer, mesh_header.texture);
 
 	return begin;
 }

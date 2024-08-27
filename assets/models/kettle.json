@@ -6,5 +6,6 @@
 		"reverse_winding",
 		"gamma_correct_alpha",
 		"gamma_correct_colors"
-	]
+	],
+	"texture": "assets/textures/bricks1.tex"
 }

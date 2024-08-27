@@ -1,7 +1,9 @@
 #include "mesh/model_exporter.hpp"
 #include "app.hpp"
 
+#include <json/json.h>
 #include <egg/mesh_header.hpp>
+#include <egg/filesystem.hpp>
 #include <assert.h>
 
 static int pad_to_alignment(int current_index, int alignment = 16)
@@ -10,7 +12,7 @@ static int pad_to_alignment(int current_index, int alignment = 16)
 	return current_index + (-current_index & mask);
 }
 
-std::vector<std::byte> serialize_meshes(uint32_t prim_type, const std::vector<MeshStrip>& strips)
+std::vector<std::byte> serialize_meshes(uint32_t prim_type, const std::vector<MeshStrip>& strips, const Json::Value& obj)
 {
 	std::vector<std::byte> out;
 
@@ -53,6 +55,11 @@ std::vector<std::byte> serialize_meshes(uint32_t prim_type, const std::vector<Me
 		Serializer mesh_serializer(out);
 		serialize(mesh_serializer, mesh_header);
 		mesh_serializer.finish_serialization();
+	}
+
+	if (obj["texture"].isString())
+	{
+		mesh_header.texture = Asset::Reference(obj["texture"].asCString());
 	}
 
 	MeshFileHeader* out_header                = (MeshFileHeader*)out.data();

@@ -110,7 +110,7 @@ bool parseJson(std::string_view path)
 		}
 
 		print("Serializing mesh to file");
-		out_data = serialize_meshes(meshes[0].primitive_type, strips);
+		out_data = serialize_meshes(meshes[0].primitive_type, strips, obj);
 	}
 	else if (iequals(type, "texture"))
 	{

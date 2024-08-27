@@ -179,7 +179,7 @@ static bool writePalletizedImageData(const Magick::Image& image, const std::vect
 	const uint32_t num_pixels = image.columns() * image.rows();
 	if (palette_colors.size() == 16)
 	{
-		image_data.resize(num_pixels / 2 + (num_pixels % 2));
+		image_data.resize((num_pixels / 2) + (num_pixels % 2));
 	}
 	else
 	{
@@ -296,7 +296,6 @@ bool parseTexture(std::string_view path, const Json::Value& obj, std::vector<std
 		print("Pixels in palletized image: %lu", my_image.columns() * my_image.rows());
 
 		out_data = serialize_texture(texture_header);
-		return true;
 	}
 	else if (iequals(color_type, "32") || iequals(color_type, "24"))
 	{
@@ -329,7 +328,6 @@ bool parseTexture(std::string_view path, const Json::Value& obj, std::vector<std
 		texture_header.data.set(image_data);
 
 		out_data = serialize_texture(texture_header);
-		return true;
 	}
 	else if (iequals(color_type, "16"))
 	{
@@ -362,11 +360,13 @@ bool parseTexture(std::string_view path, const Json::Value& obj, std::vector<std
 		texture_header.data.set(image_data);
 
 		out_data = serialize_texture(texture_header);
-		return true;
 	}
 	else
 	{
 		print_error("Unrecognized color type!: \"%s\"", color_type.c_str());
+		print_error("Recognized color types are: \"palette\", \"32\", \"24\", \"16\"");
 		return false;
 	}
+
+	return true;
 }

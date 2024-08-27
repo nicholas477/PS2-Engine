@@ -45,6 +45,17 @@ struct OffsetArray
 	// Length of the array (in bytes)
 	int32_t length;
 
+	OffsetArray()
+	{
+#if INTPTR_MAX == INT32_MAX
+		offset    = 0;
+		offset_64 = 0;
+#else
+		offset = 0;
+#endif
+		length = 0;
+	}
+
 	T* get_ptr() { return reinterpret_cast<T*>(((uint8_t*)this) + offset); }
 
 	const T* get_ptr() const
