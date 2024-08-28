@@ -6,6 +6,8 @@
 
 namespace egg::ps2::graphics
 {
+struct texture_descriptor;
+
 struct mesh_descriptor
 {
 	mesh_descriptor();
@@ -14,17 +16,17 @@ struct mesh_descriptor
 	Vector* color;
 	Vector* uvs;
 
+	texture_descriptor* texture;
+
 	// Has to be at least 3
 	u32 num_verts;
-
-	bool enable_texture_mapping;
 
 	// Address of the VU program loaded in memory used to perform vertex
 	// processing on this mesh.
 	//
 	// Note: this is a vu1 memory address! Valid values for a vu1 memory address
 	// are 0-1023
-	u32 vu_program_addr;
+	s32 vu_program_addr;
 
 	Vector screen_scale;
 

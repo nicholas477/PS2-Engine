@@ -64,6 +64,8 @@
         "streambuf": "cpp",
         "cinttypes": "cpp",
         "variant": "cpp",
-        "filesystem": "cpp"
+        "filesystem": "cpp",
+        "print": "cpp",
+        "syncstream": "cpp"
     }
 }

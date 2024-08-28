@@ -1,6 +1,6 @@
 
 .syntax new
-.name vsmVertexColorRenderer
+.name vsmVertexColorTextureRenderer
 .vu
 .init_vf_all
 .init_vi_all
@@ -31,12 +31,13 @@
     lq      rgba,             6(iBase) ; RGBA
                                        ; u32 : R, G, B, A (0-128)
 
-    lq      fogSetting,        7(iBase) ; x = offset, y = scale
+    lq.xy   fogSetting,        7(iBase) ; x = offset, y = scale
 
     iaddiu  vertexData,     iBase,         8            ; pointer to vertex data
     iadd    colorData,      vertexData,    vertCount   ; pointer to color data
-    iadd    kickAddress,    colorData,     vertCount   ; pointer for XGKICK
-    iadd    destAddress,    colorData,     vertCount   ; helper pointer for data inserting
+    iadd    uvData,         colorData,     vertCount   ; pointer to uv data
+    iadd    kickAddress,    uvData,        vertCount   ; pointer for XGKICK
+    iadd    destAddress,    uvData,        vertCount   ; helper pointer for data inserting
     ;////////////////////////////////////////////
 
     ;/////////// --- Store tags --- /////////////
@@ -53,6 +54,7 @@
                                      ; any32 : _ = 0
 
         lq.xyzw       color,     0(colorData)
+        lq.xyzw       uv,        0(uvData)
 
         ;////////////// --- Color --- //////////////
         ; Color in the model is from 0-1, we need to convert it to 0-255 fixed point
@@ -90,6 +92,10 @@
         div         q,      vf00[w],    vertex[w]   ; perspective divide (1/vert[w]):
         mul.xyz     vertex, vertex,     q
 
+        ; STQ perspective divide
+        mulq stq, uv, q
+
+
 
         ; Fog
         muly.w  fog, vertex, fogSetting    ; multiply the vertex's z by the fog scale (fogSetting[y])
@@ -119,13 +125,15 @@
 
         
         ;//////////// --- Store data --- ////////////
-        sq.xyzw color,       0(destAddress)
-        sq.xyzw vertex,      1(destAddress)      ; XYZ2F
+        sq.xyzw stq,         0(destAddress)
+        sq.xyzw color,       1(destAddress)
+        sq.xyzw vertex,      2(destAddress)      ; XYZ2
         ;////////////////////////////////////////////
 
-        iaddiu          colorData,      colorData,      1
         iaddiu          vertexData,     vertexData,     1
-        iaddiu          destAddress,    destAddress,    2
+        iaddiu          colorData,      colorData,      1
+        iaddiu          uvData,         uvData,         1
+        iaddiu          destAddress,    destAddress,    3
 
         iaddi   vertexCounter,  vertexCounter,  -1	; decrement the loop counter 
         ibne    vertexCounter,  iBase,   vertexLoop	; and repeat if needed

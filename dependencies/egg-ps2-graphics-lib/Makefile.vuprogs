@@ -3,8 +3,8 @@ VCL = vcl
 
 RENDERERS = \
 	vertex_color_renderer \
-	xgkick \
-	draw_finish
+	vertex_color_texture_renderer \
+	xgkick
 
 EE_OBJS += $(addsuffix .vo, $(addprefix vu1/, $(RENDERERS)))
 VSM_SOURCES = $(addsuffix _vcl.vsm, $(addprefix vu1/, $(RENDERERS)))

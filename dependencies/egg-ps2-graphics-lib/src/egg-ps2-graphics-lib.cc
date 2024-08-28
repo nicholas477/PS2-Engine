@@ -158,8 +158,7 @@ void init(const init_options& init_options)
 	init_drawing_environment(frame, &z);
 
 	// Load the kick program
-	const auto [kick_start, kick_end]     = vu1_programs::get_kick_program_mem_address();
-	vu1_programs::get_kick_program_addr() = load_vu_program(kick_start, kick_end);
+	vu1_programs::get_kick_program_addr() = load_vu_program(vu1_programs::get_kick_program_mem_address());
 
 	current_frame = frame;
 
@@ -168,11 +167,13 @@ void init(const init_options& init_options)
 
 u32 load_vu_program(void* program_start_address, void* program_end_address)
 {
+	printf("Program size (bytes): %d\n", (ptrdiff_t)program_end_address - (ptrdiff_t)program_start_address);
+
 	const u32 packet_size  = packet2_utils_get_packet_size_for_program((u32*)program_start_address, (u32*)program_end_address) + 1;
 	const u32 program_size = (packet_size * 512) / 16;
 
 	// Make sure we aren't going to run out of memory before we load it into memory
-	assert((current_program_addr + program_size) <= 1000);
+	assert((current_program_addr + program_size) <= 1024);
 
 	packet2_t* packet2 = packet2_create(packet_size, P2_TYPE_NORMAL, P2_MODE_CHAIN, 1);
 	packet2_vif_add_micro_program(packet2, current_program_addr, (u32*)program_start_address, (u32*)program_end_address);
@@ -188,6 +189,7 @@ u32 load_vu_program(void* program_start_address, void* program_end_address)
 
 	printf("Loaded vu program at: %u\n", current_program_addr - program_size);
 	printf("Program size (qwords): %u\n", program_size);
+	printf("Free size (qwords): %u\n\n", 1024 - current_program_addr);
 
 	return current_program_addr - program_size;
 }
@@ -246,11 +248,6 @@ void end_draw()
 	// }
 
 	// *GS_REG_CSR |= 2;
-}
-
-bool allocate_texture_slot(u32 pages)
-{
-	return graph_vram_allocate(64, 32 * pages, GS_PSM_32, GRAPH_ALIGN_BLOCK) != -1;
 }
 
 packet2_t* get_current_vif_packet()

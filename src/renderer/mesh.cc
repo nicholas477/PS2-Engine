@@ -1,6 +1,5 @@
 #include "renderer/mesh.hpp"
 #include "renderer/renderable.hpp"
-#include "renderer/vu1/vu_programs.hpp"
 
 #include "egg/filesystem.hpp"
 #include <egg/mesh_header.hpp>
@@ -53,11 +52,10 @@ void Mesh::draw(const GS::GSState& gs_state, const Matrix& render_matrix, bool f
 		const auto end_index   = strip.strip_end_index;
 
 		mesh_descriptor m;
-		m.pos             = get_mesh()->pos.get_ptr() + start_index;
-		m.color           = get_mesh()->colors.get_ptr() + start_index;
-		m.num_verts       = end_index - start_index;
-		m.vu_program_addr = get_vertex_color_program_addr();
-		m.enable_fog      = true;
+		m.pos        = get_mesh()->pos.get_ptr() + start_index;
+		m.color      = get_mesh()->colors.get_ptr() + start_index;
+		m.num_verts  = end_index - start_index;
+		m.enable_fog = true;
 
 		if (texture != nullptr)
 		{
@@ -69,13 +67,11 @@ void Mesh::draw(const GS::GSState& gs_state, const Matrix& render_matrix, bool f
 
 			m.uvs = get_mesh()->uvs.get_ptr() + start_index;
 
-			m.enable_texture_mapping = true;
+			// printf("Uploading texture!\n");
+			// check(texture->upload_texture());
 
-			printf("Uploading texture!\n");
-			check(texture->upload_texture());
-
-			printf("Using texture!\n");
-			check(texture->use_texture());
+			// printf("Using texture!\n");
+			// check(texture->use_texture());
 		}
 		else
 		{

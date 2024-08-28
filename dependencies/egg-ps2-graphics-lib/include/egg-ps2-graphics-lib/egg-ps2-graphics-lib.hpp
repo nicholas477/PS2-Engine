@@ -50,6 +50,11 @@ void init(const init_options& init_options = init_options());
 // Uploads a VU program, returns the address of the loaded program
 u32 load_vu_program(void* program_start_address, void* program_end_address);
 
+static u32 load_vu_program(std::pair<void*, void*> program_addresses)
+{
+	return load_vu_program(program_addresses.first, program_addresses.second);
+}
+
 void clear_screen(int r, int g, int b);
 
 void wait_vsync();

@@ -15,19 +15,21 @@
 #include "graph.h"
 
 #include "renderer/text.hpp"
-#include "renderer/vu1/vu_programs.hpp"
 
 #include "egg-ps2-graphics-lib/egg-ps2-graphics-lib.hpp"
 #include "egg-ps2-graphics-lib/gs_mem.hpp"
 #include "egg-ps2-graphics-lib/draw.hpp"
+#include "egg-ps2-graphics-lib/vu_programs.hpp"
 
+
+namespace epg = egg::ps2::graphics;
 
 namespace GS
 {
-static struct gs_options: public egg::ps2::graphics::init_options
+static struct gs_options: public epg::init_options
 {
 	gs_options()
-	    : egg::ps2::graphics::init_options()
+	    : epg::init_options()
 	{
 		framebuffer_width  = 640;
 		framebuffer_height = 512;
@@ -87,32 +89,34 @@ void init()
 {
 	printf("Initializing graphics synthesizer\n");
 
-	egg::ps2::graphics::init(gs_options);
+	epg::init(gs_options);
 
-	get_vertex_color_program_addr() = egg::ps2::graphics::load_vu_program(mVsmStartAddr(VertexColorRenderer), mVsmEndAddr(VertexColorRenderer));
+	// Load vertex color + textured vertex color programs
+	epg::vu1_programs::get_vertex_color_program_addr()         = epg::load_vu_program(epg::vu1_programs::get_vertex_color_program_mem_address());
+	epg::vu1_programs::get_vertex_color_texture_program_addr() = epg::load_vu_program(epg::vu1_programs::get_vertex_color_texture_program_mem_address());
 
-	printf("Pages unallocated in gs mem: %u\n", egg::ps2::graphics::gs_mem::get_unallocated_page_num());
+	printf("Pages unallocated in gs mem: %u\n", epg::gs_mem::get_unallocated_page_num());
 
-	egg::ps2::graphics::gs_mem::allocate_texture_slot(1);
-	egg::ps2::graphics::gs_mem::allocate_texture_slot(1);
-	egg::ps2::graphics::gs_mem::allocate_texture_slot(1);
-	egg::ps2::graphics::gs_mem::allocate_texture_slot(1);
+	epg::gs_mem::allocate_texture_slot(1);
+	epg::gs_mem::allocate_texture_slot(1);
+	epg::gs_mem::allocate_texture_slot(1);
+	epg::gs_mem::allocate_texture_slot(1);
 
-	egg::ps2::graphics::gs_mem::allocate_texture_slot(2);
-	egg::ps2::graphics::gs_mem::allocate_texture_slot(2);
+	epg::gs_mem::allocate_texture_slot(2);
+	epg::gs_mem::allocate_texture_slot(2);
 
-	egg::ps2::graphics::gs_mem::allocate_texture_slot(4);
-	egg::ps2::graphics::gs_mem::allocate_texture_slot(4);
+	epg::gs_mem::allocate_texture_slot(4);
+	epg::gs_mem::allocate_texture_slot(4);
 
-	egg::ps2::graphics::gs_mem::allocate_texture_slot(8);
-	egg::ps2::graphics::gs_mem::allocate_texture_slot(8);
+	epg::gs_mem::allocate_texture_slot(8);
+	epg::gs_mem::allocate_texture_slot(8);
 
-	printf("Pages unallocated in gs mem (after slots): %u\n", egg::ps2::graphics::gs_mem::get_unallocated_page_num());
-	egg::ps2::graphics::gs_mem::print_vram_slots();
+	printf("Pages unallocated in gs mem (after slots): %u\n", epg::gs_mem::get_unallocated_page_num());
+	epg::gs_mem::print_vram_slots();
 
 	// Clear the screen so we're not left with whatever was left in the framebuffer
-	egg::ps2::graphics::clear_screen(0, 0, 0);
-	egg::ps2::graphics::wait_vsync();
+	epg::clear_screen(0, 0, 0);
+	epg::wait_vsync();
 }
 
 static void draw_objects(const GSState& gs_state)
@@ -146,25 +150,25 @@ void render()
 
 		_gs_state.camera_rotation = Camera::get().transform.get_rotation();
 
-		egg::ps2::graphics::clear_screen(255, 192, 203);
+		epg::clear_screen(255, 192, 203);
 
 		{
-			egg::ps2::graphics::start_draw();
+			epg::start_draw();
 
-			egg::ps2::graphics::set_fog_color(255, 192, 203);
+			epg::set_fog_color(255, 192, 203);
 
 			draw_objects(_gs_state);
 
 			{
 				Stats::ScopedTimer draw_timer(Stats::scoped_timers::render_finish_geom);
-				egg::ps2::graphics::end_draw();
+				epg::end_draw();
 			}
 		}
 	}
 
 	{
 		Stats::ScopedTimer draw_timer(Stats::scoped_timers::render_vsync_wait);
-		egg::ps2::graphics::wait_vsync();
+		epg::wait_vsync();
 	}
 }
 

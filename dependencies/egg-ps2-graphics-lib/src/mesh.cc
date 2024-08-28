@@ -1,5 +1,6 @@
 #include "egg-ps2-graphics-lib/mesh.hpp"
 #include "egg-ps2-graphics-lib/egg-ps2-graphics-lib.hpp"
+#include "egg-ps2-graphics-lib/vu_programs.hpp"
 
 #include <kernel.h>
 #include <malloc.h>
@@ -17,17 +18,87 @@ using namespace egg::ps2::graphics;
 
 namespace
 {
-/** Set GS primitive type of drawing. */
 prim_t prim;
 
-void draw_strip(const Matrix& mesh_to_screen_matrix, const mesh_descriptor& mesh)
+void draw_untextured_strip(const Matrix& mesh_to_screen_matrix, const mesh_descriptor& mesh)
 {
 	assert(mesh.is_valid());
 
 	// Define the triangle primitive we want to use.
 	prim.type         = PRIM_TRIANGLE_STRIP;
 	prim.shading      = PRIM_SHADE_FLAT;
-	prim.mapping      = mesh.enable_texture_mapping ? DRAW_ENABLE : DRAW_DISABLE;
+	prim.mapping      = DRAW_DISABLE;
+	prim.fogging      = mesh.enable_fog ? DRAW_ENABLE : DRAW_DISABLE;
+	prim.blending     = DRAW_DISABLE;
+	prim.antialiasing = DRAW_DISABLE;
+	prim.mapping_type = PRIM_MAP_ST;
+	prim.colorfix     = PRIM_UNFIXED;
+
+	packet2_utils_vu_open_unpack(get_current_vif_packet(), 0, 1);
+	{
+		// 0
+		for (int i = 0; i < 4; ++i)
+		{
+			packet2_add_u128(get_current_vif_packet(), ((u128*)&mesh_to_screen_matrix)[i]);
+		}
+
+		// 4
+		packet2_add_float(get_current_vif_packet(), mesh.screen_scale.x); // scale
+		packet2_add_float(get_current_vif_packet(), mesh.screen_scale.y); // scale
+		packet2_add_float(get_current_vif_packet(), mesh.screen_scale.z); // scale
+		packet2_add_u32(get_current_vif_packet(), mesh.num_verts);        // vert count
+
+		if (mesh.enable_fog)
+		{
+			// 5
+			// The F in XYZF2 stands for fog
+			packet2_utils_gs_add_prim_giftag(get_current_vif_packet(), &prim, mesh.num_verts,
+			                                 ((u64)GIF_REG_RGBAQ) << 0 | ((u64)GIF_REG_XYZF2) << 4,
+			                                 2, 0);
+		}
+		else
+		{
+			// 5
+			packet2_utils_gs_add_prim_giftag(get_current_vif_packet(), &prim, mesh.num_verts,
+			                                 DRAW_RGBAQ_REGLIST,
+			                                 2, 0);
+		}
+
+		// 6
+		u8 j = 0; // RGBA
+		for (j = 0; j < 4; j++)
+			packet2_add_u32(get_current_vif_packet(), 128);
+
+		// 7
+		packet2_add_float(get_current_vif_packet(), mesh.fog_offset); // Offset
+		packet2_add_float(get_current_vif_packet(), mesh.fog_scale);  // Scale
+		packet2_add_float(get_current_vif_packet(), 0.f);             // padding
+		packet2_add_float(get_current_vif_packet(), 0.f);             // padding
+	}
+	packet2_utils_vu_close_unpack(get_current_vif_packet());
+
+	// Position data
+	packet2_utils_vu_add_unpack_data(get_current_vif_packet(), 8, mesh.pos, mesh.num_verts, 1);
+
+	if (mesh.color)
+	{
+		// Color data
+		packet2_utils_vu_add_unpack_data(get_current_vif_packet(), 8 + mesh.num_verts, mesh.color, mesh.num_verts, 1);
+	}
+
+	assert((8 + (mesh.num_verts * 4)) < 496);
+
+	packet2_utils_vu_add_start_program(get_current_vif_packet(), vu1_programs::get_vertex_color_program_addr());
+}
+
+void draw_textured_strip(const Matrix& mesh_to_screen_matrix, const mesh_descriptor& mesh)
+{
+	assert(mesh.is_valid());
+
+	// Define the triangle primitive we want to use.
+	prim.type         = PRIM_TRIANGLE_STRIP;
+	prim.shading      = PRIM_SHADE_FLAT;
+	prim.mapping      = DRAW_ENABLE;
 	prim.fogging      = mesh.enable_fog ? DRAW_ENABLE : DRAW_DISABLE;
 	prim.blending     = DRAW_DISABLE;
 	prim.antialiasing = DRAW_DISABLE;
@@ -88,13 +159,13 @@ void draw_strip(const Matrix& mesh_to_screen_matrix, const mesh_descriptor& mesh
 
 	if (mesh.uvs)
 	{
-		// Color data
+		// UV data
 		packet2_utils_vu_add_unpack_data(get_current_vif_packet(), 8 + (mesh.num_verts * 2), mesh.uvs, mesh.num_verts, 1);
 	}
 
 	assert((8 + (mesh.num_verts * 6)) < 496);
 
-	packet2_utils_vu_add_start_program(get_current_vif_packet(), mesh.vu_program_addr);
+	packet2_utils_vu_add_start_program(get_current_vif_packet(), vu1_programs::get_vertex_color_texture_program_addr());
 }
 
 } // namespace
@@ -106,17 +177,17 @@ mesh_descriptor::mesh_descriptor()
 	pos   = nullptr;
 	color = nullptr;
 
+	texture = nullptr;
+
 	// Has to be at least 3
 	num_verts = 0;
-
-	enable_texture_mapping = false;
 
 	// Address of the VU program loaded in memory used to perform vertex
 	// processing on this mesh.
 	//
 	// Note: this is a vu1 memory address! Valid values for a vu1 memory address
 	// are 0-1023
-	vu_program_addr = 0;
+	vu_program_addr = -1;
 
 	screen_scale = Vector(2048.f, 2048.f, ((float)0xFFFFFF) / 32.0F);
 
@@ -165,7 +236,16 @@ void draw_mesh_strip(const Matrix& mesh_to_screen_matrix, const mesh_descriptor&
 
 			strip.num_verts = num_verts;
 
-			draw_strip(mesh_to_screen_matrix, strip);
+			draw_untextured_strip(mesh_to_screen_matrix, strip);
+
+			// if (strip.enable_texture_mapping && strip.texture)
+			// {
+			// 	draw_textured_strip(mesh_to_screen_matrix, strip);
+			// }
+			// else
+			// {
+			// 	draw_untextured_strip(mesh_to_screen_matrix, strip);
+			// }
 		}
 
 		if (i_end >= mesh.num_verts)
