@@ -8,6 +8,7 @@
 #include <dma.h>
 #include <draw.h>
 #include <gs_psm.h>
+#include <stdio.h>
 
 namespace egg::ps2::graphics
 {
@@ -37,17 +38,23 @@ texture_descriptor::texture_descriptor()
 	t_texbuff.info.height     = 0;
 	t_texbuff.info.components = TEXTURE_COMPONENTS_RGB;
 	t_texbuff.info.function   = TEXTURE_FUNCTION_DECAL;
+
+	wrap.horizontal = WRAP_REPEAT;
+	wrap.vertical   = WRAP_REPEAT;
+	wrap.minu       = 0;
+	wrap.maxu       = 1;
+	wrap.minv       = 0;
+	wrap.maxv       = 1;
 }
 
 
 void texture_descriptor::set_width_height(u32 in_width, u32 in_height)
 {
-	// Check the dimensions are powers of 2
-	// assert((in_width & (in_width - 1)) == 0);
-	// assert((in_height & (in_height - 1)) == 0);
-
 	t_texbuff.width = in_width;
 	height          = in_height;
+
+	wrap.maxu = in_width;
+	wrap.maxv = in_height;
 
 	t_texbuff.info.width  = draw_log2(in_width);
 	t_texbuff.info.height = draw_log2(in_height);
@@ -89,6 +96,15 @@ void upload_texture(texture_descriptor& texture, void* texture_data, void* clut_
 		                                   texture.clut.address,
 		                                   64));
 	}
+
+	printf("Texture max: %d, %d\n", texture.wrap.maxu, texture.wrap.maxv);
+	packet2_chain_open_cnt(texture_packet, 0, 0, 0);
+	packet2_update(texture_packet, draw_texture_wrapping(
+	                                   texture_packet->next,
+	                                   0,
+	                                   &texture.wrap));
+	packet2_chain_close_tag(texture_packet);
+
 	packet2_update(texture_packet, draw_texture_flush(texture_packet->next));
 	dma_channel_send_packet2(texture_packet, DMA_CHANNEL_GIF, 1);
 	dma_wait_fast();

@@ -27,13 +27,17 @@
                                      ; float : X, Y, Z - scale vector that we will use to scale the verts after projecting them.
                                      ; float : W - vert count.
     ilw.w   vertCount,        4(iBase)
-    lq      primTag,          5(iBase) ; GIF tag - tell GS how many data we will send
-    lq      rgba,             6(iBase) ; RGBA
+    lq      rgba,             5(iBase) ; RGBA
                                        ; u32 : R, G, B, A (0-128)
 
-    lq.xy   fogSetting,        7(iBase) ; x = offset, y = scale
+    lq.xy   fogSetting,        6(iBase) ; x = offset, y = scale
 
-    iaddiu  vertexData,     iBase,         8            ; pointer to vertex data
+    lq      gifSetTag,         7(iBase) ; GIF tag - set
+    lq      texGifTag1,        8(iBase) ; GIF tag - texture LOD
+    lq      texGifTag2,        9(iBase) ; GIF tag - texture buffer & CLUT
+    lq      primTag,           10(iBase) ; GIF tag - tell GS how many data we will send
+
+    iaddiu  vertexData,     iBase,         11            ; pointer to vertex data
     iadd    colorData,      vertexData,    vertCount   ; pointer to color data
     iadd    uvData,         colorData,     vertCount   ; pointer to uv data
     iadd    kickAddress,    uvData,        vertCount   ; pointer for XGKICK
@@ -41,6 +45,10 @@
     ;////////////////////////////////////////////
 
     ;/////////// --- Store tags --- /////////////
+    sqi gifSetTag,  (destAddress++) ;
+    sqi texGifTag1, (destAddress++) ; texture LOD tag
+    sqi gifSetTag,  (destAddress++) ;
+    sqi texGifTag2, (destAddress++) ; texture buffer & CLUT tag
     sqi primTag,    (destAddress++) ; prim + tell gs how many data will be
     ;////////////////////////////////////////////
 

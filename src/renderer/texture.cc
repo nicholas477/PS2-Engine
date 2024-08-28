@@ -33,6 +33,17 @@ Texture::Texture(Asset::Reference texture_asset_ref, AssetRegistry::Asset* in_te
 		texture_descriptor.clut.load_method  = CLUT_LOAD;
 		texture_descriptor.clut.storage_mode = CLUT_STORAGE_MODE1;
 
+		texture_descriptor.wrap.horizontal = texture->horizontal;
+		texture_descriptor.wrap.vertical   = texture->vertical;
+
+		texture_descriptor.wrap.minu = texture->minu;
+		texture_descriptor.wrap.maxu = texture->maxu;
+
+		texture_descriptor.wrap.minv = texture->minv;
+		texture_descriptor.wrap.maxv = texture->maxv;
+
+		printf("Texture size (bytes): %ld\n", texture->data.length);
+
 		texture_descriptor.set_width_height(texture->size_x, texture->size_y);
 	}
 }

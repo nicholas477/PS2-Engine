@@ -58,6 +58,12 @@
 #define TEXTURE_FUNCTION_HIGHLIGHT 2
 #define TEXTURE_FUNCTION_HIGHLIGHT2 3
 
+/** Texture wrapping */
+#define WRAP_REPEAT 0
+#define WRAP_CLAMP 1
+#define WRAP_REGION_CLAMP 2
+#define WRAP_REGION_REPEAT 3
+
 static std::filesystem::path get_file_path(std::string_view json_path, const Json::Value& obj)
 {
 	std::string input_file_path = obj["file"].asString();
@@ -255,7 +261,7 @@ bool parseTexture(std::string_view path, const Json::Value& obj, std::vector<std
 	using namespace Magick;
 	print("Opening texture!");
 
-	std::filesystem::path texture_file_path = get_file_path(path, obj);
+	const std::filesystem::path texture_file_path = get_file_path(path, obj);
 
 	print("Texture file path: %s", texture_file_path.c_str());
 
@@ -267,6 +273,15 @@ bool parseTexture(std::string_view path, const Json::Value& obj, std::vector<std
 	texture_header.size_y     = my_image.rows();
 	texture_header.function   = TEXTURE_FUNCTION_DECAL;
 	texture_header.components = obj["alpha"].asBool() ? TEXTURE_COMPONENTS_RGBA : TEXTURE_COMPONENTS_RGB;
+
+	print("Setting texture to repeat mapping");
+	texture_header.horizontal = WRAP_REPEAT;
+	texture_header.vertical   = WRAP_REPEAT;
+
+	texture_header.minu = 0;
+	texture_header.maxu = texture_header.size_x;
+	texture_header.minv = 0;
+	texture_header.maxv = texture_header.size_y;
 
 	const std::string color_type = obj["psm"].asString();
 

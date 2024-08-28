@@ -65,10 +65,14 @@ void Mesh::draw(const GS::GSState& gs_state, const Matrix& render_matrix, bool f
 				return;
 			}
 
-			m.uvs = get_mesh()->uvs.get_ptr() + start_index;
+			m.uvs     = get_mesh()->uvs.get_ptr() + start_index;
+			m.texture = &texture->texture_descriptor;
 
-			// printf("Uploading texture!\n");
-			// check(texture->upload_texture());
+			if (!texture->texture_descriptor.is_uploaded)
+			{
+				printf("Uploading texture!\n");
+				check(texture->upload_texture());
+			}
 
 			// printf("Using texture!\n");
 			// check(texture->use_texture());

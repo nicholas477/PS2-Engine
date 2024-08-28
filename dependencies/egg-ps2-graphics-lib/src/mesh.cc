@@ -1,6 +1,7 @@
 #include "egg-ps2-graphics-lib/mesh.hpp"
 #include "egg-ps2-graphics-lib/egg-ps2-graphics-lib.hpp"
 #include "egg-ps2-graphics-lib/vu_programs.hpp"
+#include "egg-ps2-graphics-lib/texture.hpp"
 
 #include <kernel.h>
 #include <malloc.h>
@@ -119,9 +120,29 @@ void draw_textured_strip(const Matrix& mesh_to_screen_matrix, const mesh_descrip
 		packet2_add_float(get_current_vif_packet(), mesh.screen_scale.z); // scale
 		packet2_add_u32(get_current_vif_packet(), mesh.num_verts);        // vert count
 
+		// 5
+		u8 j = 0; // RGBA
+		for (j = 0; j < 4; j++)
+			packet2_add_u32(get_current_vif_packet(), 128);
+
+		// 6
+		packet2_add_float(get_current_vif_packet(), mesh.fog_offset); // Offset
+		packet2_add_float(get_current_vif_packet(), mesh.fog_scale);  // Scale
+		packet2_add_float(get_current_vif_packet(), 0.f);             // padding
+		packet2_add_float(get_current_vif_packet(), 0.f);             // padding
+
+		// 7
+		packet2_utils_gif_add_set(get_current_vif_packet(), 1);
+
+		// 8
+		packet2_utils_gs_add_lod(get_current_vif_packet(), &mesh.texture->lod);
+
+		// 9
+		packet2_utils_gs_add_texbuff_clut(get_current_vif_packet(), &mesh.texture->t_texbuff, &mesh.texture->clut);
+
 		if (mesh.enable_fog)
 		{
-			// 5
+			// 10
 			// The F in XYZF2 stands for fog
 			packet2_utils_gs_add_prim_giftag(get_current_vif_packet(), &prim, mesh.num_verts,
 			                                 ((u64)GIF_REG_ST) << 0 | ((u64)GIF_REG_RGBAQ) << 4 | ((u64)GIF_REG_XYZF2) << 8,
@@ -129,41 +150,30 @@ void draw_textured_strip(const Matrix& mesh_to_screen_matrix, const mesh_descrip
 		}
 		else
 		{
-			// 5
+			// 10
 			packet2_utils_gs_add_prim_giftag(get_current_vif_packet(), &prim, mesh.num_verts,
 			                                 DRAW_STQ2_REGLIST,
 			                                 3, 0);
 		}
-
-		// 6
-		u8 j = 0; // RGBA
-		for (j = 0; j < 4; j++)
-			packet2_add_u32(get_current_vif_packet(), 128);
-
-		// 7
-		packet2_add_float(get_current_vif_packet(), mesh.fog_offset); // Offset
-		packet2_add_float(get_current_vif_packet(), mesh.fog_scale);  // Scale
-		packet2_add_float(get_current_vif_packet(), 0.f);             // padding
-		packet2_add_float(get_current_vif_packet(), 0.f);             // padding
 	}
 	packet2_utils_vu_close_unpack(get_current_vif_packet());
 
 	// Position data
-	packet2_utils_vu_add_unpack_data(get_current_vif_packet(), 8, mesh.pos, mesh.num_verts, 1);
+	packet2_utils_vu_add_unpack_data(get_current_vif_packet(), 11, mesh.pos, mesh.num_verts, 1);
 
 	if (mesh.color)
 	{
 		// Color data
-		packet2_utils_vu_add_unpack_data(get_current_vif_packet(), 8 + mesh.num_verts, mesh.color, mesh.num_verts, 1);
+		packet2_utils_vu_add_unpack_data(get_current_vif_packet(), 11 + mesh.num_verts, mesh.color, mesh.num_verts, 1);
 	}
 
 	if (mesh.uvs)
 	{
 		// UV data
-		packet2_utils_vu_add_unpack_data(get_current_vif_packet(), 8 + (mesh.num_verts * 2), mesh.uvs, mesh.num_verts, 1);
+		packet2_utils_vu_add_unpack_data(get_current_vif_packet(), 11 + (mesh.num_verts * 2), mesh.uvs, mesh.num_verts, 1);
 	}
 
-	assert((8 + (mesh.num_verts * 6)) < 496);
+	assert((11 + (mesh.num_verts * 6)) < 496);
 
 	packet2_utils_vu_add_start_program(get_current_vif_packet(), vu1_programs::get_vertex_color_texture_program_addr());
 }
@@ -236,16 +246,16 @@ void draw_mesh_strip(const Matrix& mesh_to_screen_matrix, const mesh_descriptor&
 
 			strip.num_verts = num_verts;
 
-			draw_untextured_strip(mesh_to_screen_matrix, strip);
+			if (strip.texture)
+			{
+				assert(strip.uvs != nullptr);
 
-			// if (strip.enable_texture_mapping && strip.texture)
-			// {
-			// 	draw_textured_strip(mesh_to_screen_matrix, strip);
-			// }
-			// else
-			// {
-			// 	draw_untextured_strip(mesh_to_screen_matrix, strip);
-			// }
+				draw_textured_strip(mesh_to_screen_matrix, strip);
+			}
+			else
+			{
+				draw_untextured_strip(mesh_to_screen_matrix, strip);
+			}
 		}
 
 		if (i_end >= mesh.num_verts)

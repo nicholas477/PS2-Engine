@@ -15,6 +15,7 @@ struct texture_descriptor
 	lod_t lod;
 	clutbuffer_t clut;
 	texbuffer_t t_texbuff;
+	texwrap_t wrap;
 
 	bool is_uploaded;
 
