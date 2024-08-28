@@ -12,10 +12,10 @@
 
 Mesh::Mesh()
 {
-	mesh_asset    = nullptr;
-	texture_asset = nullptr;
-	path          = nullptr;
-	debug_name    = "uninitialized mesh";
+	mesh_asset = nullptr;
+	texture    = nullptr;
+	path       = nullptr;
+	debug_name = "uninitialized mesh";
 }
 
 Mesh::Mesh(Asset::Reference mesh_asset_ref)
@@ -32,7 +32,9 @@ void Mesh::load_from_asset_ref(Asset::Reference mesh_asset_ref)
 	// Load the texture too (if specified)
 	if (get_mesh()->texture != Asset::Reference())
 	{
-		check(AssetRegistry::get_asset(get_mesh()->texture, texture_asset, 16, true));
+		texture = get_texture(get_mesh()->texture);
+		printf("Loaded texture!\n");
+		check(texture != nullptr);
 	}
 }
 
@@ -43,13 +45,6 @@ void Mesh::draw(const GS::GSState& gs_state, const Matrix& render_matrix, bool f
 	{
 		printf("Mesh::draw: Mesh nullptr, not drawing!\n");
 		return;
-	}
-
-	const TextureFileHeader* texture = get_texture();
-	if (texture)
-	{
-		texture_descriptor t;
-		//t.t_texbuff.address =
 	}
 
 	for (const MeshTriangleStripHeader& strip : get_mesh()->strips)
@@ -75,6 +70,12 @@ void Mesh::draw(const GS::GSState& gs_state, const Matrix& render_matrix, bool f
 			m.uvs = get_mesh()->uvs.get_ptr() + start_index;
 
 			m.enable_texture_mapping = true;
+
+			printf("Uploading texture!\n");
+			check(texture->upload_texture());
+
+			printf("Using texture!\n");
+			check(texture->use_texture());
 		}
 		else
 		{
@@ -106,9 +107,4 @@ MeshFileHeader* Mesh::get_mesh() const
 {
 	check(mesh_asset != nullptr);
 	return reinterpret_cast<MeshFileHeader*>(mesh_asset->data.get());
-}
-
-TextureFileHeader* Mesh::get_texture() const
-{
-	return reinterpret_cast<TextureFileHeader*>(texture_asset->data.get());
 }

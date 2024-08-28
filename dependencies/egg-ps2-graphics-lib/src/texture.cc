@@ -3,6 +3,7 @@
 #include "egg-ps2-graphics-lib/types.hpp"
 #include "egg-ps2-graphics-lib/egg-ps2-graphics-lib.hpp"
 #include "egg-ps2-graphics-lib/vu_programs.hpp"
+#include "egg-ps2-graphics-lib/gs_mem.hpp"
 
 #include <dma.h>
 #include <draw.h>
@@ -42,8 +43,8 @@ texture_descriptor::texture_descriptor()
 void texture_descriptor::set_width_height(u32 in_width, u32 in_height)
 {
 	// Check the dimensions are powers of 2
-	assert((in_width & (in_width - 1)) == 0);
-	assert((in_height & (in_height - 1)) == 0);
+	// assert((in_width & (in_width - 1)) == 0);
+	// assert((in_height & (in_height - 1)) == 0);
 
 	t_texbuff.width = in_width;
 	height          = in_height;
@@ -57,7 +58,7 @@ std::pair<u32, u32> texture_descriptor::get_width_height() const
 	return {t_texbuff.width, height};
 }
 
-void upload_texture(texture_descriptor& texture, void* texture_data)
+void upload_texture(texture_descriptor& texture, void* texture_data, void* clut_data)
 {
 	if (texture.is_uploaded)
 	{
@@ -73,6 +74,21 @@ void upload_texture(texture_descriptor& texture, void* texture_data)
 	                                   texture.t_texbuff.psm,
 	                                   texture.t_texbuff.address,
 	                                   texture.t_texbuff.width));
+
+	if (clut_data)
+	{
+		u8 clut_width  = texture.t_texbuff.psm == GS_PSM_8 ? 16 : 8;
+		u8 clut_height = texture.t_texbuff.psm == GS_PSM_8 ? 16 : 2;
+
+		packet2_update(texture_packet, draw_texture_transfer(
+		                                   texture_packet->next,
+		                                   clut_data,
+		                                   clut_width,
+		                                   clut_height,
+		                                   texture.clut.psm,
+		                                   texture.clut.address,
+		                                   64));
+	}
 	packet2_update(texture_packet, draw_texture_flush(texture_packet->next));
 	dma_channel_send_packet2(texture_packet, DMA_CHANNEL_GIF, 1);
 	dma_wait_fast();
@@ -82,10 +98,22 @@ void upload_texture(texture_descriptor& texture, void* texture_data)
 
 void unload_texture(texture_descriptor& texture)
 {
+	if (texture.t_texbuff.address > 0)
+	{
+		gs_mem::unlock_texture_slot(texture.t_texbuff.address);
+		texture.t_texbuff.address = 0;
+	}
+
+	if (texture.clut.address > 0)
+	{
+		gs_mem::unlock_texture_slot(texture.clut.address);
+		texture.clut.address = 0;
+	}
+
 	texture.is_uploaded = false;
 }
 
-void set_texture(texture_descriptor& texture)
+bool set_texture(texture_descriptor& texture)
 {
 	packet2_utils_vu_open_unpack(get_current_vif_packet(), 0, 1);
 	{
@@ -97,6 +125,8 @@ void set_texture(texture_descriptor& texture)
 	}
 	packet2_utils_vu_close_unpack(get_current_vif_packet());
 	packet2_utils_vu_add_start_program(get_current_vif_packet(), vu1_programs::get_kick_program_addr());
+
+	return true;
 }
 
 } // namespace egg::ps2::graphics

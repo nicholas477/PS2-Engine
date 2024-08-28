@@ -26,10 +26,10 @@ struct texture_descriptor
 };
 
 // Uploads the texture to vram
-void upload_texture(texture_descriptor& texture, void* texture_data);
+void upload_texture(texture_descriptor& texture, void* texture_data, void* clut_data);
 
 void unload_texture(texture_descriptor& texture);
 
 // Sets the texture currently being drawn
-void set_texture(texture_descriptor& texture);
+bool set_texture(texture_descriptor& texture);
 } // namespace egg::ps2::graphics

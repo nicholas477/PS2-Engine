@@ -26,7 +26,7 @@ void draw_strip(const Matrix& mesh_to_screen_matrix, const mesh_descriptor& mesh
 
 	// Define the triangle primitive we want to use.
 	prim.type         = PRIM_TRIANGLE_STRIP;
-	prim.shading      = PRIM_SHADE_GOURAUD;
+	prim.shading      = PRIM_SHADE_FLAT;
 	prim.mapping      = mesh.enable_texture_mapping ? DRAW_ENABLE : DRAW_DISABLE;
 	prim.fogging      = mesh.enable_fog ? DRAW_ENABLE : DRAW_DISABLE;
 	prim.blending     = DRAW_DISABLE;
