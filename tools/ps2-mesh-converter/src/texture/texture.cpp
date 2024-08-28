@@ -84,6 +84,16 @@ union PalleteColor
 };
 static_assert(sizeof(PalleteColor) == 4);
 
+static PalleteColor fromColorRGB(const Magick::ColorRGB& c, bool alpha)
+{
+	PalleteColor new_color;
+	new_color.alpha = alpha ? c.alpha() * 255 : 255;
+	new_color.red   = c.red() * 255;
+	new_color.green = c.green() * 255;
+	new_color.blue  = c.blue() * 255;
+	return new_color;
+}
+
 union PalleteColor16
 {
 	struct
@@ -129,13 +139,7 @@ static bool collectPalette(const Magick::Image& image, std::vector<uint32_t>& pa
 			// The pixel read doesn't work without this line. I don't understand why
 			const void* pixel = image.getConstPixels(x, y, 1, 1);
 
-			ColorRGB c = image.pixelColor(x, y);
-
-			PalleteColor new_color;
-			new_color.alpha = alpha ? c.alpha() * 255 : 255;
-			new_color.red   = c.red() * 255;
-			new_color.green = c.green() * 255;
-			new_color.blue  = c.blue() * 255;
+			PalleteColor new_color = fromColorRGB(image.pixelColor(x, y), alpha);
 
 			colors.insert(new_color);
 		}
@@ -167,6 +171,7 @@ static bool collectPalette(const Magick::Image& image, std::vector<uint32_t>& pa
 		for (const PalleteColor& c : colors)
 		{
 			palette_colors[i] = c.color;
+			print("Palette color: r: %u, g: %u, b: %u, a: %u", c.red, c.green, c.blue, c.alpha);
 			i++;
 		}
 
@@ -201,13 +206,7 @@ static bool writePalletizedImageData(const Magick::Image& image, const std::vect
 			// The pixel read doesn't work without this line. I don't understand why
 			const void* pixel = image.getConstPixels(x, y, 1, 1);
 
-			ColorRGB c = image.pixelColor(x, y);
-
-			PalleteColor new_color;
-			new_color.alpha = alpha ? c.alpha() * 255 : 255;
-			new_color.red   = c.red() * 255;
-			new_color.green = c.green() * 255;
-			new_color.blue  = c.blue() * 255;
+			PalleteColor new_color = fromColorRGB(image.pixelColor(x, y), alpha);
 
 			ptrdiff_t new_index = std::find(palette_colors.begin(), palette_colors.end(), new_color.color) - palette_colors.begin();
 			assert(new_index < palette_colors.size());
@@ -251,9 +250,30 @@ static std::vector<std::byte> serialize_texture(const TextureFileHeader& texture
 {
 	std::vector<std::byte> out_data;
 	Serializer texture_serializer(out_data);
-	serialize(texture_serializer, texture_header);
+	assert(serialize(texture_serializer, texture_header) == 0);
 	texture_serializer.finish_serialization();
 	return out_data;
+}
+
+void checkTextureHeader(const TextureFileHeader& texture_header, const std::vector<std::byte>& data)
+{
+	const TextureFileHeader& new_texture_header = *(const TextureFileHeader*)data.data();
+	assert(texture_header.size_x == new_texture_header.size_x);
+	assert(texture_header.size_y == new_texture_header.size_y);
+	assert(texture_header.psm == new_texture_header.psm);
+	assert(texture_header.function == new_texture_header.function);
+	assert(texture_header.components == new_texture_header.components);
+	assert(texture_header.horizontal == new_texture_header.horizontal);
+	assert(texture_header.vertical == new_texture_header.vertical);
+	assert(texture_header.minu == new_texture_header.minu);
+	assert(texture_header.maxu == new_texture_header.maxu);
+	assert(texture_header.minv == new_texture_header.minv);
+	assert(texture_header.maxv == new_texture_header.maxv);
+
+	print("Texture header length: %lu", texture_header.data.length);
+	assert(memcmp(texture_header.data.get_ptr(), new_texture_header.data.get_ptr(), texture_header.data.length) == 0);
+
+	assert(memcmp(texture_header.clut.get_ptr(), new_texture_header.clut.get_ptr(), texture_header.clut.length) == 0);
 }
 
 bool parseTexture(std::string_view path, const Json::Value& obj, std::vector<std::byte>& out_data)
@@ -311,6 +331,7 @@ bool parseTexture(std::string_view path, const Json::Value& obj, std::vector<std
 		print("Pixels in palletized image: %lu", my_image.columns() * my_image.rows());
 
 		out_data = serialize_texture(texture_header);
+		checkTextureHeader(texture_header, out_data);
 	}
 	else if (iequals(color_type, "32") || iequals(color_type, "24"))
 	{
@@ -327,13 +348,7 @@ bool parseTexture(std::string_view path, const Json::Value& obj, std::vector<std
 				// The pixel read doesn't work without this line. I don't understand why
 				const void* pixel = my_image.getConstPixels(x, y, 1, 1);
 
-				ColorRGB c = my_image.pixelColor(x, y);
-
-				PalleteColor* new_color = (PalleteColor*)image_data.data();
-				new_color[i].alpha      = obj["alpha"].asBool() ? c.alpha() * 255 : 255;
-				new_color[i].red        = c.red() * 255;
-				new_color[i].green      = c.green() * 255;
-				new_color[i].blue       = c.blue() * 255;
+				*(PalleteColor*)image_data.data() = fromColorRGB(my_image.pixelColor(x, y), obj["alpha"].asBool());
 
 				i++;
 			}
@@ -343,6 +358,7 @@ bool parseTexture(std::string_view path, const Json::Value& obj, std::vector<std
 		texture_header.data.set(image_data);
 
 		out_data = serialize_texture(texture_header);
+		checkTextureHeader(texture_header, out_data);
 	}
 	else if (iequals(color_type, "16"))
 	{
@@ -375,6 +391,7 @@ bool parseTexture(std::string_view path, const Json::Value& obj, std::vector<std
 		texture_header.data.set(image_data);
 
 		out_data = serialize_texture(texture_header);
+		checkTextureHeader(texture_header, out_data);
 	}
 	else
 	{

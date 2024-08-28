@@ -94,7 +94,7 @@ void upload_texture(texture_descriptor& texture, void* texture_data, void* clut_
 		                                   clut_height,
 		                                   texture.clut.psm,
 		                                   texture.clut.address,
-		                                   64));
+		                                   clut_width));
 	}
 
 	printf("Texture max: %d, %d\n", texture.wrap.maxu, texture.wrap.maxv);

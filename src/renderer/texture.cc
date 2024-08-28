@@ -22,15 +22,16 @@ Texture::Texture(Asset::Reference texture_asset_ref, AssetRegistry::Asset* in_te
 	debug_name    = Asset::lookup_path(texture_asset_ref).data();
 
 	const TextureFileHeader* texture = get_texture();
-
 	if (texture)
 	{
+		printf("Texture width height: %u, %u\n", texture->size_x, texture->size_y);
+
 		texture_descriptor.t_texbuff.info.components = texture->components;
 		texture_descriptor.t_texbuff.info.function   = texture->function;
 		texture_descriptor.t_texbuff.psm             = texture->psm;
 
 		texture_descriptor.clut.psm          = GS_PSM_32;
-		texture_descriptor.clut.load_method  = CLUT_LOAD;
+		texture_descriptor.clut.load_method  = texture->clut.length > 0 ? CLUT_LOAD : CLUT_NO_LOAD;
 		texture_descriptor.clut.storage_mode = CLUT_STORAGE_MODE1;
 
 		texture_descriptor.wrap.horizontal = texture->horizontal;

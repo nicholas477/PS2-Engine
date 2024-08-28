@@ -31,19 +31,19 @@ struct TextureFileHeader
 
 static size_t serialize(Serializer& serializer, const TextureFileHeader& texture_header, size_t alignment = 1)
 {
-	const size_t begin = serialize(serializer, texture_header.size_x);
-	serialize(serializer, texture_header.size_y);
-	serialize(serializer, texture_header.psm);
-	serialize(serializer, texture_header.function);
-	serialize(serializer, texture_header.components);
+	const size_t begin = serialize(serializer, texture_header.size_x, 1);
+	serialize(serializer, texture_header.size_y, 1);
+	serialize(serializer, texture_header.psm, 1);
+	serialize(serializer, texture_header.function, 1);
+	serialize(serializer, texture_header.components, 1);
 
-	serialize(serializer, texture_header.horizontal);
-	serialize(serializer, texture_header.vertical);
+	serialize(serializer, texture_header.horizontal, 1);
+	serialize(serializer, texture_header.vertical, 1);
 
-	serialize(serializer, texture_header.minu);
-	serialize(serializer, texture_header.maxu);
-	serialize(serializer, texture_header.minv);
-	serialize(serializer, texture_header.maxv);
+	serialize(serializer, texture_header.minu, 1);
+	serialize(serializer, texture_header.maxu, 1);
+	serialize(serializer, texture_header.minv, 1);
+	serialize(serializer, texture_header.maxv, 1);
 
 	serialize(serializer, texture_header.clut, 1, 16);
 	serialize(serializer, texture_header.data, 1, 16);
