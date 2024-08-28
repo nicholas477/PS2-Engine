@@ -5,11 +5,11 @@ set -e
 if [ ! "$1" ] || [ $1 != "ci" ]; then
     # Check if apt is installed before trying to run prereqs
     if command -v apt 2>&1 /dev/null; then
-        sudo apt install -y build-essential binutils-dev git cmake genisoimage libassimp-dev libmagick++-dev sox autoconf automake autopoint
+        sudo apt install -y build-essential binutils-dev git cmake genisoimage libstb-dev libassimp-dev libmagick++-dev sox autoconf automake autopoint
     fi
 
     if command -v pacman 2>&1 /dev/null; then
-        sudo pacman -S gcc make cmake patch texinfo flex bison gettext wget gsl gmp zlib mpfr mpc glibc linux-headers linux-api-headers ncurses assimp jsoncpp cdrkit libelf cimg imagemagick pkgconf sox
+        sudo pacman -S gcc make cmake patch texinfo flex bison gettext wget gsl gmp zlib mpfr mpc glibc linux-headers linux-api-headers ncurses assimp jsoncpp cdrkit libelf cimg imagemagick pkgconf sox stb
     fi
 fi
 

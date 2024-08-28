@@ -18,8 +18,6 @@ struct Texture: public Debuggable
 	// Deallocates the texture from gs memory
 	bool unload_texture();
 
-	bool use_texture();
-
 	AssetRegistry::Asset* texture_asset;
 
 	class TextureFileHeader* get_texture() const;

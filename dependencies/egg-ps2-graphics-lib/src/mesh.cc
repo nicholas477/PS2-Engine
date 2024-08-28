@@ -222,7 +222,7 @@ void draw_mesh_strip(const Matrix& mesh_to_screen_matrix, const mesh_descriptor&
 	assert(mesh.is_valid());
 
 	// TODO: calculate this dynamically based on how much stuff is being put into vu mem
-	static constexpr s32 verts_per_call = 80;
+	static constexpr s32 verts_per_call = 64;
 
 	for (u32 i = 0;;)
 	{

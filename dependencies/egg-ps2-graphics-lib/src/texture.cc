@@ -36,7 +36,7 @@ texture_descriptor::texture_descriptor()
 
 	t_texbuff.info.width      = 0;
 	t_texbuff.info.height     = 0;
-	t_texbuff.info.components = TEXTURE_COMPONENTS_RGB;
+	t_texbuff.info.components = TEXTURE_COMPONENTS_RGBA;
 	t_texbuff.info.function   = TEXTURE_FUNCTION_DECAL;
 
 	wrap.horizontal = WRAP_REPEAT;
@@ -72,7 +72,9 @@ void upload_texture(texture_descriptor& texture, void* texture_data, void* clut_
 		return;
 	}
 
-	utils::inline_packet2<50> texture_packet(P2_TYPE_NORMAL, P2_MODE_CHAIN, 0);
+	assert(__is_aligned(texture_data, 16));
+	utils::inline_packet2<128> texture_packet(P2_TYPE_NORMAL, P2_MODE_CHAIN, 0);
+
 	packet2_update(texture_packet, draw_texture_transfer(
 	                                   texture_packet->next,
 	                                   texture_data,
@@ -80,12 +82,15 @@ void upload_texture(texture_descriptor& texture, void* texture_data, void* clut_
 	                                   texture.get_width_height().second,
 	                                   texture.t_texbuff.psm,
 	                                   texture.t_texbuff.address,
-	                                   texture.t_texbuff.width));
+	                                   std::max((u32)64, texture.get_width_height().first)));
 
+	u8 clut_width  = texture.t_texbuff.psm == GS_PSM_8 ? 16 : 8;
+	u8 clut_height = texture.t_texbuff.psm == GS_PSM_8 ? 16 : 2;
 	if (clut_data)
 	{
-		u8 clut_width  = texture.t_texbuff.psm == GS_PSM_8 ? 16 : 8;
-		u8 clut_height = texture.t_texbuff.psm == GS_PSM_8 ? 16 : 2;
+		assert(__is_aligned(clut_data, 16));
+
+		printf("clut width, height : %u, %u\n", clut_width, clut_height);
 
 		packet2_update(texture_packet, draw_texture_transfer(
 		                                   texture_packet->next,
@@ -94,10 +99,12 @@ void upload_texture(texture_descriptor& texture, void* texture_data, void* clut_
 		                                   clut_height,
 		                                   texture.clut.psm,
 		                                   texture.clut.address,
-		                                   clut_width));
+		                                   64));
 	}
 
+	printf("Texture min: %d, %d\n", texture.wrap.minu, texture.wrap.minv);
 	printf("Texture max: %d, %d\n", texture.wrap.maxu, texture.wrap.maxv);
+
 	packet2_chain_open_cnt(texture_packet, 0, 0, 0);
 	packet2_update(texture_packet, draw_texture_wrapping(
 	                                   texture_packet->next,
@@ -106,6 +113,7 @@ void upload_texture(texture_descriptor& texture, void* texture_data, void* clut_
 	packet2_chain_close_tag(texture_packet);
 
 	packet2_update(texture_packet, draw_texture_flush(texture_packet->next));
+	dma_channel_wait(DMA_CHANNEL_GIF, 0);
 	dma_channel_send_packet2(texture_packet, DMA_CHANNEL_GIF, 1);
 	dma_wait_fast();
 
@@ -127,22 +135,6 @@ void unload_texture(texture_descriptor& texture)
 	}
 
 	texture.is_uploaded = false;
-}
-
-bool set_texture(texture_descriptor& texture)
-{
-	packet2_utils_vu_open_unpack(get_current_vif_packet(), 0, 1);
-	{
-		packet2_utils_gif_add_set(get_current_vif_packet(), 1);
-		packet2_utils_gs_add_lod(get_current_vif_packet(), &texture.lod);
-		packet2_utils_gs_add_texbuff_clut(get_current_vif_packet(), &texture.t_texbuff, &texture.clut);
-		packet2_utils_gs_add_prim_giftag(get_current_vif_packet(), &get_empty_prim(), 0,
-		                                 ((u64)GIF_REG_RGBAQ) << 0, 1, 0);
-	}
-	packet2_utils_vu_close_unpack(get_current_vif_packet());
-	packet2_utils_vu_add_start_program(get_current_vif_packet(), vu1_programs::get_kick_program_addr());
-
-	return true;
 }
 
 } // namespace egg::ps2::graphics

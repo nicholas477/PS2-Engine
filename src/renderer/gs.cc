@@ -150,12 +150,12 @@ void render()
 
 		_gs_state.camera_rotation = Camera::get().transform.get_rotation();
 
-		epg::clear_screen(255, 192, 203);
+		epg::clear_screen(255, 255, 255);
 
 		{
 			epg::start_draw();
 
-			epg::set_fog_color(255, 192, 203);
+			epg::set_fog_color(255, 255, 255);
 
 			draw_objects(_gs_state);
 

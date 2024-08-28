@@ -1,6 +1,6 @@
 {
     "type": "texture",
-    "psm": "palette",
+    "psm": "16",
     "alpha": false,
     "file": "uv_tester.png"
 }

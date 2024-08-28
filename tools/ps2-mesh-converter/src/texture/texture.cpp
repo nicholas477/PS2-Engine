@@ -2,6 +2,7 @@
 
 #include "egg/texture_header.hpp"
 
+#include "app.hpp"
 #include <json/json.h>
 #include <fstream>
 #include <filesystem>
@@ -11,10 +12,8 @@
 #include "app.hpp"
 #include "types.hpp"
 
-#define MAGICKCORE_QUANTUM_DEPTH 8
-#define MAGICKCORE_HDRI_ENABLE false
-
-#include <Magick++.h>
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb/stb_image.h"
 
 // Copied from gs_psm.h
 
@@ -64,6 +63,12 @@
 #define WRAP_REGION_CLAMP 2
 #define WRAP_REGION_REPEAT 3
 
+struct image
+{
+	int width, height, channels;
+	unsigned char* data;
+};
+
 static std::filesystem::path get_file_path(std::string_view json_path, const Json::Value& obj)
 {
 	std::string input_file_path = obj["file"].asString();
@@ -71,7 +76,7 @@ static std::filesystem::path get_file_path(std::string_view json_path, const Jso
 	return std::filesystem::path(json_path).parent_path() / input_file_path;
 }
 
-union PalleteColor
+union Color
 {
 	struct
 	{
@@ -82,19 +87,54 @@ union PalleteColor
 	};
 	uint32_t color;
 };
-static_assert(sizeof(PalleteColor) == 4);
+static_assert(sizeof(Color) == 4);
 
-static PalleteColor fromColorRGB(const Magick::ColorRGB& c, bool alpha)
+struct Color24
 {
-	PalleteColor new_color;
-	new_color.alpha = alpha ? c.alpha() * 255 : 255;
-	new_color.red   = c.red() * 255;
-	new_color.green = c.green() * 255;
-	new_color.blue  = c.blue() * 255;
+	uint8_t red;
+	uint8_t green;
+	uint8_t blue;
+};
+static_assert(sizeof(Color24) == 3);
+
+static Color fromColorRGB(const image& img, size_t x, size_t y, bool alpha)
+{
+	int i = x + y * img.width;
+
+	Color new_color;
+	if (img.channels == 1)
+	{
+		new_color.alpha = 1;
+		new_color.red   = img.data[i] / 8;
+		new_color.green = img.data[i] / 8;
+		new_color.blue  = img.data[i] / 8;
+	}
+	else if (img.channels == 3)
+	{
+		const Color24* colors = (const Color24*)img.data;
+
+		new_color.alpha = 255;
+		new_color.red   = colors[i].red;
+		new_color.green = colors[i].green;
+		new_color.blue  = colors[i].blue;
+	}
+	else if (img.channels == 4)
+	{
+		const Color* colors = (const Color*)img.data;
+
+		new_color.alpha = alpha ? colors[i].alpha : 255;
+		new_color.red   = colors[i].red;
+		new_color.green = colors[i].green;
+		new_color.blue  = colors[i].blue;
+	}
+	else
+	{
+		assert(false);
+	}
 	return new_color;
 }
 
-union PalleteColor16
+union Color16
 {
 	struct
 	{
@@ -105,42 +145,69 @@ union PalleteColor16
 	};
 	uint16_t color;
 };
-static_assert(sizeof(PalleteColor16) == 2);
+static_assert(sizeof(Color16) == 2);
+
+static Color16 fromColorRGB16(const image& img, size_t x, size_t y, bool alpha)
+{
+	int i = x + y * img.width;
+
+	Color16 new_color;
+	if (img.channels == 1)
+	{
+		new_color.alpha = 1;
+		new_color.red   = img.data[i] / 8;
+		new_color.green = img.data[i] / 8;
+		new_color.blue  = img.data[i] / 8;
+	}
+	else if (img.channels == 3)
+	{
+		const Color24* colors = (const Color24*)img.data;
+
+		new_color.alpha = 1;
+		new_color.red   = colors[i].red / 8;
+		new_color.green = colors[i].green / 8;
+		new_color.blue  = colors[i].blue / 8;
+	}
+	else if (img.channels == 4)
+	{
+		const Color* colors = (const Color*)img.data;
+
+		new_color.alpha = alpha ? colors[i].alpha > 128 : 1;
+		new_color.red   = colors[i].red / 8;
+		new_color.green = colors[i].green / 8;
+		new_color.blue  = colors[i].blue / 8;
+	}
+	else
+	{
+		assert(false);
+	}
+	return new_color;
+}
 
 template <>
-struct std::hash<PalleteColor>
+struct std::hash<Color>
 {
-	std::size_t operator()(const PalleteColor& k) const
+	std::size_t operator()(const Color& k) const
 	{
 		return k.color;
 	}
 };
 
-static bool operator==(const PalleteColor& lhs, const PalleteColor& rhs)
+static bool operator==(const Color& lhs, const Color& rhs)
 {
 	return lhs.color == rhs.color;
 }
 
-static bool writePalette()
-{
-	return true;
-}
-
 // Collects the palette into palette_colors, sets the PSM and CLUT on texture_header
-static bool collectPalette(const Magick::Image& image, std::vector<uint32_t>& palette_colors, TextureFileHeader& texture_header, bool alpha)
+static bool collectPalette(const image& image, std::vector<uint32_t>& palette_colors, TextureFileHeader& texture_header, bool alpha)
 {
-	using namespace Magick;
-	std::unordered_set<PalleteColor> colors(256);
+	std::unordered_set<::Color> colors(256);
 
-	for (size_t x = 0; x < image.columns(); ++x)
+	for (size_t x = 0; x < image.width; ++x)
 	{
-		for (size_t y = 0; y < image.rows(); ++y)
+		for (size_t y = 0; y < image.height; ++y)
 		{
-			// The pixel read doesn't work without this line. I don't understand why
-			const void* pixel = image.getConstPixels(x, y, 1, 1);
-
-			PalleteColor new_color = fromColorRGB(image.pixelColor(x, y), alpha);
-
+			::Color new_color = fromColorRGB(image, x, y, alpha);
 			colors.insert(new_color);
 		}
 	}
@@ -168,10 +235,11 @@ static bool collectPalette(const Magick::Image& image, std::vector<uint32_t>& pa
 	// Write the palette
 	{
 		size_t i = 0;
-		for (const PalleteColor& c : colors)
+		for (const Color& c : colors)
 		{
 			palette_colors[i] = c.color;
 			print("Palette color: r: %u, g: %u, b: %u, a: %u", c.red, c.green, c.blue, c.alpha);
+
 			i++;
 		}
 
@@ -181,13 +249,11 @@ static bool collectPalette(const Magick::Image& image, std::vector<uint32_t>& pa
 	return true;
 }
 
-static bool writePalletizedImageData(const Magick::Image& image, const std::vector<uint32_t>& palette_colors, std::vector<std::byte>& image_data, bool alpha)
+static bool writePalletizedImageData(const image& image, const std::vector<uint32_t>& palette_colors, std::vector<std::byte>& image_data, bool alpha)
 {
-	using namespace Magick;
-
 	assert(palette_colors.size() == 16 || palette_colors.size() == 256);
 
-	const uint32_t num_pixels = image.columns() * image.rows();
+	const uint32_t num_pixels = image.width * image.height;
 	if (palette_colors.size() == 16)
 	{
 		image_data.resize((num_pixels / 2) + (num_pixels % 2));
@@ -199,17 +265,15 @@ static bool writePalletizedImageData(const Magick::Image& image, const std::vect
 
 	// Write the data
 	int i = 0;
-	for (size_t x = 0; x < image.columns(); ++x)
+	for (size_t x = 0; x < image.width; ++x)
 	{
-		for (size_t y = 0; y < image.rows(); ++y)
+		for (size_t y = 0; y < image.height; ++y)
 		{
-			// The pixel read doesn't work without this line. I don't understand why
-			const void* pixel = image.getConstPixels(x, y, 1, 1);
-
-			PalleteColor new_color = fromColorRGB(image.pixelColor(x, y), alpha);
+			Color new_color = fromColorRGB(image, x, y, alpha);
 
 			ptrdiff_t new_index = std::find(palette_colors.begin(), palette_colors.end(), new_color.color) - palette_colors.begin();
 			assert(new_index < palette_colors.size());
+			assert(new_index >= 0);
 
 			switch (palette_colors.size())
 			{
@@ -234,6 +298,7 @@ static bool writePalletizedImageData(const Magick::Image& image, const std::vect
 				break;
 
 				default:
+					assert(false);
 					break;
 			}
 
@@ -278,21 +343,27 @@ void checkTextureHeader(const TextureFileHeader& texture_header, const std::vect
 
 bool parseTexture(std::string_view path, const Json::Value& obj, std::vector<std::byte>& out_data)
 {
-	using namespace Magick;
 	print("Opening texture!");
 
 	const std::filesystem::path texture_file_path = get_file_path(path, obj);
 
 	print("Texture file path: %s", texture_file_path.c_str());
 
-	Magick::Image my_image;
-	my_image.read(texture_file_path);
+	image img;
+	img.data = stbi_load(texture_file_path.c_str(), &img.width, &img.height, &img.channels, STBI_rgb);
+	if (img.data == nullptr)
+	{
+		print_error("Failed to load image!");
+		return false;
+	}
+	print("Num channels in image: %lu", img.channels);
+
 
 	TextureFileHeader texture_header;
-	texture_header.size_x     = my_image.columns();
-	texture_header.size_y     = my_image.rows();
+	texture_header.size_x     = img.width;
+	texture_header.size_y     = img.height;
 	texture_header.function   = TEXTURE_FUNCTION_DECAL;
-	texture_header.components = obj["alpha"].asBool() ? TEXTURE_COMPONENTS_RGBA : TEXTURE_COMPONENTS_RGB;
+	texture_header.components = TEXTURE_COMPONENTS_RGBA; //obj["alpha"].asBool() ? TEXTURE_COMPONENTS_RGBA : TEXTURE_COMPONENTS_RGB;
 
 	print("Setting texture to repeat mapping");
 	texture_header.horizontal = WRAP_REPEAT;
@@ -312,14 +383,14 @@ bool parseTexture(std::string_view path, const Json::Value& obj, std::vector<std
 		print("Texture is palettized, collecting palette");
 
 		std::vector<uint32_t> palette_colors;
-		if (!collectPalette(my_image, palette_colors, texture_header, obj["alpha"].asBool()))
+		if (!collectPalette(img, palette_colors, texture_header, obj["alpha"].asBool()))
 		{
 			print_error("Failed to collect color palette!");
 			return false;
 		}
 
 		std::vector<std::byte> image_data;
-		if (!writePalletizedImageData(my_image, palette_colors, image_data, obj["alpha"].asBool()))
+		if (!writePalletizedImageData(img, palette_colors, image_data, obj["alpha"].asBool()))
 		{
 			print_error("Failed to write image data!");
 			return false;
@@ -328,12 +399,13 @@ bool parseTexture(std::string_view path, const Json::Value& obj, std::vector<std
 		texture_header.data.set(image_data);
 
 		print("Bytes in palletized image: %lu", image_data.size());
-		print("Pixels in palletized image: %lu", my_image.columns() * my_image.rows());
+		print("Pages in palletized image: %lu", image_data.size() / 8192);
+		print("Pixels in palletized image: %lu", img.width * img.height);
 
 		out_data = serialize_texture(texture_header);
 		checkTextureHeader(texture_header, out_data);
 	}
-	else if (iequals(color_type, "32") || iequals(color_type, "24"))
+	else if (iequals(color_type, "32")) // || iequals(color_type, "24"))
 	{
 		texture_header.psm = iequals(color_type, "32") ? GS_PSM_32 : GS_PSM_24;
 
@@ -341,14 +413,13 @@ bool parseTexture(std::string_view path, const Json::Value& obj, std::vector<std
 		image_data.resize(texture_header.size_x * texture_header.size_y * 4);
 
 		uint32_t i = 0;
-		for (size_t x = 0; x < my_image.columns(); ++x)
+		for (size_t x = 0; x < img.width; ++x)
 		{
-			for (size_t y = 0; y < my_image.rows(); ++y)
+			for (size_t y = 0; y < img.height; ++y)
 			{
-				// The pixel read doesn't work without this line. I don't understand why
-				const void* pixel = my_image.getConstPixels(x, y, 1, 1);
+				Color* palette_data = (Color*)image_data.data();
 
-				*(PalleteColor*)image_data.data() = fromColorRGB(my_image.pixelColor(x, y), obj["alpha"].asBool());
+				palette_data[i] = fromColorRGB(img, x, y, obj["alpha"].asBool());
 
 				i++;
 			}
@@ -368,20 +439,13 @@ bool parseTexture(std::string_view path, const Json::Value& obj, std::vector<std
 		image_data.resize(texture_header.size_x * texture_header.size_y * 2);
 
 		uint32_t i = 0;
-		for (size_t x = 0; x < my_image.columns(); ++x)
+		for (size_t x = 0; x < img.width; ++x)
 		{
-			for (size_t y = 0; y < my_image.rows(); ++y)
+			for (size_t y = 0; y < img.height; ++y)
 			{
-				// The pixel read doesn't work without this line. I don't understand why
-				const void* pixel = my_image.getConstPixels(x, y, 1, 1);
+				Color16* new_color = (Color16*)image_data.data();
 
-				ColorRGB c = my_image.pixelColor(x, y);
-
-				PalleteColor16* new_color = (PalleteColor16*)image_data.data();
-				new_color[i].alpha        = obj["alpha"].asBool() ? c.alpha() >= 0.5 : 1;
-				new_color[i].red          = c.red() * 31;
-				new_color[i].green        = c.green() * 31;
-				new_color[i].blue         = c.blue() * 31;
+				new_color[i] = fromColorRGB16(img, x, y, obj["alpha"].asBool());
 
 				i++;
 			}

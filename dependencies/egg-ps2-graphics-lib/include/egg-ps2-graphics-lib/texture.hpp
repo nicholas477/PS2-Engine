@@ -30,7 +30,4 @@ struct texture_descriptor
 void upload_texture(texture_descriptor& texture, void* texture_data, void* clut_data);
 
 void unload_texture(texture_descriptor& texture);
-
-// Sets the texture currently being drawn
-bool set_texture(texture_descriptor& texture);
 } // namespace egg::ps2::graphics

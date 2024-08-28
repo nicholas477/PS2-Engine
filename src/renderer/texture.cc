@@ -30,6 +30,7 @@ Texture::Texture(Asset::Reference texture_asset_ref, AssetRegistry::Asset* in_te
 		texture_descriptor.t_texbuff.info.function   = texture->function;
 		texture_descriptor.t_texbuff.psm             = texture->psm;
 
+		texture_descriptor.clut.start        = 0;
 		texture_descriptor.clut.psm          = GS_PSM_32;
 		texture_descriptor.clut.load_method  = texture->clut.length > 0 ? CLUT_LOAD : CLUT_NO_LOAD;
 		texture_descriptor.clut.storage_mode = CLUT_STORAGE_MODE1;
@@ -97,22 +98,6 @@ bool Texture::unload_texture()
 	}
 
 	return true;
-}
-
-bool Texture::use_texture()
-{
-	TextureFileHeader* texture = get_texture();
-	if (texture == nullptr)
-	{
-		return false;
-	}
-
-	if (texture_descriptor.is_uploaded == false)
-	{
-		return false;
-	}
-
-	return egg::ps2::graphics::set_texture(texture_descriptor);
 }
 
 TextureFileHeader* Texture::get_texture() const

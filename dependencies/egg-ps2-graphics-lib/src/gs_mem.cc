@@ -85,7 +85,6 @@ int allocate_texture_slot(u32 pages)
 	// If the pointer overflows the vram size
 	if (graph_vram_pointer > graph_vram_max_words)
 	{
-
 		graph_vram_pointer -= size;
 		return -1;
 	}
