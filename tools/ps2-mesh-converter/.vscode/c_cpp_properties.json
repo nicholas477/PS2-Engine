@@ -1,0 +1,25 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${default}",
+                "${workspaceFolder}/include",
+                "/usr/local/ps2dev/ee/include",
+                "/usr/local/ps2dev/ps2sdk/ee/include",
+                "/usr/local/ps2dev/ps2sdk/ports/include",
+                "/usr/local/ps2dev/ps2sdk/common/include",
+                "/usr/include/jsoncpp",
+                "/usr/include/ImageMagick-6",
+                "/usr/include",
+                "/usr/local/include"
+            ],
+            "compilerPath": "/usr/local/ps2dev/ee/bin/mips64r5900el-ps2-elf-g++",
+            "cStandard": "c17",
+            "cppStandard": "gnu++20",
+            "intelliSenseMode": "linux-gcc-x64",
+            "configurationProvider": "ms-vscode.cmake-tools"
+        }
+    ],
+    "version": 4
+}
