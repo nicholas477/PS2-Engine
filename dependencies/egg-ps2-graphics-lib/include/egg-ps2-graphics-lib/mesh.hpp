@@ -12,6 +12,7 @@ struct mesh_descriptor
 
 	Vector* pos;
 	Vector* color;
+	Vector* uvs;
 
 	// Has to be at least 3
 	u32 num_verts;

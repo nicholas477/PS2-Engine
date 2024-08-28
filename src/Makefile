@@ -8,8 +8,8 @@ EE_INCS := -I$(PS2SDK)/ports/include -Iinclude -Idependencies/egg-ps2-graphics-l
 EE_LDFLAGS  += -L$(PS2SDK)/ports/lib -Ldependencies/egg-ps2-graphics-lib/lib
 EE_LIBS = -legg-ps2-graphics-lib -legg -ldraw -lgraph -lmath3d -ldma -lpad -lc -lstdc++ -lgs -ldebug -leedebug -laudsrv -lcdvd -lxcdvd -lkbd -lpacket2 
 EE_OPTFLAGS = -g -std=gnu++20
-EE_CFLAGS += -DNO_VU0_VECTORS -DNO_ASM -g
-EE_CXXFLAGS += -DNO_VU0_VECTORS -DNO_ASM -frtti -g
+EE_CFLAGS += -g
+EE_CXXFLAGS += -frtti -g
 EE_WARNFLAGS = -Wall -Wno-unused-function -Wno-unused-variable -Wno-strict-aliasing -Wno-conversion-null -Werror=return-type
 LINKFLAGS	= -g -Wl,-zmax-page-size=128
 

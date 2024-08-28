@@ -1,6 +1,7 @@
 #include "egg-ps2-graphics-lib/egg-ps2-graphics-lib.hpp"
 #include "egg-ps2-graphics-lib/types.hpp"
 #include "egg-ps2-graphics-lib/vu_programs.hpp"
+#include "egg-ps2-graphics-lib/gs_mem.hpp"
 
 #include <kernel.h>
 #include <malloc.h>
@@ -39,7 +40,7 @@ void init_gs(const init_options& init_options, framebuffer_t* t_frame, zbuffer_t
 	t_frame->psm    = init_options.framebuffer_psm;
 
 	// Allocate some vram for our framebuffer.
-	t_frame->address = graph_vram_allocate(t_frame->width, t_frame->height, t_frame->psm, GRAPH_ALIGN_PAGE);
+	t_frame->address = gs_mem::allocate_framebuffer(t_frame->width, t_frame->height, t_frame->psm, GRAPH_ALIGN_PAGE);
 
 	t_frame++;
 
@@ -49,14 +50,16 @@ void init_gs(const init_options& init_options, framebuffer_t* t_frame, zbuffer_t
 	t_frame->psm    = init_options.framebuffer_psm;
 
 	// Allocate some vram for our framebuffer.
-	t_frame->address = graph_vram_allocate(t_frame->width, t_frame->height, t_frame->psm, GRAPH_ALIGN_PAGE);
+	t_frame->address = gs_mem::allocate_framebuffer(t_frame->width, t_frame->height, t_frame->psm, GRAPH_ALIGN_PAGE);
 
 	// Enable the zbuffer.
 	t_z->enable  = DRAW_ENABLE;
 	t_z->mask    = 0;
 	t_z->method  = ZTEST_METHOD_GREATER_EQUAL;
 	t_z->zsm     = GS_ZBUF_32;
-	t_z->address = graph_vram_allocate(t_frame->width, t_frame->height, t_z->zsm, GRAPH_ALIGN_PAGE);
+	t_z->address = gs_mem::allocate_framebuffer(t_frame->width, t_frame->height, t_z->zsm, GRAPH_ALIGN_PAGE);
+
+	gs_mem::finish_allocating_framebuffers();
 
 	// Initialize the screen and tie the first framebuffer to the read circuits.
 	graph_set_mode(init_options.interlaced, init_options.graph_mode, init_options.ffmd, init_options.flicker_filter);
@@ -243,6 +246,11 @@ void end_draw()
 	// }
 
 	// *GS_REG_CSR |= 2;
+}
+
+bool allocate_texture_slot(u32 pages)
+{
+	return graph_vram_allocate(64, 32 * pages, GS_PSM_32, GRAPH_ALIGN_BLOCK) != -1;
 }
 
 packet2_t* get_current_vif_packet()

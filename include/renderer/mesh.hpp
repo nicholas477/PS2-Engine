@@ -19,8 +19,12 @@ public:
 	Mesh(Asset::Reference mesh_asset);
 
 	AssetRegistry::Asset* mesh_asset;
+	AssetRegistry::Asset* texture_asset;
 
 	class MeshFileHeader* get_mesh() const;
+
+	// Can be nullptr if there is no texture
+	class TextureFileHeader* get_texture() const;
 
 	void load_from_asset_ref(Asset::Reference mesh_asset);
 

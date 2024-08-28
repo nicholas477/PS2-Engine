@@ -16,7 +16,6 @@ struct Texture: public Debuggable
 	void load_from_asset_ref(Asset::Reference texture_asset_ref);
 
 	AssetRegistry::Asset* texture_asset;
-	AssetRegistry::Asset* clut_asset;
 
 	// for debug
 	const Filesystem::Path* path;

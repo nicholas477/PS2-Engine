@@ -22,7 +22,7 @@ std::vector<std::byte> serialize_meshes(uint32_t prim_type, const std::vector<Me
 	size_t current_vertex_index = 0;
 	std::vector<Vector> positions;
 	std::vector<Vector> normals;
-	std::vector<Vector2> texture_coords;
+	std::vector<Vector> texture_coords;
 	std::vector<Vector> colors;
 	std::vector<MeshTriangleStripHeader> strip_header;
 	for (const MeshStrip& strip : strips)
@@ -43,23 +43,37 @@ std::vector<std::byte> serialize_meshes(uint32_t prim_type, const std::vector<Me
 	}
 
 	mesh_header.pos.set(positions);
-	//mesh_header.nrm.set(normals);
-	mesh_header.nrm.offset = 0;
-	mesh_header.nrm.length = 0;
+
+	if (obj["normals"].isBool() && obj["normals"].asBool() != false)
+	{
+		mesh_header.nrm.set(normals);
+	}
+	else
+	{
+		mesh_header.nrm.offset = 0;
+		mesh_header.nrm.length = 0;
+	}
+
 	mesh_header.uvs.set(texture_coords);
 	mesh_header.colors.set(colors);
 	mesh_header.strips.set(strip_header);
 	mesh_header.prim_type = prim_type;
 
+	if (obj["texture"].isString())
+	{
+		print("Mesh has texture! Texture: \"%s\"", obj["texture"].asCString());
+
+		mesh_header.texture = Asset::Reference(obj["texture"].asCString());
+	}
+	else
+	{
+		mesh_header.texture = Asset::Reference();
+	}
+
 	{
 		Serializer mesh_serializer(out);
 		serialize(mesh_serializer, mesh_header);
 		mesh_serializer.finish_serialization();
-	}
-
-	if (obj["texture"].isString())
-	{
-		mesh_header.texture = Asset::Reference(obj["texture"].asCString());
 	}
 
 	MeshFileHeader* out_header                = (MeshFileHeader*)out.data();

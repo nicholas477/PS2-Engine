@@ -53,15 +53,15 @@ void draw_strip(const Matrix& mesh_to_screen_matrix, const mesh_descriptor& mesh
 			// 5
 			// The F in XYZF2 stands for fog
 			packet2_utils_gs_add_prim_giftag(get_current_vif_packet(), &prim, mesh.num_verts,
-			                                 ((u64)GIF_REG_RGBAQ) << 0 | ((u64)GIF_REG_XYZF2) << 4,
-			                                 2, 0);
+			                                 ((u64)GIF_REG_ST) << 0 | ((u64)GIF_REG_RGBAQ) << 4 | ((u64)GIF_REG_XYZF2) << 8,
+			                                 3, 0);
 		}
 		else
 		{
 			// 5
 			packet2_utils_gs_add_prim_giftag(get_current_vif_packet(), &prim, mesh.num_verts,
-			                                 DRAW_RGBAQ_REGLIST,
-			                                 2, 0);
+			                                 DRAW_STQ2_REGLIST,
+			                                 3, 0);
 		}
 
 		// 6
@@ -80,10 +80,19 @@ void draw_strip(const Matrix& mesh_to_screen_matrix, const mesh_descriptor& mesh
 	// Position data
 	packet2_utils_vu_add_unpack_data(get_current_vif_packet(), 8, mesh.pos, mesh.num_verts, 1);
 
-	// Color data
-	packet2_utils_vu_add_unpack_data(get_current_vif_packet(), 8 + mesh.num_verts, mesh.color, mesh.num_verts, 1);
+	if (mesh.color)
+	{
+		// Color data
+		packet2_utils_vu_add_unpack_data(get_current_vif_packet(), 8 + mesh.num_verts, mesh.color, mesh.num_verts, 1);
+	}
 
-	assert((8 + (mesh.num_verts * 4)) < 496);
+	if (mesh.uvs)
+	{
+		// Color data
+		packet2_utils_vu_add_unpack_data(get_current_vif_packet(), 8 + (mesh.num_verts * 2), mesh.uvs, mesh.num_verts, 1);
+	}
+
+	assert((8 + (mesh.num_verts * 6)) < 496);
 
 	packet2_utils_vu_add_start_program(get_current_vif_packet(), mesh.vu_program_addr);
 }
@@ -132,7 +141,7 @@ void draw_mesh_strip(const Matrix& mesh_to_screen_matrix, const mesh_descriptor&
 	assert(mesh.is_valid());
 
 	// TODO: calculate this dynamically based on how much stuff is being put into vu mem
-	static constexpr s32 verts_per_call = 96;
+	static constexpr s32 verts_per_call = 80;
 
 	for (u32 i = 0;;)
 	{
@@ -145,6 +154,10 @@ void draw_mesh_strip(const Matrix& mesh_to_screen_matrix, const mesh_descriptor&
 		{
 			mesh_descriptor strip = mesh;
 			strip.pos             = strip.pos + i;
+			if (strip.uvs != nullptr)
+			{
+				strip.uvs = strip.uvs + i;
+			}
 			if (strip.color != nullptr)
 			{
 				strip.color = strip.color + i;
@@ -194,6 +207,15 @@ bool mesh_descriptor::is_valid(bool print_why_invalid) const
 		if (print_why_invalid)
 		{
 			printf("Mesh invalid! Color pointer not aligned to a 16 byte address!\n");
+		}
+		all_valid &= false;
+	}
+
+	if (!__is_aligned(uvs, 16))
+	{
+		if (print_why_invalid)
+		{
+			printf("Mesh invalid! UVs pointer not aligned to a 16 byte address!\n");
 		}
 		all_valid &= false;
 	}

@@ -18,6 +18,7 @@
 #include "renderer/vu1/vu_programs.hpp"
 
 #include "egg-ps2-graphics-lib/egg-ps2-graphics-lib.hpp"
+#include "egg-ps2-graphics-lib/gs_mem.hpp"
 #include "egg-ps2-graphics-lib/draw.hpp"
 
 
@@ -89,6 +90,25 @@ void init()
 	egg::ps2::graphics::init(gs_options);
 
 	get_vertex_color_program_addr() = egg::ps2::graphics::load_vu_program(mVsmStartAddr(VertexColorRenderer), mVsmEndAddr(VertexColorRenderer));
+
+	printf("Pages unallocated in gs mem: %u\n", egg::ps2::graphics::gs_mem::get_unallocated_page_num());
+
+	egg::ps2::graphics::gs_mem::allocate_texture_slot(1);
+	egg::ps2::graphics::gs_mem::allocate_texture_slot(1);
+	egg::ps2::graphics::gs_mem::allocate_texture_slot(1);
+	egg::ps2::graphics::gs_mem::allocate_texture_slot(1);
+
+	egg::ps2::graphics::gs_mem::allocate_texture_slot(2);
+	egg::ps2::graphics::gs_mem::allocate_texture_slot(2);
+
+	egg::ps2::graphics::gs_mem::allocate_texture_slot(4);
+	egg::ps2::graphics::gs_mem::allocate_texture_slot(4);
+
+	egg::ps2::graphics::gs_mem::allocate_texture_slot(8);
+	egg::ps2::graphics::gs_mem::allocate_texture_slot(8);
+
+	printf("Pages unallocated in gs mem (after slots): %u\n", egg::ps2::graphics::gs_mem::get_unallocated_page_num());
+	egg::ps2::graphics::gs_mem::print_vram_slots();
 
 	// Clear the screen so we're not left with whatever was left in the framebuffer
 	egg::ps2::graphics::clear_screen(0, 0, 0);

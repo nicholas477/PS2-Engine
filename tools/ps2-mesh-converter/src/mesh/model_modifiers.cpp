@@ -102,11 +102,11 @@ bool stripify(const std::vector<Mesh>& meshes, std::vector<MeshStrip>& out_strip
 
 		int num_strips = 1;
 
-		MeshStrip& new_strip                 = out_strips.emplace_back();
-		std::vector<Vector>& positions       = new_strip.positions;
-		std::vector<Vector>& normals         = new_strip.normals;
-		std::vector<Vector2>& texture_coords = new_strip.texture_coords;
-		std::vector<Vector>& colors          = new_strip.colors;
+		MeshStrip& new_strip                = out_strips.emplace_back();
+		std::vector<Vector>& positions      = new_strip.positions;
+		std::vector<Vector>& normals        = new_strip.normals;
+		std::vector<Vector>& texture_coords = new_strip.texture_coords;
+		std::vector<Vector>& colors         = new_strip.colors;
 
 		positions.reserve(strip.size());
 		normals.reserve(strip.size());
@@ -126,7 +126,7 @@ bool stripify(const std::vector<Mesh>& meshes, std::vector<MeshStrip>& out_strip
 
 				positions.emplace_back(vertex.px, vertex.py, vertex.pz);
 				normals.emplace_back(vertex.nx, vertex.ny, vertex.nz);
-				texture_coords.emplace_back(vertex.tx, vertex.ty);
+				texture_coords.emplace_back(vertex.tx, vertex.ty, 1.f); // has to be 1.f for stq
 				colors.emplace_back(vertex.r, vertex.g, vertex.b, vertex.a);
 			}
 		}

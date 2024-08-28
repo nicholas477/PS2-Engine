@@ -25,7 +25,7 @@ struct MeshStrip
 {
 	std::vector<Vector> positions;
 	std::vector<Vector> normals;
-	std::vector<Vector2> texture_coords;
+	std::vector<Vector> texture_coords;
 	std::vector<Vector> colors;
 };
 

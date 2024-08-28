@@ -16,6 +16,7 @@
 #include "egg/string.hpp"
 #include "egg/hashmap.hpp"
 #include "egg/offset_pointer.hpp"
+#include "egg/serialization.hpp"
 
 #ifdef _MSC_VER
 #include <stdlib.h> // for WCSTOMBS

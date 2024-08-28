@@ -57,7 +57,6 @@ void wait_vsync();
 void start_draw();
 void end_draw();
 
-
 using vif_packet_t = utils::inline_packet2<10000>;
 
 packet2_t* get_current_vif_packet();

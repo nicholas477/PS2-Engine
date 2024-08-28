@@ -5,7 +5,7 @@ EE_OBJS_DIR = obj/
 EE_INCS += -I./include -I$(PS2SDK)/ports/include -I$(EE_SRC_DIR)
 
 EE_LIB = $(EE_LIB_DIR)libegg-ps2-graphics-lib.a
-EE_OBJS = src/egg-ps2-graphics-lib.o src/mesh.o src/vu_programs.o src/types.o src/draw.o src/texture.o
+EE_OBJS = src/egg-ps2-graphics-lib.o src/mesh.o src/vu_programs.o src/types.o src/draw.o src/texture.o src/gs_mem.o
 EE_OPTFLAGS = -std=gnu++20 -g
 EE_WARNFLAGS = -Wall -Wno-unused-function -Wno-unused-variable -Wno-strict-aliasing -Wno-conversion-null -Wno-unused-but-set-variable -Werror=return-type
 

@@ -19,7 +19,7 @@ struct MeshFileHeader
 {
 	OffsetArray<Vector> pos;
 	OffsetArray<Vector> nrm;
-	OffsetArray<Vector2> uvs;
+	OffsetArray<Vector> uvs;
 	OffsetArray<Vector> colors;
 
 	// The strips are start/end indicies into pos/nrm/uvs
