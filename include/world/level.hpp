@@ -28,7 +28,7 @@ public: // Data members
 	std::unique_ptr<std::byte[]> level_data;
 	LevelFileHeader* level;
 
-	std::unordered_set<Asset::Reference> level_references;
+	//std::unordered_set<Asset::Reference> level_references;
 	std::unordered_map<Asset::Reference, Mesh> meshes;
 };
 } // namespace World

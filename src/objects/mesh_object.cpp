@@ -7,14 +7,9 @@ MeshObject::MeshObject()
 	mesh = nullptr;
 }
 
-MeshObject::MeshObject(const Filesystem::Path& mesh_path)
-{
-	mesh = new Mesh(mesh_path);
-}
-
 MeshObject::MeshObject(Asset::Reference mesh_reference)
-    : MeshObject(Asset::lookup_path(mesh_reference))
 {
+	mesh = new Mesh(mesh_reference);
 }
 
 void MeshObject::render(const GS::GSState& gs_state)

@@ -13,7 +13,7 @@
 
 #include "renderer/texture.hpp"
 
-class Mesh: public Renderable, public Debuggable
+class Mesh: public Debuggable
 {
 public:
 	Mesh();

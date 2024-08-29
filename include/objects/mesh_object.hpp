@@ -10,7 +10,6 @@ class MeshObject: public Renderable, public Debuggable, public RootComponentInte
 {
 public:
 	MeshObject();
-	MeshObject(const Filesystem::Path& mesh_path);
 	MeshObject(Asset::Reference mesh_reference);
 	virtual void render(const GS::GSState& gs_state) override;
 	TransformComponent transform;

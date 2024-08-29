@@ -75,8 +75,14 @@ bool Texture::upload_texture()
 		texture_descriptor.clut.address = gs_clut_address;
 	}
 
-	egg::ps2::graphics::upload_texture(texture_descriptor, texture->data.get_ptr(),
-	                                   texture->clut.length > 0 ? texture->clut.get_ptr() : nullptr);
+	// I don't know why but trying to call get_ptr on texture->data crashes the ps2
+	// Fun!
+	uint8_t* texture_data_ptr = (uint8_t*)&texture->data;
+	void* texture_data        = texture_data_ptr + texture->data.offset;
+
+	void* clut_data = texture->clut.length > 0 ? texture->clut.get_ptr() : nullptr;
+
+	egg::ps2::graphics::upload_texture(texture_descriptor, texture_data, clut_data);
 
 	return true;
 }

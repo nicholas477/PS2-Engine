@@ -10,6 +10,7 @@ Level::Level(Asset::Reference level_reference)
 	checkf(Filesystem::load_file(level_reference, level_data, level_data_size), "unable to load level!");
 	level = (LevelFileHeader*)level_data.get();
 
+	std::unordered_set<Asset::Reference> level_references;
 	collect_references(level_references, level->meshes);
 
 	for (Asset::Reference ref : level_references)
@@ -17,8 +18,6 @@ Level::Level(Asset::Reference level_reference)
 		meshes[ref].load_from_asset_ref(ref);
 
 		checkf(meshes[ref].is_valid(), "Mesh invalid!");
-
-		//printf("\n");
 	}
 }
 

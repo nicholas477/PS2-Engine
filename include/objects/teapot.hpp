@@ -12,7 +12,6 @@ class Teapot: public RootComponentInterface
 {
 public:
 	Teapot();
-	collision_component collision;
 
 	MeshObject teapot_mesh;
 

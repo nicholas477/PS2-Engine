@@ -25,7 +25,7 @@
 
 namespace Filesystem
 {
-constexpr size_t max_path_length = 128;
+constexpr size_t max_path_length = 256;
 
 struct Path;
 enum class Type {

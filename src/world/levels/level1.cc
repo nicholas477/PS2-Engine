@@ -23,16 +23,15 @@ public:
 
 		movement.updated_rotation_component = &camera_transform;
 		movement.updated_location_component = teapot_model.get_root_component();
-		movement.collision_component        = &teapot_model.collision;
 
-		teapot_model2.teapot_mesh.transform.set_location(Vector(-100.f, -100.f, 0.f));
-		teapot_model2.teapot_mesh.transform.set_rotation(Vector(-50.f, -100.f, 0.f));
+		//teapot_model2.teapot_mesh.transform.set_location(Vector(-100.f, -100.f, 0.f));
+		//teapot_model2.teapot_mesh.transform.set_rotation(Vector(-50.f, -100.f, 0.f));
 
 		//teeth_model.get_root_component()->set_parent(Camera::get().transform);
 	}
 
 	Teapot teapot_model;
-	Teapot teapot_model2;
+	//Teapot teapot_model2;
 	//MeshObject teeth_model;
 	ThirdPersonMovement movement;
 
@@ -79,7 +78,6 @@ public:
 	}
 
 	Level1Player player;
-	//TextPrompt t1;
 };
 
 static struct Level1ConstructorHelper

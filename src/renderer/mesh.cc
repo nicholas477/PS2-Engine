@@ -73,9 +73,6 @@ void Mesh::draw(const GS::GSState& gs_state, const Matrix& render_matrix, bool f
 				printf("Uploading texture!\n");
 				check(texture->upload_texture());
 			}
-
-			// printf("Using texture!\n");
-			// check(texture->use_texture());
 		}
 		else
 		{
