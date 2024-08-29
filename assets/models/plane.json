@@ -5,6 +5,5 @@
 	"modifiers": [
 		"gamma_correct_alpha"
 	],
-	"texture": "assets/textures/bricks1.tex",
 	"normals": false
 }

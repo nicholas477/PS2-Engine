@@ -1,0 +1,12 @@
+{
+    "type": "mesh",
+    "file": "column_01.fbx",
+    "primitive_type": 2147483649,
+    "modifiers": [
+        "reverse_winding",
+        "gamma_correct_alpha",
+        "gamma_correct_colors"
+    ],
+    "texture": "assets/textures/church.tex",
+    "normals": false
+}

@@ -120,7 +120,7 @@ $(ISO_TGT): isoassets $(EE_BIN)
 .PHONY: iso
 iso: $(ISO_TGT)
 
-SMB_ISO = /netmnt/nas/Shared/PS2SMB/DVD/$(notdir $(ISO_TGT))
+SMB_ISO = /netmnt/nas/Shared/single-drive/PS2SMB/DVD/$(notdir $(ISO_TGT))
 
 $(SMB_ISO): $(ISO_TGT)
 	cp $(ISO_TGT) $(SMB_ISO)

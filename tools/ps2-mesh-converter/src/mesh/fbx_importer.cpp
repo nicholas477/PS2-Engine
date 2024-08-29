@@ -42,8 +42,9 @@ static Mesh fbxProcessMesh(aiNode* node, aiMesh* mesh, const aiScene* scene)
 
 		if (mesh->HasTextureCoords(0))
 		{
-			v.tx = mesh->mTextureCoords[0][i].x;
-			v.ty = mesh->mTextureCoords[0][i].y;
+			// Flip xy
+			v.tx = 1.f - mesh->mTextureCoords[0][i].y;
+			v.ty = mesh->mTextureCoords[0][i].x;
 		}
 		else
 		{
