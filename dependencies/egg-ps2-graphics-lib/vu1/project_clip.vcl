@@ -71,7 +71,7 @@
         --barrier
 
         iaddiu          vertexInPtr,       vertexInPtr,      1
-        iaddiu          vertexOutPtr,      vertexOutPtr,     compsPerPrim
+        iadd          vertexOutPtr,      vertexOutPtr,     compsPerPrim
 
         iaddi   vertexCounter,  vertexCounter,  -1	; decrement the loop counter 
         ibne    vertexCounter,  iBase,   vertexLoop	; and repeat if needed

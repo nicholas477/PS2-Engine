@@ -4,13 +4,19 @@ VCL = vcl
 RENDERERS = \
 	vertex_color_renderer \
 	vertex_color_texture_renderer \
+	project \
+	project_clip \
 	xgkick
 
-EE_OBJS += $(addsuffix .vo, $(addprefix vu1/, $(RENDERERS)))
+VSM_OBJS = $(addsuffix .vo, $(addprefix vu1/, $(RENDERERS)))
+EE_OBJS += $(VSM_OBJS)
 VSM_SOURCES = $(addsuffix _vcl.vsm, $(addprefix vu1/, $(RENDERERS)))
+
+vu_progs: $(VSM_OBJS)
 
 %.vo: %.vsm
 	$(EE_DVP) $< -o $@
 
+.PRECIOUS: %.vsm
 %.vsm: %.vcl
-	$(VCL)  $< >> $@
+	$(VCL)  $< > $@

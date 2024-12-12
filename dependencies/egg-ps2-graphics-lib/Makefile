@@ -23,6 +23,8 @@ $(EE_OBJS_DIR)%.o : $(EE_SRC_DIR)%.c
 clean:
 	rm -f -r $(EE_OBJS_DIR) $(EE_LIB_DIR)
 	rm -rf ./src/*.o
+	rm -rf ./vu1/*.vo
+	rm -rf ./vu1/*.vsm
 
 include Makefile.vuprogs
 
