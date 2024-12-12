@@ -15,6 +15,6 @@ namespace vu1_programs
 DEFINE_VU_PROGRAM(xgkick, xgkick);
 DEFINE_VU_PROGRAM(vertex_color_texture_renderer, VertexColorTextureRenderer);
 DEFINE_VU_PROGRAM(vertex_color_renderer, VertexColorRenderer);
-DEFINE_VU_PROGRAM(project, project);
+DEFINE_VU_PROGRAM(project, Project);
 } // namespace vu1_programs
 } // namespace egg::ps2::graphics
