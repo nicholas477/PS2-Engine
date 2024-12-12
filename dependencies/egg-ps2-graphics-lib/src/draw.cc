@@ -34,7 +34,7 @@ void set_fog_color(u8 r, u8 g, u8 b)
 		                                 ((u64)GIF_REG_RGBAQ) << 0, 1, 0);
 	}
 	packet2_utils_vu_close_unpack(get_current_vif_packet());
-	packet2_utils_vu_add_start_program(get_current_vif_packet(), vu1_programs::get_kick_program_addr());
+	packet2_utils_vu_add_start_program(get_current_vif_packet(), vu1_programs::get_xgkick().program_address);
 	//packet2_utils_vu_add_end_tag(get_current_vif_packet());
 }
 } // namespace egg::ps2::graphics

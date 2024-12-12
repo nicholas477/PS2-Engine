@@ -157,8 +157,9 @@ void init(const init_options& init_options)
 
 	init_drawing_environment(frame, &z);
 
-	// Load the kick program
-	vu1_programs::get_kick_program_addr() = load_vu_program(vu1_programs::get_kick_program_mem_address());
+	// Load the programs
+	vu1_programs::get_xgkick().load_program();
+	vu1_programs::get_project().load_program();
 
 	current_frame = frame;
 

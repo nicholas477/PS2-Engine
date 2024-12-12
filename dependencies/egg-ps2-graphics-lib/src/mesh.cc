@@ -71,10 +71,10 @@ void draw_untextured_strip(const Matrix& mesh_to_screen_matrix, const mesh_descr
 			packet2_add_u32(get_current_vif_packet(), 128);
 
 		// 7
-		packet2_add_float(get_current_vif_packet(), mesh.fog_offset); // Offset
-		packet2_add_float(get_current_vif_packet(), mesh.fog_scale);  // Scale
-		packet2_add_float(get_current_vif_packet(), 0.f);             // padding
-		packet2_add_float(get_current_vif_packet(), 0.f);             // padding
+		packet2_add_float(get_current_vif_packet(), mesh.fog_offset);  // Offset
+		packet2_add_float(get_current_vif_packet(), mesh.fog_scale);   // Scale
+		packet2_add_u32(get_current_vif_packet(), 2);                  // components per prim
+		packet2_add_u32(get_current_vif_packet(), 2 * mesh.num_verts); // dest addr offset
 	}
 	packet2_utils_vu_close_unpack(get_current_vif_packet());
 
@@ -89,7 +89,7 @@ void draw_untextured_strip(const Matrix& mesh_to_screen_matrix, const mesh_descr
 
 	assert((8 + (mesh.num_verts * 4)) < 496);
 
-	packet2_utils_vu_add_start_program(get_current_vif_packet(), vu1_programs::get_vertex_color_program_addr());
+	packet2_utils_vu_add_start_program(get_current_vif_packet(), vu1_programs::get_vertex_color_renderer().program_address);
 }
 
 void draw_textured_strip(const Matrix& mesh_to_screen_matrix, const mesh_descriptor& mesh)
@@ -128,7 +128,7 @@ void draw_textured_strip(const Matrix& mesh_to_screen_matrix, const mesh_descrip
 		// 6
 		packet2_add_float(get_current_vif_packet(), mesh.fog_offset); // Offset
 		packet2_add_float(get_current_vif_packet(), mesh.fog_scale);  // Scale
-		packet2_add_float(get_current_vif_packet(), 0.f);             // padding
+		packet2_add_u32(get_current_vif_packet(), 3);                 // components per prim
 		packet2_add_float(get_current_vif_packet(), 0.f);             // padding
 
 		// 7
@@ -175,7 +175,7 @@ void draw_textured_strip(const Matrix& mesh_to_screen_matrix, const mesh_descrip
 
 	assert((11 + (mesh.num_verts * 6)) < 496);
 
-	packet2_utils_vu_add_start_program(get_current_vif_packet(), vu1_programs::get_vertex_color_texture_program_addr());
+	packet2_utils_vu_add_start_program(get_current_vif_packet(), vu1_programs::get_vertex_color_texture_renderer().program_address);
 }
 
 } // namespace

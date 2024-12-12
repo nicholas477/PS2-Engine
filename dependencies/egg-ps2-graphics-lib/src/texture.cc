@@ -67,6 +67,8 @@ std::pair<u32, u32> texture_descriptor::get_width_height() const
 
 void upload_texture(texture_descriptor& texture, void* texture_data, void* clut_data)
 {
+	return;
+
 	if (texture.is_uploaded)
 	{
 		return;

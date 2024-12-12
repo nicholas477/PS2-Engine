@@ -33,10 +33,10 @@
 
     lq      fogSetting,        7(iBase) ; x = offset, y = scale
 
-    iaddiu  vertexData,     iBase,         8            ; pointer to vertex data
-    iadd    colorData,      vertexData,    vertCount   ; pointer to color data
-    iadd    kickAddress,    colorData,     vertCount   ; pointer for XGKICK
-    iadd    destAddress,    colorData,     vertCount   ; helper pointer for data inserting
+    iaddiu  vertexPtr,      iBase,        8            ; pointer to vertex data
+    iadd    colorPtr,       vertexPtr,    vertCount   ; pointer to color data
+    iadd    kickAddress,    colorPtr,     vertCount   ; pointer for XGKICK
+    iadd    destAddress,    colorPtr,     vertCount   ; helper pointer for data inserting
     ;////////////////////////////////////////////
 
     ;/////////// --- Store tags --- /////////////
@@ -48,11 +48,11 @@
     vertexLoop:
 
         ;////////// --- Load loop data --- //////////
-        lq.xyz vertex, 0(vertexData) ; load xyz
+        lq.xyz vertex, 0(vertexPtr) ; load xyz
                                      ; float : X, Y, Z
                                      ; any32 : _ = 0
 
-        lq.xyzw       color,     0(colorData)
+        lq.xyzw       color,     0(colorPtr)
 
         ;////////////// --- Color --- //////////////
         ; Color in the model is from 0-1, we need to convert it to 0-255 fixed point
@@ -123,8 +123,8 @@
         sq.xyzw vertex,      1(destAddress)      ; XYZ2F
         ;////////////////////////////////////////////
 
-        iaddiu          colorData,      colorData,      1
-        iaddiu          vertexData,     vertexData,     1
+        iaddiu          colorPtr,      colorPtr,      1
+        iaddiu          vertexPtr,     vertexPtr,     1
         iaddiu          destAddress,    destAddress,    2
 
         iaddi   vertexCounter,  vertexCounter,  -1	; decrement the loop counter 

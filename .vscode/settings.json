@@ -67,5 +67,6 @@
         "filesystem": "cpp",
         "print": "cpp",
         "syncstream": "cpp"
-    }
+    },
+    "cmake.sourceDirectory": "/home/nicholas/PS2-Engine/tools/ps2-manifest-generator"
 }
