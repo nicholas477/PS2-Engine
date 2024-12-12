@@ -13,7 +13,7 @@
 #include "types.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION
-#include "stb/stb_image.h"
+#include "stb_image.h"
 
 // Copied from gs_psm.h
 
@@ -238,7 +238,7 @@ static bool collectPalette(const image& image, std::vector<uint32_t>& palette_co
 		for (const Color& c : colors)
 		{
 			palette_colors[i] = c.color;
-			print("Palette color: r: %u, g: %u, b: %u, a: %u", c.red, c.green, c.blue, c.alpha);
+			//print("Palette color: r: %u, g: %u, b: %u, a: %u", c.red, c.green, c.blue, c.alpha);
 
 			i++;
 		}
