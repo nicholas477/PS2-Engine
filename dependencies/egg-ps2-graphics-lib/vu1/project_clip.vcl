@@ -1,6 +1,6 @@
 
 .syntax new
-.name vsmProject
+.name vsmProjectClip
 .vu
 .init_vf_all
 .init_vi_all
