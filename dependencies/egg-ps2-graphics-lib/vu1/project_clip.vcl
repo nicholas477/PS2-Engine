@@ -7,6 +7,9 @@
 
 --enter
 --endenter
+	fcset   0x000000	; VCL won't let us use CLIP without first zeroing
+				        ; the clip flags
+
     ;//////////// --- Load data --- /////////////
     ; Updated dynamically
     xtop    iBase
@@ -52,6 +55,19 @@
         madd           acc,           matrixRow2, vertex[z]
         madd           vertex,        matrixRow3, vf00[w]
 
+        ; Clipping
+        clipw.xyz	vertex, vertex			; Dr. Fortuna: This instruction checks if the vertex is outside
+							; the viewing frustum. If it is, then the appropriate
+							; clipping flags are set
+        fcand		VI01,   0x3FFFF       ; Bitwise AND the clipping flags with 0x3FFFF, this makes
+							; sure that we get the clipping judgement for the last three
+							; verts (i.e. that make up the triangle we are about to draw)
+        iaddiu		adcBit,   VI01,       0x7FFF      ; Add 0x7FFF. If any of the clipping flags were set this will
+							; cause the triangle not to be drawn (any values above 0x8000
+							; that are stored in the w component of XYZ2 will set the ADC
+							; bit, which tells the GS not to perform a drawing kick on this
+							; triangle.
+
         ; Perspective divide
         div         q,      vf00[w],    vertex[w]   ; perspective divide (1/vert[w]):
         mul.xyz     vertex, vertex,     q
@@ -60,6 +76,9 @@
         mula.xyz    acc,    scale,      vf00[w]     ; scale to GS screen space
         madd.xyz    vertex, vertex,     scale       ; multiply and add the scales -> vert = vert * scale + scale
         ftoi4.xyz   vertex, vertex                  ; convert vertex to 12:4 fixed point format
+
+        ; Add clipping bit
+        mfir.w      vertex, adcBit
         
         ;//////////// --- Store data --- ////////////
         sq.xyzw rgba,       -1(vertexOutPtr)      ; Color

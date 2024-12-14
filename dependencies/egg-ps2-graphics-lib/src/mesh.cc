@@ -89,8 +89,23 @@ void draw_untextured_strip(const Matrix& mesh_to_screen_matrix, const mesh_descr
 
 	assert((8 + (mesh.num_verts * 4)) < 496);
 
-	packet2_utils_vu_add_start_program(get_current_vif_packet(), vu1_programs::get_vertex_color_renderer().program_address);
+	packet2_utils_vu_add_start_program(get_current_vif_packet(), vu1_programs::get_project_clip().program_address);
+	// packet2_utils_vu_add_start_program(get_current_vif_packet(), vu1_programs::get_xgkick().program_address);
+
+	// {
+	// 	packet2_chain_open_cnt(get_current_vif_packet(), 0, 0, 0);
+	// 	packet2_add_u32(get_current_vif_packet(), MAKE_VIF_CODE(0, 0, P2_VIF_FLUSH, 0));
+	// 	packet2_vif_mscal(get_current_vif_packet(), vu1_programs::get_project_clip().program_address, 0);
+	// 	packet2_chain_close_tag(get_current_vif_packet());
+
+	// 	packet2_chain_open_cnt(get_current_vif_packet(), 0, 0, 0);
+	// 	packet2_add_u32(get_current_vif_packet(), MAKE_VIF_CODE(0, 0, P2_VIF_FLUSHE, 0));
+	// 	packet2_vif_mscal(get_current_vif_packet(), vu1_programs::get_xgkick().program_address, 0);
+	// 	packet2_chain_close_tag(get_current_vif_packet());
+	// }
 }
+
+#define MAKE_VIF_CODE(_immediate, _num, _cmd, _irq) ((u32)(_immediate) | ((u32)(_num) << 16) | ((u32)(_cmd) << 24) | ((u32)(_irq) << 31))
 
 void draw_textured_strip(const Matrix& mesh_to_screen_matrix, const mesh_descriptor& mesh)
 {
@@ -126,10 +141,10 @@ void draw_textured_strip(const Matrix& mesh_to_screen_matrix, const mesh_descrip
 			packet2_add_u32(get_current_vif_packet(), 128);
 
 		// 6
-		packet2_add_float(get_current_vif_packet(), mesh.fog_offset); // Offset
-		packet2_add_float(get_current_vif_packet(), mesh.fog_scale);  // Scale
-		packet2_add_u32(get_current_vif_packet(), 3);                 // components per prim
-		packet2_add_float(get_current_vif_packet(), 0.f);             // padding
+		packet2_add_float(get_current_vif_packet(), mesh.fog_offset);    // Offset
+		packet2_add_float(get_current_vif_packet(), mesh.fog_scale);     // Scale
+		packet2_add_u32(get_current_vif_packet(), 3);                    // components per prim
+		packet2_add_float(get_current_vif_packet(), 3 * mesh.num_verts); // dest addr offset
 
 		// 7
 		packet2_utils_gif_add_set(get_current_vif_packet(), 1);
@@ -175,7 +190,20 @@ void draw_textured_strip(const Matrix& mesh_to_screen_matrix, const mesh_descrip
 
 	assert((11 + (mesh.num_verts * 6)) < 496);
 
-	packet2_utils_vu_add_start_program(get_current_vif_packet(), vu1_programs::get_vertex_color_texture_renderer().program_address);
+	// {
+	// 	packet2_chain_open_cnt(get_current_vif_packet(), 0, 0, 0);
+	// 	packet2_add_u32(get_current_vif_packet(), MAKE_VIF_CODE(0, 0, P2_VIF_FLUSH, 0));
+	// 	packet2_vif_mscal(get_current_vif_packet(), vu1_programs::get_project_clip().program_address, 0);
+	// 	packet2_chain_close_tag(get_current_vif_packet());
+
+	// 	packet2_chain_open_cnt(get_current_vif_packet(), 0, 0, 0);
+	// 	packet2_add_u32(get_current_vif_packet(), MAKE_VIF_CODE(0, 0, P2_VIF_FLUSH, 0));
+	// 	packet2_vif_mscal(get_current_vif_packet(), vu1_programs::get_xgkick().program_address, 0);
+	// 	packet2_chain_close_tag(get_current_vif_packet());
+	// }
+
+	packet2_utils_vu_add_start_program(get_current_vif_packet(), vu1_programs::get_project_clip().program_address);
+	//packet2_utils_vu_add_start_program(get_current_vif_packet(), vu1_programs::get_xgkick().program_address);
 }
 
 } // namespace
@@ -246,13 +274,13 @@ void draw_mesh_strip(const Matrix& mesh_to_screen_matrix, const mesh_descriptor&
 
 			strip.num_verts = num_verts;
 
-			if (strip.texture)
-			{
-				assert(strip.uvs != nullptr);
+			// if (strip.texture)
+			// {
+			// 	assert(strip.uvs != nullptr);
 
-				draw_textured_strip(mesh_to_screen_matrix, strip);
-			}
-			else
+			// 	draw_textured_strip(mesh_to_screen_matrix, strip);
+			// }
+			// else
 			{
 				draw_untextured_strip(mesh_to_screen_matrix, strip);
 			}

@@ -7,8 +7,14 @@
 --enter
 --endenter
 
-    xtop    buffer
-    xgkick  buffer
+    xtop    iBase
+    ilw.w   destOffset,       7(iBase) ; dest address offest (compsPerPrim * vertex count)
+    iaddiu  vertexInPtr,      iBase,           8            ; pointer to vertex input data
+    iadd    kickAddress,      vertexInPtr,     destOffset   ; pointer for XGKICK
+
+    --barrier
+    
+    xgkick  kickAddress
 
 --exit
 --endexit

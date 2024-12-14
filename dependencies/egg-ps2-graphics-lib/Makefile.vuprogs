@@ -6,6 +6,7 @@ RENDERERS = \
 	vertex_color_texture_renderer \
 	project \
 	project_clip \
+	vertex_color \
 	xgkick
 
 VSM_OBJS = $(addsuffix .vo, $(addprefix vu1/, $(RENDERERS)))

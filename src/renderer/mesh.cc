@@ -70,7 +70,7 @@ void Mesh::draw(const GS::GSState& gs_state, const Matrix& render_matrix, bool f
 
 			if (!texture->texture_descriptor.is_uploaded)
 			{
-				printf("Uploading texture!\n");
+				//printf("Uploading texture!\n");
 				check(texture->upload_texture());
 			}
 		}
