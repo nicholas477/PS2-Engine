@@ -7,9 +7,9 @@
 .init_vi_all
 
 --enter
+in_vi iBase(BASE_REG)
 --endenter
 
-    xtop    iBase
     ilw.w   destOffset,       FOG(iBase) ; dest address offest (compsPerPrim * vertex count)
     iaddiu  vertexInPtr,      iBase,           VERTEXIN     ; pointer to vertex input data
     iadd    kickAddress,      vertexInPtr,     destOffset   ; pointer for XGKICK

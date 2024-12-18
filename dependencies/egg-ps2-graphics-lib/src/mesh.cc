@@ -81,6 +81,10 @@ void draw_untextured_strip(const Matrix& mesh_to_screen_matrix, const mesh_descr
 		// 8 (jump table)
 		// This is a list of programs to run over the vu data
 		packet2_add_u32(get_current_vif_packet(), vu1_programs::get_project_clip().get_program_address());
+		if (mesh.color)
+		{
+			packet2_add_u32(get_current_vif_packet(), vu1_programs::get_vertex_color().get_program_address());
+		}
 		packet2_add_u32(get_current_vif_packet(), vu1_programs::get_xgkick().get_program_address());
 
 		// Pad out the rest of the table to align the vu_close
@@ -97,12 +101,10 @@ void draw_untextured_strip(const Matrix& mesh_to_screen_matrix, const mesh_descr
 		packet2_utils_vu_add_unpack_data(get_current_vif_packet(), VERTEXIN + mesh.num_verts, mesh.color, mesh.num_verts, 1);
 	}
 
-	assert((VERTEXIN + (mesh.num_verts * 4)) < 496);
+	assert((VERTEXIN + (mesh.num_verts * 2 * 2)) < 496);
 
 	packet2_utils_vu_add_start_program(get_current_vif_packet(), vu1_programs::get_jump_table().get_program_address());
 }
-
-#define MAKE_VIF_CODE(_immediate, _num, _cmd, _irq) ((u32)(_immediate) | ((u32)(_num) << 16) | ((u32)(_cmd) << 24) | ((u32)(_irq) << 31))
 
 void draw_textured_strip(const Matrix& mesh_to_screen_matrix, const mesh_descriptor& mesh)
 {

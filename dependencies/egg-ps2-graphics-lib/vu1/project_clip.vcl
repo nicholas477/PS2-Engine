@@ -7,14 +7,15 @@
 .init_vi_all
 
 --enter
-in_vi retaddr (RETADDR_REG)
+in_vi retaddr(RETADDR_REG)
+in_vi iBase(BASE_REG)
 --endenter
 	fcset   0x000000	; VCL wont let us use CLIP without first zeroing
 				        ; the clip flags
 
     ;//////////// --- Load data --- /////////////
     ; Updated dynamically
-    xtop    iBase
+    ;xtop    iBase
 
     lq      matrixRow0,     MATRIXROW0(iBase) ; load view-projection matrix
     lq      matrixRow1,     MATRIXROW1(iBase)
@@ -27,7 +28,6 @@ in_vi retaddr (RETADDR_REG)
     lq      rgba,             RGBA(iBase) ; RGBA mul
                                        ; u32 : R, G, B, A (0-128)
 
-    ;lq      fogSetting,        FOG(iBase) ; x = offset, y = scale
     ilw.z   compsPerPrim,       FOG(iBase)
     ilw.w   destOffset,         FOG(iBase) ; dest address offest (compsPerPrim * vertex count)
 
@@ -80,16 +80,16 @@ in_vi retaddr (RETADDR_REG)
         ; Add clipping bit
         mfir.w      vertex, adcBit
         
+        ; VCL really likes to reorder the lines after this and break compilation
+        ; so I added an instruction reordering barrier here
+        --barrier
+
         ;//////////// --- Store data --- ////////////
         sq.xyzw rgba,       -1(vertexOutPtr)      ; Color
         sq.xyzw vertex,      0(vertexOutPtr)      ; XYZ2F
         ;////////////////////////////////////////////
 
-        ; VCL really likes to reorder the lines after this and break compilation
-        ; so I added an instruction reordering barrier here
-        --barrier
-
-        iaddiu          vertexInPtr,       vertexInPtr,      1
+        iaddiu        vertexInPtr,       vertexInPtr,      1
         iadd          vertexOutPtr,      vertexOutPtr,     compsPerPrim
 
         iaddi   vertexCounter,  vertexCounter,  -1	; decrement the loop counter 
@@ -97,7 +97,7 @@ in_vi retaddr (RETADDR_REG)
 
     ;//////////////////////////////////////////// 
 
-    jr retaddr:dummy
+    RETURN
 
 --exit
 --endexit

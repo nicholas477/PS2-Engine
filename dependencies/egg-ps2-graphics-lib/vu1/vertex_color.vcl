@@ -7,14 +7,13 @@
 .init_vi_all
 
 --enter
+in_vi retaddr(RETADDR_REG)
+in_vi iBase(BASE_REG)
 --endenter
     ;//////////// --- Load data --- /////////////
     ; Updated dynamically
-    xtop    iBase
+    ;xtop    iBase
 
-    lq.xyz  scale,            SCALE(iBase) ; load program params
-                                     ; float : X, Y, Z - scale vector that we will use to scale the verts after projecting them.
-                                     ; float : W - vert count.
     ilw.w   vertCount,        SCALE(iBase)
     lq      rgba,             RGBA(iBase) ; RGBA mul
                                        ; u32 : R, G, B, A (0-128)
@@ -26,7 +25,6 @@
     iadd    colorInPtr,       vertexInPtr,     vertCount    ; pointer to color input data
     iadd    kickAddress,      vertexInPtr,     destOffset   ; pointer for XGKICK
     iadd    vertexOutPtr,     kickAddress,     compsPerPrim ; pointer to first vert pos out
-
 
     ;/////////////// --- Loop --- ///////////////
     iadd vertexCounter, iBase, vertCount ; loop vertCount times
@@ -41,14 +39,14 @@
         muli.xyzw        color, color, i
         ftoi0.xyzw       color, color
         
-        ;//////////// --- Store data --- ////////////
-        sq.xyzw  color,       -1(vertexOutPtr)      ; Color
-        ;sq.xyzw vertex,      0(vertexOutPtr)      ; XYZ2F
-        ;////////////////////////////////////////////
-
         ; VCL really likes to reorder the lines after this and break compilation
         ; so I added an instruction reordering barrier here
         --barrier
+
+        ;//////////// --- Store data --- ////////////
+        sq.xyzw  color,       -1(vertexOutPtr)      ; Color
+        ;sq.xyzw  color,        0(vertexOutPtr)      ; XYZ2F
+        ;////////////////////////////////////////////
 
         iaddiu        colorInPtr,        colorInPtr,      1
         iadd          vertexOutPtr,      vertexOutPtr,     compsPerPrim
@@ -58,8 +56,9 @@
 
     ;//////////////////////////////////////////// 
 
-
-    xgkick kickAddress ; dispatch to the GS rasterizer.
+    RETURN
 
 --exit
 --endexit
+
+RETADDR_DUMMY

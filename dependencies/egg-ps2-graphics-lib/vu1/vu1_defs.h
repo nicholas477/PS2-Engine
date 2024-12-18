@@ -21,6 +21,10 @@
 // Used for returning from programs back to the jump table
 #define RETADDR_REG VI13
 
+#define BASE_REG VI12
+
+#define RETURN jr retaddr: dummy
+
 #define RETADDR_DUMMY \
 	dummy:            \
 	jr retaddr: dummy

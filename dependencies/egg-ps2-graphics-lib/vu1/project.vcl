@@ -7,11 +7,12 @@
 .init_vi_all
 
 --enter
-in_vi retaddr (RETADDR_REG)
+in_vi retaddr(RETADDR_REG)
+in_vi iBase(BASE_REG)
 --endenter
     ;//////////// --- Load data --- /////////////
     ; Updated dynamically
-    xtop    iBase
+    ;xtop    iBase
 
     lq      matrixRow0,     MATRIXROW0(iBase) ; load view-projection matrix
     lq      matrixRow1,     MATRIXROW1(iBase)
@@ -80,7 +81,7 @@ in_vi retaddr (RETADDR_REG)
 
     ;//////////////////////////////////////////// 
 
-    jr retaddr:dummy
+    RETURN
 
 --exit
 --endexit

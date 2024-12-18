@@ -3,36 +3,35 @@
 .syntax new
 .name vsmJumpTable
 .vu
-.init_vf_all
-.init_vi_all
+.init_vi BASE_REG, RETADDR_REG
 
 --enter
 --endenter
 
-    xtop    iBase
-    ilw.x   addr, JUMPTABLE(iBase)
+    xtop    BASE_REG
+
+    ilw.x   addr, JUMPTABLE(BASE_REG)
     jalr    RETADDR_REG, addr:dummy
 
-    ilw.y   addr, JUMPTABLE(iBase)
+    ilw.y   addr, JUMPTABLE(BASE_REG)
     jalr    RETADDR_REG, addr:dummy
 
-    ilw.z   addr, JUMPTABLE(iBase)
+    ilw.z   addr, JUMPTABLE(BASE_REG)
     jalr    RETADDR_REG, addr:dummy
 
-    ilw.w   addr, JUMPTABLE(iBase)
+    ilw.w   addr, JUMPTABLE(BASE_REG)
     jalr    RETADDR_REG, addr:dummy
 
-
-    ilw.x   addr, (JUMPTABLE + 1)(iBase)
+    ilw.x   addr, (JUMPTABLE + 1)(BASE_REG)
     jalr    RETADDR_REG, addr:dummy
 
-    ilw.y   addr, (JUMPTABLE + 1)(iBase)
+    ilw.y   addr, (JUMPTABLE + 1)(BASE_REG)
     jalr    RETADDR_REG, addr:dummy
 
-    ilw.z   addr, (JUMPTABLE + 1)(iBase)
+    ilw.z   addr, (JUMPTABLE + 1)(BASE_REG)
     jalr    RETADDR_REG, addr:dummy
 
-    ilw.w   addr, (JUMPTABLE + 1)(iBase)
+    ilw.w   addr, (JUMPTABLE + 1)(BASE_REG)
     jalr    RETADDR_REG, addr:dummy
 
 --exit
