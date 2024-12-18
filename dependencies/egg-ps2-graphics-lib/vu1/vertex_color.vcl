@@ -1,3 +1,4 @@
+#include       "vu1_mem.h"
 
 .syntax new
 .name vsmVertexColor
@@ -7,31 +8,21 @@
 
 --enter
 --endenter
-	fcset   0x000000	; VCL won't let us use CLIP without first zeroing
-				        ; the clip flags
-
     ;//////////// --- Load data --- /////////////
     ; Updated dynamically
     xtop    iBase
 
-    ; lq      matrixRow0,     0(iBase) ; load view-projection matrix
-    ; lq      matrixRow1,     1(iBase)
-    ; lq      matrixRow2,     2(iBase)
-    ; lq      matrixRow3,     3(iBase)
-
-    lq.xyz  scale,            4(iBase) ; load program params
+    lq.xyz  scale,            SCALE(iBase) ; load program params
                                      ; float : X, Y, Z - scale vector that we will use to scale the verts after projecting them.
                                      ; float : W - vert count.
-    ilw.w   vertCount,        4(iBase)
-    ;lq      primTag,          5(iBase) ; GIF tag - tell GS how many data we will send and what type
-    lq      rgba,             6(iBase) ; RGBA mul
+    ilw.w   vertCount,        SCALE(iBase)
+    lq      rgba,             RGBA(iBase) ; RGBA mul
                                        ; u32 : R, G, B, A (0-128)
 
-    ;lq      fogSetting,        7(iBase) ; x = offset, y = scale
-    ilw.z   compsPerPrim,       7(iBase)
-    ilw.w   destOffset,         7(iBase) ; dest address offest (compsPerPrim * vertex count)
+    ilw.z   compsPerPrim,       FOG(iBase)
+    ilw.w   destOffset,         FOG(iBase) ; dest address offest (compsPerPrim * vertex count)
 
-    iaddiu  vertexInPtr,      iBase,           8            ; pointer to vertex input data
+    iaddiu  vertexInPtr,      iBase,           VERTEXIN            ; pointer to vertex input data
     iadd    colorInPtr,       vertexInPtr,     vertCount    ; pointer to color input data
     iadd    kickAddress,      vertexInPtr,     destOffset   ; pointer for XGKICK
     iadd    vertexOutPtr,     kickAddress,     compsPerPrim ; pointer to first vert pos out

@@ -7,7 +7,8 @@ RENDERERS = \
 	project \
 	project_clip \
 	vertex_color \
-	xgkick
+	xgkick \
+	jump_table
 
 VSM_OBJS = $(addsuffix .vo, $(addprefix vu1/, $(RENDERERS)))
 EE_OBJS += $(VSM_OBJS)
@@ -18,6 +19,9 @@ vu_progs: $(VSM_OBJS)
 %.vo: %.vsm
 	$(EE_DVP) $< -o $@
 
-.PRECIOUS: %.vsm
-%.vsm: %.vcl
-	$(VCL)  $< > $@
+.PRECIOUS: %.vsm %.vcl_pp
+%.vsm: %.vcl_pp
+	$(VCL) $< > $@
+
+%.vcl_pp: %.vcl
+	cpp -P -undef $< > $@

@@ -2,7 +2,7 @@ EE_SRC_DIR = src/
 EE_LIB_DIR = lib/
 EE_OBJS_DIR = obj/
 
-EE_INCS += -I./include -I$(PS2SDK)/ports/include -I$(EE_SRC_DIR)
+EE_INCS += -I./include -I./vu1 -I$(PS2SDK)/ports/include -I$(EE_SRC_DIR)
 
 EE_LIB = $(EE_LIB_DIR)libegg-ps2-graphics-lib.a
 EE_OBJS = src/egg-ps2-graphics-lib.o src/mesh.o src/vu_programs.o src/types.o src/draw.o src/texture.o src/gs_mem.o
@@ -25,6 +25,7 @@ clean:
 	rm -rf ./src/*.o
 	rm -rf ./vu1/*.vo
 	rm -rf ./vu1/*.vsm
+	rm -rf ./vu1/*.vcl_pp
 
 include Makefile.vuprogs
 

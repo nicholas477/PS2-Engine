@@ -1,3 +1,4 @@
+#include       "vu1_mem.h"
 
 .syntax new
 .name vsmVertexColorRenderer
@@ -10,7 +11,7 @@
 
     ;/////////////////////////////////////////////
 
-	fcset   0x000000	; VCL won't let us use CLIP without first zeroing
+	fcset   0x000000	; VCL wont let us use CLIP without first zeroing
 				     ; the clip flags
     
 
@@ -18,22 +19,22 @@
     ; Updated dynamically
     xtop    iBase
 
-    lq      matrixRow0,     0(iBase) ; load view-projection matrix
-    lq      matrixRow1,     1(iBase)
-    lq      matrixRow2,     2(iBase)
-    lq      matrixRow3,     3(iBase)
+    lq      matrixRow0,     MATRIXROW0(iBase) ; load view-projection matrix
+    lq      matrixRow1,     MATRIXROW1(iBase)
+    lq      matrixRow2,     MATRIXROW2(iBase)
+    lq      matrixRow3,     MATRIXROW3(iBase)
 
-    lq.xyz  scale,            4(iBase) ; load program params
+    lq.xyz  scale,            SCALE(iBase) ; load program params
                                      ; float : X, Y, Z - scale vector that we will use to scale the verts after projecting them.
                                      ; float : W - vert count.
-    ilw.w   vertCount,        4(iBase)
-    lq      primTag,          5(iBase) ; GIF tag - tell GS how many data we will send
-    lq      rgba,             6(iBase) ; RGBA
+    ilw.w   vertCount,        SCALE(iBase)
+    lq      primTag,          PRIMTAG(iBase) ; GIF tag - tell GS how many data we will send and what type
+    lq      rgba,             RGBA(iBase) ; RGBA mul
                                        ; u32 : R, G, B, A (0-128)
 
-    lq      fogSetting,        7(iBase) ; x = offset, y = scale
+    lq      fogSetting,        FOG(iBase) ; x = offset, y = scale
 
-    iaddiu  vertexPtr,      iBase,        8            ; pointer to vertex data
+    iaddiu  vertexPtr,      iBase,        VERTEXIN            ; pointer to vertex data
     iadd    colorPtr,       vertexPtr,    vertCount   ; pointer to color data
     iadd    kickAddress,    colorPtr,     vertCount   ; pointer for XGKICK
     iadd    destAddress,    colorPtr,     vertCount   ; helper pointer for data inserting
@@ -92,7 +93,7 @@
 
 
         ; Fog
-        muly.w  fog, vertex, fogSetting    ; multiply the vertex's z by the fog scale (fogSetting[y])
+        muly.w  fog, vertex, fogSetting    ; multiply the vertexs z by the fog scale (fogSetting[y])
         addx.w  fog, fog,    fogSetting    ; add the fog start offset (fogSetting[x])
 
         ; Clamp fog from 0-255

@@ -10,7 +10,7 @@
 
     ;/////////////////////////////////////////////
 
-	fcset   0x000000	; VCL won't let us use CLIP without first zeroing
+	fcset   0x000000	; VCL wont let us use CLIP without first zeroing
 				     ; the clip flags
     
 
@@ -106,7 +106,7 @@
 
 
         ; Fog
-        muly.w  fog, vertex, fogSetting    ; multiply the vertex's z by the fog scale (fogSetting[y])
+        muly.w  fog, vertex, fogSetting    ; multiply the vertexs z by the fog scale (fogSetting[y])
         addx.w  fog, fog,    fogSetting    ; add the fog start offset (fogSetting[x])
 
         ; Clamp fog from 0-255

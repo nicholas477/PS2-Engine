@@ -18,5 +18,6 @@ DEFINE_VU_PROGRAM(vertex_color_renderer, VertexColorRenderer);
 DEFINE_VU_PROGRAM(project, Project);
 DEFINE_VU_PROGRAM(project_clip, ProjectClip);
 DEFINE_VU_PROGRAM(vertex_color, VertexColor);
+DEFINE_VU_PROGRAM(jump_table, JumpTable);
 } // namespace vu1_programs
 } // namespace egg::ps2::graphics

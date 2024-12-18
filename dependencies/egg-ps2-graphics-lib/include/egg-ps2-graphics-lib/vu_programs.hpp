@@ -62,4 +62,5 @@ DECLARE_VU_PROGRAM(vertex_color_renderer);
 DECLARE_VU_PROGRAM(project);
 DECLARE_VU_PROGRAM(project_clip);
 DECLARE_VU_PROGRAM(vertex_color);
+DECLARE_VU_PROGRAM(jump_table);
 } // namespace egg::ps2::graphics::vu1_programs

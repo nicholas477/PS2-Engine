@@ -1,6 +1,7 @@
 *.o
 *.elf
 *.vo
+*.vcl_pp
 *.vsm
 
 lib/

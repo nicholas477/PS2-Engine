@@ -79,30 +79,17 @@ void draw_untextured_strip(const Matrix& mesh_to_screen_matrix, const mesh_descr
 	packet2_utils_vu_close_unpack(get_current_vif_packet());
 
 	// Position data
-	packet2_utils_vu_add_unpack_data(get_current_vif_packet(), 8, mesh.pos, mesh.num_verts, 1);
+	packet2_utils_vu_add_unpack_data(get_current_vif_packet(), 11, mesh.pos, mesh.num_verts, 1);
 
 	if (mesh.color)
 	{
 		// Color data
-		packet2_utils_vu_add_unpack_data(get_current_vif_packet(), 8 + mesh.num_verts, mesh.color, mesh.num_verts, 1);
+		packet2_utils_vu_add_unpack_data(get_current_vif_packet(), 11 + mesh.num_verts, mesh.color, mesh.num_verts, 1);
 	}
 
-	assert((8 + (mesh.num_verts * 4)) < 496);
+	assert((11 + (mesh.num_verts * 4)) < 496);
 
 	packet2_utils_vu_add_start_program(get_current_vif_packet(), vu1_programs::get_project_clip().program_address);
-	// packet2_utils_vu_add_start_program(get_current_vif_packet(), vu1_programs::get_xgkick().program_address);
-
-	// {
-	// 	packet2_chain_open_cnt(get_current_vif_packet(), 0, 0, 0);
-	// 	packet2_add_u32(get_current_vif_packet(), MAKE_VIF_CODE(0, 0, P2_VIF_FLUSH, 0));
-	// 	packet2_vif_mscal(get_current_vif_packet(), vu1_programs::get_project_clip().program_address, 0);
-	// 	packet2_chain_close_tag(get_current_vif_packet());
-
-	// 	packet2_chain_open_cnt(get_current_vif_packet(), 0, 0, 0);
-	// 	packet2_add_u32(get_current_vif_packet(), MAKE_VIF_CODE(0, 0, P2_VIF_FLUSHE, 0));
-	// 	packet2_vif_mscal(get_current_vif_packet(), vu1_programs::get_xgkick().program_address, 0);
-	// 	packet2_chain_close_tag(get_current_vif_packet());
-	// }
 }
 
 #define MAKE_VIF_CODE(_immediate, _num, _cmd, _irq) ((u32)(_immediate) | ((u32)(_num) << 16) | ((u32)(_cmd) << 24) | ((u32)(_irq) << 31))
@@ -190,20 +177,7 @@ void draw_textured_strip(const Matrix& mesh_to_screen_matrix, const mesh_descrip
 
 	assert((11 + (mesh.num_verts * 6)) < 496);
 
-	// {
-	// 	packet2_chain_open_cnt(get_current_vif_packet(), 0, 0, 0);
-	// 	packet2_add_u32(get_current_vif_packet(), MAKE_VIF_CODE(0, 0, P2_VIF_FLUSH, 0));
-	// 	packet2_vif_mscal(get_current_vif_packet(), vu1_programs::get_project_clip().program_address, 0);
-	// 	packet2_chain_close_tag(get_current_vif_packet());
-
-	// 	packet2_chain_open_cnt(get_current_vif_packet(), 0, 0, 0);
-	// 	packet2_add_u32(get_current_vif_packet(), MAKE_VIF_CODE(0, 0, P2_VIF_FLUSH, 0));
-	// 	packet2_vif_mscal(get_current_vif_packet(), vu1_programs::get_xgkick().program_address, 0);
-	// 	packet2_chain_close_tag(get_current_vif_packet());
-	// }
-
 	packet2_utils_vu_add_start_program(get_current_vif_packet(), vu1_programs::get_project_clip().program_address);
-	//packet2_utils_vu_add_start_program(get_current_vif_packet(), vu1_programs::get_xgkick().program_address);
 }
 
 } // namespace
