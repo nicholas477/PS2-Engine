@@ -1,5 +1,5 @@
 EE_DVP = dvp-as
-VCL = vcl
+VCL = /usr/bin/vcl
 
 RENDERERS = \
 	project \
