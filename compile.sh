@@ -56,6 +56,7 @@ if ! command -v vcl 2>&1 /dev/null; then
     popd
 fi
 
+command -v vcl
 echo "------Compiling egg-library------"
 pushd dependencies/egg-library && ./compile.sh; popd
 echo "------Compiling egg-ps2-graphics-library------"
