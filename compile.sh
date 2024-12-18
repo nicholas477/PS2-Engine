@@ -51,6 +51,8 @@ if ! command -v vcl 2>&1 /dev/null; then
     sudo cp /temp/vcl/vcl /usr/bin/vcl
     sudo chmod a+rx /usr/bin/vcl
 
+    command -v vcl
+
     popd
 fi
 
