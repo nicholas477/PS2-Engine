@@ -91,10 +91,6 @@ void init()
 
 	epg::init(gs_options);
 
-	// Load vertex color + textured vertex color programs
-	epg::vu1_programs::get_vertex_color_renderer().load_program();
-	epg::vu1_programs::get_vertex_color_texture_renderer().load_program();
-
 	epg::gs_mem::allocate_texture_slot(1);
 	epg::gs_mem::allocate_texture_slot(1);
 	epg::gs_mem::allocate_texture_slot(1);

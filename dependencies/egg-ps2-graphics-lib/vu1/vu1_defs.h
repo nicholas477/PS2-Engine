@@ -17,11 +17,11 @@
 
 #define VERTEXIN (JUMPTABLE + 2)
 
+#define BASE_REG VI14
+
 // Return address register.
 // Used for returning from programs back to the jump table
-#define RETADDR_REG VI13
-
-#define BASE_REG VI12
+#define RETADDR_REG VI15
 
 #define RETURN jr retaddr: dummy
 
