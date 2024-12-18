@@ -45,8 +45,10 @@ if ! command -v vcl 2>&1 /dev/null; then
     mkdir -p /temp/vcl
     pushd /temp/vcl
     wget https://github.com/h4570/tyra/raw/master/assets/vcl
+    echo "chmoding vcl"
     chmod +x vcl
-    cp /temp/vcl/vcl /usr/bin/vcl
+    echo "copying vcl to /usr/bin/vcl"
+    sudo cp /temp/vcl/vcl /usr/bin/vcl
 
     popd
 fi

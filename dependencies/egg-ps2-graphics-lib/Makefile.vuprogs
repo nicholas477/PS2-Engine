@@ -1,5 +1,5 @@
 EE_DVP = dvp-as
-VCL = /temp/vcl/vcl
+VCL = vcl
 
 RENDERERS = \
 	project \
