@@ -161,6 +161,7 @@ void init(const init_options& init_options)
 	vu1_programs::get_xgkick().load_program();
 	vu1_programs::get_project().load_program();
 	vu1_programs::get_project_clip().load_program();
+	vu1_programs::get_jump_table().load_program();
 
 	current_frame = frame;
 

@@ -16,3 +16,11 @@
 #define JUMPTABLE (FOG + 1)
 
 #define VERTEXIN (JUMPTABLE + 2)
+
+// Return address register.
+// Used for returning from programs back to the jump table
+#define RETADDR_REG VI13
+
+#define RETADDR_DUMMY \
+	dummy:            \
+	jr retaddr: dummy

@@ -10,7 +10,8 @@
                 "/usr/local/ps2dev/ps2sdk/ports/include",
                 "/usr/local/ps2dev/ps2sdk/common/include",
                 "${workspaceFolder}/dependencies/egg-ps2-graphics-lib/include",
-                "${workspaceFolder}/vu1"
+                "${workspaceFolder}/dependencies/egg-ps2-graphics-lib/vu1",
+                "${workspaceFolder}/vu1",
             ],
             "compilerPath": "/usr/local/ps2dev/ee/bin/mips64r5900el-ps2-elf-g++",
             "cStandard": "c17",

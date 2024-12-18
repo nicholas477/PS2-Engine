@@ -1,4 +1,4 @@
-#include       "vu1_mem.h"
+#include       "vu1_defs.h"
 
 .syntax new
 .name vsmProjectClip
@@ -7,6 +7,7 @@
 .init_vi_all
 
 --enter
+in_vi retaddr (RETADDR_REG)
 --endenter
 	fcset   0x000000	; VCL wont let us use CLIP without first zeroing
 				        ; the clip flags
@@ -96,8 +97,9 @@
 
     ;//////////////////////////////////////////// 
 
-
-    xgkick kickAddress ; dispatch to the GS rasterizer.
+    jr retaddr:dummy
 
 --exit
 --endexit
+
+RETADDR_DUMMY

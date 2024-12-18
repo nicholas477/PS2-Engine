@@ -1,4 +1,4 @@
-#include       "vu1_mem.h"
+#include       "vu1_defs.h"
 
 .syntax new
 .name vsmVertexColorRenderer

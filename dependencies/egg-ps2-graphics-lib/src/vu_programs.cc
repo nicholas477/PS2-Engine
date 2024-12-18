@@ -10,6 +10,13 @@ void vu_program::load_program()
 	is_loaded       = true;
 }
 
+u32 vu_program::get_program_address() const
+{
+	assert(is_loaded);
+
+	return program_address;
+}
+
 namespace vu1_programs
 {
 DEFINE_VU_PROGRAM(xgkick, xgkick);

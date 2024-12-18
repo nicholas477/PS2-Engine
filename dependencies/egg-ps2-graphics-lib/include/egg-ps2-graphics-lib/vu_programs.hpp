@@ -18,6 +18,15 @@ struct vu_program
 		is_loaded       = false;
 	}
 
+	void load_program();
+
+	// This is the program address to pass to MSCAL/packet2_utils_vu_add_start_program
+	// This is the starting address divided by 8
+	u32 get_program_address() const;
+
+	bool get_is_loaded() const { return is_loaded; }
+
+protected:
 	// program start/end address in EE memory
 	std::pair<void*, void*> address;
 
@@ -26,8 +35,6 @@ struct vu_program
 	u32 program_address;
 
 	bool is_loaded;
-
-	void load_program();
 };
 } // namespace egg::ps2::graphics
 

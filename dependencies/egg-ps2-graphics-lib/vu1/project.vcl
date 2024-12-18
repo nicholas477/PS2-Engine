@@ -1,4 +1,4 @@
-#include       "vu1_mem.h"
+#include       "vu1_defs.h"
 
 .syntax new
 .name vsmProject
@@ -7,6 +7,7 @@
 .init_vi_all
 
 --enter
+in_vi retaddr (RETADDR_REG)
 --endenter
     ;//////////// --- Load data --- /////////////
     ; Updated dynamically
@@ -79,8 +80,9 @@
 
     ;//////////////////////////////////////////// 
 
-
-    xgkick kickAddress ; dispatch to the GS rasterizer.
+    jr retaddr:dummy
 
 --exit
 --endexit
+
+RETADDR_DUMMY
