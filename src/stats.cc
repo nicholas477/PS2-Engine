@@ -15,7 +15,7 @@ void init()
 
 static void add_timer_stat(scoped_timers timer, u64 elapsed_time)
 {
-	timer_stats[static_cast<size_t>(timer)] = elapsed_time;
+	timer_stats[static_cast<size_t>(timer)] += elapsed_time;
 }
 
 void print_timer_stats()

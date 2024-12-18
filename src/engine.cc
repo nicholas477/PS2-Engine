@@ -175,6 +175,7 @@ void run()
 {
 	for (;;)
 	{
+		Stats::clear_timer_stats();
 		{
 			Stats::ScopedTimer frame_timer(Stats::scoped_timers::frame);
 

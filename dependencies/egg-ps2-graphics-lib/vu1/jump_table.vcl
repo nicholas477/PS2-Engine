@@ -37,6 +37,6 @@
 --exit
 --endexit
 
-; Dummy function so VCL doesn't complain about jumps out of this file
+; Dummy function so VCL doesnt complain about jumps out of this file
 dummy:            
 	jr RETADDR_REG:dummy

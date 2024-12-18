@@ -154,15 +154,13 @@ void render()
 
 			draw_objects(_gs_state);
 
-			{
-				Stats::ScopedTimer draw_timer(Stats::scoped_timers::render_finish_geom);
-				epg::end_draw();
-			}
+			Stats::ScopedTimer flush_timer(Stats::scoped_timers::render_finish_geom);
+			epg::end_draw();
 		}
 	}
 
 	{
-		Stats::ScopedTimer draw_timer(Stats::scoped_timers::render_vsync_wait);
+		Stats::ScopedTimer vsync_timer(Stats::scoped_timers::render_vsync_wait);
 		epg::wait_vsync();
 	}
 }

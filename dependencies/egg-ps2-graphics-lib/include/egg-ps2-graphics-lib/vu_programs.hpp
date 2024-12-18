@@ -64,7 +64,6 @@ protected:
 namespace egg::ps2::graphics::vu1_programs
 {
 DECLARE_VU_PROGRAM(xgkick);
-DECLARE_VU_PROGRAM(vertex_color_texture_renderer);
 DECLARE_VU_PROGRAM(project);
 DECLARE_VU_PROGRAM(project_clip);
 DECLARE_VU_PROGRAM(vertex_color);

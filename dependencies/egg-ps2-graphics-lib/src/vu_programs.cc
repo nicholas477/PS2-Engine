@@ -20,7 +20,6 @@ u32 vu_program::get_program_address() const
 namespace vu1_programs
 {
 DEFINE_VU_PROGRAM(xgkick, xgkick);
-DEFINE_VU_PROGRAM(vertex_color_texture_renderer, VertexColorTextureRenderer);
 DEFINE_VU_PROGRAM(project, Project);
 DEFINE_VU_PROGRAM(project_clip, ProjectClip);
 DEFINE_VU_PROGRAM(vertex_color, VertexColor);

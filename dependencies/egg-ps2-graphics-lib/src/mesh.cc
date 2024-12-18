@@ -23,13 +23,13 @@ namespace
 {
 prim_t prim;
 
-void draw_untextured_strip(const Matrix& mesh_to_screen_matrix, const mesh_descriptor& mesh)
+void draw_untextured_strip(const Matrix& mesh_to_screen_matrix, const mesh_descriptor& mesh, char gs_context)
 {
 	assert(mesh.is_valid());
 
 	// Define the triangle primitive we want to use.
 	prim.type         = PRIM_TRIANGLE_STRIP;
-	prim.shading      = PRIM_SHADE_FLAT;
+	prim.shading      = static_cast<unsigned char>(mesh.shading_type);
 	prim.mapping      = DRAW_DISABLE;
 	prim.fogging      = mesh.enable_fog ? DRAW_ENABLE : DRAW_DISABLE;
 	prim.blending     = DRAW_DISABLE;
@@ -57,14 +57,14 @@ void draw_untextured_strip(const Matrix& mesh_to_screen_matrix, const mesh_descr
 			// The F in XYZF2 stands for fog
 			packet2_utils_gs_add_prim_giftag(get_current_vif_packet(), &prim, mesh.num_verts,
 			                                 ((u64)GIF_REG_RGBAQ) << 0 | ((u64)GIF_REG_XYZF2) << 4,
-			                                 2, 0);
+			                                 2, gs_context);
 		}
 		else
 		{
 			// 5
 			packet2_utils_gs_add_prim_giftag(get_current_vif_packet(), &prim, mesh.num_verts,
 			                                 DRAW_RGBAQ_REGLIST,
-			                                 2, 0);
+			                                 2, gs_context);
 		}
 
 		// 6
@@ -80,7 +80,15 @@ void draw_untextured_strip(const Matrix& mesh_to_screen_matrix, const mesh_descr
 
 		// 8 (jump table)
 		// This is a list of programs to run over the vu data
-		packet2_add_u32(get_current_vif_packet(), vu1_programs::get_project_clip().get_program_address());
+		if (mesh.clipping)
+		{
+			packet2_add_u32(get_current_vif_packet(), vu1_programs::get_project_clip().get_program_address());
+		}
+		else
+		{
+			packet2_add_u32(get_current_vif_packet(), vu1_programs::get_project().get_program_address());
+		}
+
 		if (mesh.color)
 		{
 			packet2_add_u32(get_current_vif_packet(), vu1_programs::get_vertex_color().get_program_address());
@@ -223,6 +231,10 @@ mesh_descriptor::mesh_descriptor()
 
 	// fog distance scaling
 	fog_scale = -256.f / 1024.f;
+
+	shading_type = mesh_shading_type::gourad;
+
+	clipping = true;
 }
 
 void mesh_descriptor::set_fog_start_and_end(float fog_start, float fog_end)
@@ -234,6 +246,8 @@ void mesh_descriptor::set_fog_start_and_end(float fog_start, float fog_end)
 void draw_mesh_strip(const Matrix& mesh_to_screen_matrix, const mesh_descriptor& mesh)
 {
 	assert(mesh.is_valid());
+
+	static char gs_context = 0;
 
 	// TODO: calculate this dynamically based on how much stuff is being put into vu mem
 	static constexpr s32 verts_per_call = 64;
@@ -268,7 +282,8 @@ void draw_mesh_strip(const Matrix& mesh_to_screen_matrix, const mesh_descriptor&
 			// }
 			// else
 			{
-				draw_untextured_strip(mesh_to_screen_matrix, strip);
+				draw_untextured_strip(mesh_to_screen_matrix, strip, gs_context);
+				gs_context ^= 1;
 			}
 		}
 

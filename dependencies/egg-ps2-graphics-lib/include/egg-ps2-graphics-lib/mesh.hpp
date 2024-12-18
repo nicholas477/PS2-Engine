@@ -8,6 +8,11 @@ namespace egg::ps2::graphics
 {
 struct texture_descriptor;
 
+enum class mesh_shading_type : uint8_t {
+	flat   = 0, // Flat shading, no interpolation between vertex colors
+	gourad = 1  // Gourad shading, linear interpolation between vertex colors
+};
+
 struct mesh_descriptor
 {
 	mesh_descriptor();
@@ -38,6 +43,11 @@ struct mesh_descriptor
 
 	// fog distance scaling
 	float fog_scale;
+
+	mesh_shading_type shading_type;
+
+	// Enable vertex clipping. Disables rendering on verts outside of the view frustum
+	bool clipping;
 
 public:
 	bool is_valid(bool print_why_invalid = true) const;

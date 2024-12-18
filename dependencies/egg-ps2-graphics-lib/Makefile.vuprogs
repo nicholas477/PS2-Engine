@@ -2,7 +2,6 @@ EE_DVP = dvp-as
 VCL = vcl
 
 RENDERERS = \
-	vertex_color_texture_renderer \
 	project \
 	project_clip \
 	vertex_color \

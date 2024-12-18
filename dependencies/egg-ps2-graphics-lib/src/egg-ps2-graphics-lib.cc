@@ -73,13 +73,15 @@ void init_gs(const init_options& init_options, framebuffer_t* t_frame, zbuffer_t
 void init_drawing_environment(framebuffer_t* t_frame, zbuffer_t* t_z)
 {
 	printf("egg-ps2-graphics-lib: init_drawing_environment\n");
-	utils::inline_packet2<20> packet2(P2_TYPE_NORMAL, P2_MODE_NORMAL, 1);
+	utils::inline_packet2<40> packet2(P2_TYPE_NORMAL, P2_MODE_NORMAL, 1);
 
 	// This will setup a default drawing environment.
 	packet2_update(packet2, draw_setup_environment(packet2->next, 0, t_frame, t_z));
+	packet2_update(packet2, draw_setup_environment(packet2->next, 1, t_frame, t_z));
 
 	// Now reset the primitive origin to 2048-width/2,2048-height/2.
 	packet2_update(packet2, draw_primitive_xyoffset(packet2->next, 0, (2048 - (frame->width / 2.f)), (2048 - (frame->height / 2.f))));
+	packet2_update(packet2, draw_primitive_xyoffset(packet2->next, 1, (2048 - (frame->width / 2.f)), (2048 - (frame->height / 2.f))));
 
 	// Finish setting up the environment.
 	packet2_update(packet2, draw_finish(packet2->next));
@@ -105,6 +107,7 @@ void flip_buffers(framebuffer_t* t_frame)
 	static utils::inline_packet2<8> flip(P2_TYPE_UNCACHED_ACCL, P2_MODE_NORMAL, 0);
 	packet2_reset(flip, 0);
 	packet2_update(flip, draw_framebuffer(flip->next, 0, t_frame));
+	packet2_update(flip, draw_framebuffer(flip->next, 1, t_frame));
 	packet2_update(flip, draw_finish(flip->next));
 
 	dma_channel_wait(DMA_CHANNEL_GIF, 0);
@@ -206,6 +209,7 @@ void clear_screen(int r, int g, int b)
 	packet2_update(clear, draw_disable_tests(clear->next, 0, &z));
 	packet2_update(clear, draw_clear(clear->next, 0, 2048.0f - (current_frame->width / 2.f), 2048.0f - (current_frame->height / 2.f), current_frame->width, current_frame->height, r, g, b));
 	packet2_update(clear, draw_enable_tests(clear->next, 0, &z));
+	//packet2_update(clear, draw_enable_tests(clear->next, 1, &z));
 	packet2_update(clear, draw_finish(clear->next));
 
 	// Now send our current dma chain.

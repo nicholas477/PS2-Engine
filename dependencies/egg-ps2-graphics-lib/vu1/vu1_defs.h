@@ -17,6 +17,10 @@
 
 #define VERTEXIN (JUMPTABLE + 2)
 
+// Max value for the base memory.
+#define VU_BASE_MAX VERTEXIN
+
+// xtop register
 #define BASE_REG VI14
 
 // Return address register.
