@@ -26,7 +26,6 @@ clean:
 	rm -rf ./vu1/*.vo
 	rm -rf ./vu1/*.vsm
 	rm -rf ./vu1/*.vcl_pp
-#	find ./vu1 -name "*.vsm" ! -name 'jump_table.vsm' -type f -exec rm -f {} +
 
 include Makefile.vuprogs
 
