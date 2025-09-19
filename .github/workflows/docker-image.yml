@@ -21,7 +21,7 @@ jobs:
       packages: write
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout
     - name: Get dependencies
       run: |
         apk add sudo bash build-base binutils-dev git cmake xorriso assimp-dev musl-obstack-dev jsoncpp-dev imagemagick-dev sox stb
@@ -30,7 +30,7 @@ jobs:
       run: |
         bash ./compile.sh ci
 
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact
       with:
         name: test.iso
         path: build/test.iso
