@@ -55,6 +55,8 @@ if ! command -v vcl 2>&1 /dev/null; then
     command -v vcl
     command -v $VCL
 
+    # bruh what
+    file /usr/bin/vcl
     vcl -h
 
     popd
