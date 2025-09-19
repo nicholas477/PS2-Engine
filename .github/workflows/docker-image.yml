@@ -37,7 +37,7 @@ jobs:
       - name: Compile VU programs
         run: |
           cd dependencies/egg-ps2-graphics-lib
-          make vu_progs
+          make -f ./Makefile.vuprogs vu_progs
       
       - name: Upload VU programs
         uses: actions/upload-artifact@v4
