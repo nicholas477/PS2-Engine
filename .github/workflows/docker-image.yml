@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     container: 
       image: ubuntu:20.04
-      
+
     permissions:
       contents: read
       packages: write
@@ -23,7 +23,7 @@ jobs:
     steps:
       - name: Install VCL
         run: |
-          apt-get install -y make qemu qemu-user-static binfmt-support psmisc
+          apt-get install -y make qemu qemu-user-static binfmt-support
           dpkg --add-architecture i386
           apt-get update
           apt-get install -y libstdc++5:i386
