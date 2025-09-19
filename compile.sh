@@ -56,26 +56,56 @@ if ! command -v vcl 2>&1 /dev/null; then
     popd
 fi
 
-command -v vcl
 echo "------Compiling egg-library------"
-pushd dependencies/egg-library && ./compile.sh; popd
+pushd dependencies/egg-library 
+if ./compile.sh; then
+    popd
+else
+    popd
+    echo "failed to compile egg-library!"
+    exit 1
+fi
+
 echo "------Compiling egg-ps2-graphics-library------"
-pushd dependencies/egg-ps2-graphics-lib && ./compile.sh; popd
+pushd dependencies/egg-ps2-graphics-lib
+if ./compile.sh; then
+    popd
+else
+    popd
+    echo "failed to compile egg-ps2-graphics-library!"
+    exit 1
+fi
+
 echo "------Compiling ps2-manifest-generator------"
-pushd tools/ps2-manifest-generator && ./compile.sh; popd
+pushd tools/ps2-manifest-generator
+if ./compile.sh; then
+    popd
+else
+    popd
+    echo "failed to compile ps2-manifest-generator!"
+    exit 1
+fi
+
 echo "------Compiling ps2-mesh-converter------"
-pushd tools/ps2-mesh-converter && ./compile.sh; popd
+pushd tools/ps2-mesh-converter
+if ./compile.sh; then
+    popd
+else
+    popd
+    echo "failed to compile ps2-mesh-converter!"
+    exit 1
+fi
 
 # PS2GDB
-if [ ! -d "dependencies/ps2gdb" ]; then
-    echo "------Cloning ps2gdb------"
-    git clone https://github.com/ps2dev/ps2gdb.git dependencies/ps2gdb
-fi
-echo "------Compiling ps2gdb------"
-pushd dependencies/ps2gdb && make clean && make install; popd
+# if [ ! -d "dependencies/ps2gdb" ]; then
+#     echo "------Cloning ps2gdb------"
+#     git clone https://github.com/ps2dev/ps2gdb.git dependencies/ps2gdb
+# fi
+# echo "------Compiling ps2gdb------"
+# pushd dependencies/ps2gdb && make clean && make install; popd
 
 echo "------Compiling ps2-engine------"
-
+make realclean
 if [ ! -z "$1" ] && [ $1 = "ci" ]; then
     make iso -j$(nproc)
 elif [ ! "$1" ] || [ $1 != "deploy" ]; then
