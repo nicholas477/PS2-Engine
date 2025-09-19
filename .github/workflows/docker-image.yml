@@ -35,9 +35,8 @@ jobs:
         
       - name: Compile VU programs
         run: |
-          pushd dependencies/egg-ps2-graphics-lib
+          cd dependencies/egg-ps2-graphics-lib
           make vu_progs
-          popd
 
 
   build:
