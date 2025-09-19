@@ -55,6 +55,8 @@ if ! command -v vcl 2>&1 /dev/null; then
     command -v vcl
     command -v $VCL
 
+    vcl -h
+
     popd
 fi
 
