@@ -23,6 +23,7 @@ jobs:
     steps:
       - name: Install VCL
         run: |
+          apt-get update
           apt-get install -y make qemu qemu-user-static binfmt-support
           dpkg --add-architecture i386
           apt-get update
