@@ -87,7 +87,7 @@ static void set_filesystem_type(Filesystem::Type t)
 	printf(" filesystem type\n");
 }
 
-void init(int argc, char* argv[])
+void init(int argc, char** argv)
 {
 	Engine::set_filesystem_type(FILESYSTEM_TYPE);
 
@@ -123,7 +123,7 @@ void init(int argc, char* argv[])
 	// This initializes the network debugging so do this first
 	if (Filesystem::get_filesystem_type() != Filesystem::Type::host)
 	{
-		//net::init();
+		Net::init();
 	}
 
 	load_asset_manifest();

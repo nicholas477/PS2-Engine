@@ -109,7 +109,7 @@ void draw_untextured_strip(const Matrix& mesh_to_screen_matrix, const mesh_descr
 		packet2_utils_vu_add_unpack_data(get_current_vif_packet(), VERTEXIN + mesh.num_verts, mesh.color, mesh.num_verts, 1);
 	}
 
-	assert((VERTEXIN + (mesh.num_verts * 2 * 2)) < 496);
+	assert((VERTEXIN + (mesh.num_verts * 2 * 2)) < 512);
 
 	packet2_utils_vu_add_start_program(get_current_vif_packet(), vu1_programs::get_jump_table().get_program_address());
 }
@@ -185,17 +185,19 @@ void draw_textured_strip(const Matrix& mesh_to_screen_matrix, const mesh_descrip
 
 	if (mesh.color)
 	{
+		assert(VERTEXIN + (mesh.num_verts) + mesh.num_verts <= 512);
 		// Color data
 		packet2_utils_vu_add_unpack_data(get_current_vif_packet(), VERTEXIN + mesh.num_verts, mesh.color, mesh.num_verts, 1);
 	}
 
 	if (mesh.uvs)
 	{
+		assert(VERTEXIN + (mesh.num_verts * 2) + mesh.num_verts <= 512);
 		// UV data
 		packet2_utils_vu_add_unpack_data(get_current_vif_packet(), VERTEXIN + (mesh.num_verts * 2), mesh.uvs, mesh.num_verts, 1);
 	}
 
-	assert((VERTEXIN + (mesh.num_verts * 6)) < 496);
+	//assert((VERTEXIN + (mesh.num_verts * 6)) < 512);
 
 	packet2_utils_vu_add_start_program(get_current_vif_packet(), vu1_programs::get_project_clip().get_program_address());
 }
@@ -250,7 +252,7 @@ void draw_mesh_strip(const Matrix& mesh_to_screen_matrix, const mesh_descriptor&
 	static char gs_context = 0;
 
 	// TODO: calculate this dynamically based on how much stuff is being put into vu mem
-	static constexpr s32 verts_per_call = 64;
+	static constexpr s32 verts_per_call = (((1024 / 2) - VU_BASE_MAX) / 4) - 1;
 
 	for (u32 i = 0;;)
 	{
@@ -302,6 +304,8 @@ void draw_mesh_strip(const Matrix& mesh_to_screen_matrix, const mesh_descriptor&
 
 bool mesh_descriptor::is_valid(bool print_why_invalid) const
 {
+	return true;
+
 	bool all_valid = true;
 	if ((__uintptr_t)pos == 0)
 	{

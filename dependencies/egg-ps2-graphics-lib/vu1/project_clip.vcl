@@ -50,6 +50,7 @@ in_vi iBase(BASE_REG)
                                       ; any32 : _ = 0
 
         ;////////////// --- Vertex --- //////////////
+        ; Project to clip space (-1, 1)
         mul            acc,           matrixRow0, vertex[x]
         madd           acc,           matrixRow1, vertex[y]
         madd           acc,           matrixRow2, vertex[z]
@@ -75,6 +76,7 @@ in_vi iBase(BASE_REG)
         ; Scale to screen space
         mula.xyz    acc,    scale,      vf00[w]     ; scale to GS screen space
         madd.xyz    vertex, vertex,     scale       ; multiply and add the scales -> vert = vert * scale + scale
+
         ftoi4.xyz   vertex, vertex                  ; convert vertex to 12:4 fixed point format
 
         ; Add clipping bit

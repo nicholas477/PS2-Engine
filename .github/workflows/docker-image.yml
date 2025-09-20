@@ -11,44 +11,7 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  build-vu:
-    runs-on: ubuntu-latest
-    container: 
-      image: ubuntu:20.04
-
-    permissions:
-      contents: read
-      packages: write
-
-    steps:
-      - uses: actions/checkout@v5
-      - name: Install VCL
-        run: |
-          apt-get update
-          apt-get install -y make qemu qemu-user-static binfmt-support wget cpp
-          dpkg --add-architecture i386
-          apt-get update
-          apt-get install -y libstdc++5:i386
-          update-binfmts --install i386 /usr/bin/qemu-i386-static --magic '\x7fELF\x01\x01\x01\x03\x00\x00\x00\x00\x00\x00\x00\x00\x03\x00\x03\x00\x01\x00\x00\x00' --mask '\xff\xff\xff\xff\xff\xff\xff\xfc\xff\xff\xff\xff\xff\xff\xff\xff\xf8\xff\xff\xff\xff\xff\xff\xff'
-
-          wget -O /usr/bin/vcl https://github.com/h4570/tyra/raw/master/assets/vcl
-          chmod +x /usr/bin/vcl
-        
-      - name: Compile VU programs
-        run: |
-          cd dependencies/egg-ps2-graphics-lib
-          make -f ./Makefile.vuprogs vu_progs
-      
-      - name: Upload VU programs
-        uses: actions/upload-artifact@v4
-        with:
-          name: vu-progs
-          path: dependencies/egg-ps2-graphics-lib/vu1
-
-
-
   build:
-    needs: build-vu
     runs-on: ubuntu-latest
     container: 
       image: ghcr.io/ps2dev/ps2sdk:latest

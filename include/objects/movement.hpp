@@ -22,7 +22,8 @@ protected:
 	// Input dead zone on the controller
 	float dead_zone = 0.5f;
 
-	float rotation_speed = M_PI * 0.8f;
+	// Rotation speed, in radians per second
+	float rotation_speed = M_PI * 0.5f;
 };
 
 class FlyingMovement: public Movement

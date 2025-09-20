@@ -137,7 +137,7 @@ void render()
 		Stats::ScopedTimer draw_timer(Stats::scoped_timers::draw);
 
 		_gs_state.world_view   = Camera::get().transform.get_matrix().invert();
-		_gs_state.view_screen  = Matrix::perspective(Camera::get().fov, get_screen_res().x, get_screen_res().y, 1.f, 5000.f);
+		_gs_state.view_screen  = Matrix::perspective((Camera::get().fov * M_PI / 180.f), get_screen_res().x, get_screen_res().y, 1.f, 5000.f, 4096.f); // * Vector(1.f, 1.f, 0.5f).to_scale_matrix();
 		_gs_state.world_screen = _gs_state.world_view * _gs_state.view_screen;
 
 		_gs_state.fog_start_end = {200.f, 2000.f};

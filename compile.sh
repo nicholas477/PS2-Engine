@@ -42,11 +42,11 @@ sudo make install -j$(nproc)
 popd
 
 # Download and install VCL
-if [[ !$(CI) && !$(command -v vcl 2>&1 /dev/null) ]]; then
+if [[ !($CI) && (! $(command -v vcl 2>&1 /dev/null) ) ]]; then
     echo "------Installing VCL------"
     mkdir -p /temp/vcl
     pushd /temp/vcl
-    wget https://github.com/h4570/tyra/raw/master/assets/vcl
+    wget -o vcl https://github.com/h4570/tyra/raw/master/assets/vcl
     echo "chmoding vcl"
     chmod a+rx vcl
     echo "copying vcl to /usr/bin/vcl"

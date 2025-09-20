@@ -108,6 +108,11 @@ Matrix Vector::to_translation_matrix() const
 }
 
 
+Matrix Vector::to_scale_matrix() const
+{
+	return Matrix::from_scale(*this);
+}
+
 Matrix Matrix::from_location_and_rotation(const Vector& location, const Vector& rotation)
 {
 	return rotation.to_rotation_matrix() * location.to_translation_matrix();

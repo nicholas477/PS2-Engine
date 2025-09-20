@@ -4,6 +4,8 @@
 #include <cstdio>
 #include <stdio.h>
 
+#include "debug.hpp"
+
 #ifdef _EE
 #include <kernel.h>
 #include "debug.h"
@@ -68,8 +70,18 @@ static void print_stack_trace()
 		if (stackTrace[i] == 0)
 			break;
 
-		printf("address %d 0x%08x\n", i, (int)stackTrace[i]);
-		scr_printf("address %d 0x%08x\n", i, (int)stackTrace[i]);
+		Debug::SymbolInfo symbol = Debug::lookup_symbol(stackTrace[i]);
+		const unsigned int addr  = (unsigned int)stackTrace[i];
+		if (symbol)
+		{
+			printf("address %d 0x%08x < %s + 0x%x >\n", i, addr, symbol.name, (unsigned int)(addr - symbol.address));
+			scr_printf("address %d 0x%08x < %s + 0x%x >\n", i, addr, symbol.name, (unsigned int)(addr - symbol.address));
+		}
+		else
+		{
+			printf("address %d 0x%08x\n", i, (int)stackTrace[i]);
+			scr_printf("address %d 0x%08x\n", i, (int)stackTrace[i]);
+		}
 	}
 	printf("----------------------\n");
 	scr_printf("----------------------\n");

@@ -3,10 +3,13 @@
 #include <debug.h>
 
 #include "engine.hpp"
+#include "egg/debug.hpp"
 #include "egg/filesystem.hpp"
 
-int main(int argc, char* argv[])
+int main(int argc, char** argv)
 {
+	Debug::init(argc, argv);
+
 	Engine::init(argc, argv);
 
 	Engine::run();

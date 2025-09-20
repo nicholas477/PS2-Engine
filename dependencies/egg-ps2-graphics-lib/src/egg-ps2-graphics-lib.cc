@@ -16,6 +16,8 @@
 
 #include "egg/math_types.hpp"
 
+#include "ee_regs.h"
+
 using namespace egg::ps2::graphics;
 
 namespace
@@ -95,7 +97,7 @@ void vu1_set_double_buffer_settings()
 {
 	printf("egg-ps2-graphics-lib: vu1_set_double_buffer_settings\n");
 	utils::inline_packet2<2> double_buffer_pkt(P2_TYPE_NORMAL, P2_MODE_CHAIN, 1);
-	packet2_utils_vu_add_double_buffer(double_buffer_pkt, 8, 496);
+	packet2_utils_vu_add_double_buffer(double_buffer_pkt, 0, 512);
 	packet2_utils_vu_add_end_tag(double_buffer_pkt);
 
 	dma_channel_send_packet2(double_buffer_pkt, DMA_CHANNEL_VIF1, 1);

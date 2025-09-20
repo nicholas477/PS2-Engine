@@ -55,7 +55,7 @@ void Mesh::draw(const GS::GSState& gs_state, const Matrix& render_matrix, bool f
 		m.pos        = get_mesh()->pos.get_ptr() + start_index;
 		m.color      = get_mesh()->colors.get_ptr() + start_index;
 		m.num_verts  = end_index - start_index;
-		m.enable_fog = true;
+		m.enable_fog = false;
 
 		if (texture != nullptr)
 		{

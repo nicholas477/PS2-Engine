@@ -355,6 +355,8 @@ struct alignas(16) Vector
 	struct Matrix to_rotation_matrix() const;
 
 	struct Matrix to_translation_matrix() const;
+
+	struct Matrix to_scale_matrix() const;
 #endif
 };
 
