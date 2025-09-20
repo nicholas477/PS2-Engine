@@ -2,9 +2,7 @@
 
 set -e
 
-CI=$([ ! "$1" ] || [ $1 != "ci" ])
-
-if $CI; then
+if $([ ! "$1" ] || [ $1 != "ci" ]); then
     # Check if apt is installed before trying to run prereqs
     if command -v apt 2>&1 /dev/null; then
         sudo apt install -y build-essential binutils-dev git cmake genisoimage libstb-dev libassimp-dev libmagick++-dev sox autoconf automake autopoint
@@ -42,7 +40,7 @@ sudo make install -j$(nproc)
 popd
 
 # Download and install VCL
-if [[ !($CI) && (! $(command -v vcl 2>&1 /dev/null) ) ]]; then
+if [[ !$([ ! "$1" ] || [ $1 != "ci" ]) && (! $(command -v vcl 2>&1 /dev/null) ) ]]; then
     echo "------Installing VCL------"
     mkdir -p /temp/vcl
     pushd /temp/vcl
