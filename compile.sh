@@ -40,19 +40,19 @@ sudo make install -j$(nproc)
 popd
 
 # Download and install VCL
-if [[ !$([ ! "$1" ] || [ $1 != "ci" ]) && (! $(command -v vcl 2>&1 /dev/null) ) ]]; then
-    echo "------Installing VCL------"
-    mkdir -p /temp/vcl
-    pushd /temp/vcl
-    wget -o vcl https://github.com/h4570/tyra/raw/master/assets/vcl
-    echo "chmoding vcl"
-    chmod a+rx vcl
-    echo "copying vcl to /usr/bin/vcl"
-    sudo cp /temp/vcl/vcl /usr/bin/vcl
-    sudo chmod a+rx /usr/bin/vcl
+# if [[ !$([ ! "$1" ] || [ $1 != "ci" ]) && (! $(command -v vcl 2>&1 /dev/null) ) ]]; then
+#     echo "------Installing VCL------"
+#     mkdir -p /temp/vcl
+#     pushd /temp/vcl
+#     wget -o vcl https://github.com/h4570/tyra/raw/master/assets/vcl
+#     echo "chmoding vcl"
+#     chmod a+rx vcl
+#     echo "copying vcl to /usr/bin/vcl"
+#     sudo cp /temp/vcl/vcl /usr/bin/vcl
+#     sudo chmod a+rx /usr/bin/vcl
 
-    popd
-fi
+#     popd
+# fi
 
 echo "------Compiling egg-library------"
 pushd dependencies/egg-library 
