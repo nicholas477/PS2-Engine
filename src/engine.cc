@@ -20,6 +20,7 @@
 #include <inttypes.h>
 #include <algorithm>
 
+#include <filesystem>
 #include <kernel.h>
 #include <sifcmd.h>
 #include <sifrpc.h>
@@ -31,7 +32,7 @@
 #include "graph.h"
 
 #ifndef FILESYSTEM_TYPE
-#define FILESYSTEM_TYPE Filesystem::Type::cdrom
+#define FILESYSTEM_TYPE Filesystem::Type::host
 #endif
 
 namespace Engine
@@ -89,6 +90,26 @@ static void set_filesystem_type(Filesystem::Type t)
 
 void init(int argc, char** argv)
 {
+	if (argc > 1)
+	{
+		if (strcmp(argv[1], "host") == 0)
+		{
+			Engine::set_filesystem_type(Filesystem::Type::host);
+		}
+		else if (strcmp(argv[1], "cdrom") == 0)
+		{
+			Engine::set_filesystem_type(Filesystem::Type::cdrom);
+		}
+		else
+		{
+			printf("Invalid filesystem type argument! Using default.\n");
+			Engine::set_filesystem_type(FILESYSTEM_TYPE);
+		}
+	}
+	else
+	{
+		Engine::set_filesystem_type(FILESYSTEM_TYPE);
+	}
 	Engine::set_filesystem_type(FILESYSTEM_TYPE);
 
 	if (Filesystem::get_filesystem_type() != Filesystem::Type::host)
@@ -155,8 +176,6 @@ void init(int argc, char** argv)
 	}
 	tickrate = 1.f / 60.f;
 	printf(" (%d)\n", region);
-
-	World::init();
 }
 
 static void tick(float deltaTime)
@@ -227,10 +246,12 @@ bool sif_load_module(const char* module_path)
 	if (Filesystem::get_filesystem_type() == Filesystem::Type::cdrom)
 	{
 		converted_path = Filesystem::Path(module_path, true).to_full_filepath();
+		checkf(std::filesystem::exists(converted_path), "File does not exist!");
 	}
 	else
 	{
 		converted_path = Filesystem::Path(module_path, false).to_full_filepath();
+		checkf(std::filesystem::exists(converted_path), "File does not exist!");
 	}
 
 	int ret = SifLoadModule(converted_path, 0, nullptr);

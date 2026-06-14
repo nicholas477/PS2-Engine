@@ -44,7 +44,7 @@ popd
 #     echo "------Installing VCL------"
 #     mkdir -p /temp/vcl
 #     pushd /temp/vcl
-#     wget -o vcl https://github.com/h4570/tyra/raw/master/assets/vcl
+#     wget https://github.com/h4570/tyra/raw/master/assets/vcl
 #     echo "chmoding vcl"
 #     chmod a+rx vcl
 #     echo "copying vcl to /usr/bin/vcl"

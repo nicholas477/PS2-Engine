@@ -33,8 +33,8 @@ realclean: clean
 all: $(ISO_TGT)
 
 run: $(EE_BIN)
-	cd $(dir $(EE_BIN))
-	ps2client -h $(PS2HOST) execee host:$(notdir $(EE_BIN))
+	cd $(dir $(EE_BIN)); \
+	ps2client -h $(PS2HOST) execee host:$(notdir $(EE_BIN)) host
 
 reset:
 	ps2client -h $(PS2HOST) reset

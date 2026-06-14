@@ -90,7 +90,12 @@ bool load_file(const Path& path, std::unique_ptr<std::byte[]>& out_bytes, size_t
 
 bool file_exists(const Path& path)
 {
-	return access(path.to_full_filepath(), F_OK) == 0;
+	return file_exists(path.to_full_filepath());
+}
+
+bool file_exists(const char* path)
+{
+	return access(path, F_OK) == 0;
 }
 
 // void iterate_dir(const Path& dir, std::function<void(const Path&)> itr_func, bool recursive)
