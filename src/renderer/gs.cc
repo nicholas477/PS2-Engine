@@ -128,10 +128,10 @@ static void draw_objects(const GSState& gs_state)
 
 void render()
 {
-	if (Engine::get_frame_counter() % 60 == 0)
-	{
-		printf("Rendering frame %d\n", Engine::get_frame_counter());
-	}
+	// if (Engine::get_frame_counter() % 60 == 0)
+	// {
+	// 	printf("Rendering frame %d\n", Engine::get_frame_counter());
+	// }
 
 	{
 		Stats::ScopedTimer draw_timer(Stats::scoped_timers::draw);

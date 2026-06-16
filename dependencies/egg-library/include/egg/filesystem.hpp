@@ -33,6 +33,7 @@ enum class Type {
 	                   // before initialization then it will crash
 	cdrom,
 	host,
+	usb,
 	rom
 };
 
@@ -49,6 +50,8 @@ static constexpr const char* get_filesystem_prefix(Type in_filesystem_type = get
 			return "host0:";
 		case Type::rom:
 			return "rom0:";
+		case Type::usb:
+			return "mass0:";
 
 		case Type::uninitialized:
 			check(false);
@@ -66,6 +69,7 @@ static constexpr char get_filesystem_separator(Type in_filesystem_type = get_fil
 			return '\\';
 		case Type::host:
 		case Type::rom:
+		case Type::usb:
 			return '/';
 
 		case Type::uninitialized:

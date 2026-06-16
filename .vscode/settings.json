@@ -82,5 +82,9 @@
         "stop_token": "cpp",
         "thread": "cpp"
     },
-    "cmake.sourceDirectory": "/home/nicholas/PS2-Engine/tools/ps2-manifest-generator"
+    "cmake.sourceDirectory": "/home/nicholas/PS2-Engine/tools/ps2-manifest-generator",
+    "C_Cpp.default.compilerPath": "/usr/local/ps2dev/ee/bin/mips64r5900el-ps2-elf-g++",
+    "rust-analyzer.linkedProjects": [
+        "tools/ps2-server/Cargo.toml"
+    ],
 }

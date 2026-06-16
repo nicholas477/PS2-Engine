@@ -10,6 +10,8 @@
 #include "net/net.hpp"
 #include "egg/filesystem.hpp"
 #include "threading.hpp"
+#include "irx/irx_variables.hpp"
+#include "sbv_patches.h"
 
 #include "egg/asset.hpp"
 
@@ -32,7 +34,7 @@
 #include "graph.h"
 
 #ifndef FILESYSTEM_TYPE
-#define FILESYSTEM_TYPE Filesystem::Type::host
+#define FILESYSTEM_TYPE Filesystem::Type::cdrom
 #endif
 
 namespace Engine
@@ -71,25 +73,37 @@ static void set_filesystem_type(Filesystem::Type t)
 {
 	Filesystem::set_filesystem_type(t);
 
+	scr_printf("Using ");
 	printf("Using ");
 	switch (t)
 	{
 		case Filesystem::Type::host:
+			scr_printf("host");
 			printf("host");
 			break;
 
 		case Filesystem::Type::cdrom:
+			scr_printf("cdrom");
 			printf("cdrom");
+			break;
+
+		case Filesystem::Type::usb:
+			scr_printf("usb");
+			printf("usb");
 			break;
 
 		default:
 			break;
 	}
+	scr_printf(" filesystem type\n");
 	printf(" filesystem type\n");
 }
 
 void init(int argc, char** argv)
 {
+	init_scr();
+
+	//Load filesystem type from args
 	if (argc > 1)
 	{
 		if (strcmp(argv[1], "host") == 0)
@@ -110,30 +124,48 @@ void init(int argc, char** argv)
 	{
 		Engine::set_filesystem_type(FILESYSTEM_TYPE);
 	}
-	Engine::set_filesystem_type(FILESYSTEM_TYPE);
 
 	if (Filesystem::get_filesystem_type() != Filesystem::Type::host)
 	{
+		scr_printf("Resetting IOP...\n");
+		printf("Resetting IOP...\n");
+
 		SifExitIopHeap();
 		SifLoadFileExit();
 		SifExitRpc();
 
 		SifInitRpc(0);
 
-		while (!SifIopReset("", 0))
-			;
+		while (!SifIopReset(NULL, 0))
+		{
+		}
+
 		while (!SifIopSync())
-			;
+		{
+		}
+
+		SifInitRpc(0);
+		sbv_patch_enable_lmb();
+		sbv_patch_disable_prefix_check();
 	}
-	SifInitRpc(0);
-	SifLoadFileInit();
-	SifInitIopHeap();
+	else
+	{
+		SifInitRpc(0);
+
+		while (!SifIopSync())
+		{
+		}
+	}
 
 	check(SifLoadModule("rom0:LIBSD", 0, NULL) > 0);
 	check(SifLoadModule("rom0:SIO2MAN", 0, NULL) > 0);
 
+
 	if (Filesystem::get_filesystem_type() == Filesystem::Type::cdrom)
 	{
+		scr_printf("Loading CD/DVD modules...\n");
+		printf("Loading CD/DVD modules...\n");
+
 		check(SifLoadModule("rom0:CDVDMAN", 0, NULL) > 0);
 		check(SifLoadModule("rom0:CDVDFSV", 0, NULL) > 0);
 
@@ -141,17 +173,24 @@ void init(int argc, char** argv)
 		sceCdMmode(SCECdPS2DVD);
 	}
 
-	// This initializes the network debugging so do this first
-	if (Filesystem::get_filesystem_type() != Filesystem::Type::host)
-	{
-		Net::init();
-	}
+	// {
+	// 	int ret;
+	// 	SifExecModuleBuffer(usbd_irx, size_usbd_irx, 0, NULL, &ret);
+	// }
 
-	load_asset_manifest();
+	// if (Filesystem::get_filesystem_type() == Filesystem::Type::usb)
+	// {
+	// 	scr_printf("Loading USB module...\n");
+	// 	printf("Loading USB module...\n");
 
-	sif_load_module("usbd.irx");
+	// 	int ret;
+	// 	SifExecModuleBuffer(usbhdfsd_irx, size_usbhdfsd_irx, 0, NULL, &ret);
+	// }
+
+	//load_asset_manifest();
 
 	Stats::init();
+	Net::init();
 	Input::init();
 	//Filesystem::run_tests();
 	Audio::init();
@@ -200,6 +239,8 @@ void run()
 
 			Input::read_inputs();
 
+			Net::tick();
+
 			tick(tickrate);
 
 			GS::render();
@@ -207,8 +248,8 @@ void run()
 
 		if (Input::Gamepad::get_paddata() & PAD_SELECT)
 		{
-			//exit(0);
-			//return;
+			exit(0);
+			return;
 		}
 
 		if (Input::Gamepad::get_paddata() & PAD_START)

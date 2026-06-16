@@ -1,0 +1,50 @@
+/*********************************************************************
+ * Copyright (C) 2003 Tord Lindstrom (pukko@home.se)
+ * This file is subject to the terms and conditions of the PS2Link License.
+ * See the file LICENSE in the main directory of this distribution for more
+ * details.
+ */
+
+#include <stdio.h>
+#include <sysclib.h>
+#include <loadcore.h>
+#include <intrman.h>
+#include <types.h>
+#include <sifrpc.h>
+#include <cdvdman.h>
+
+#include "excepHandler.h"
+#include "net_fsys.h"
+#include "cmdHandler.h"
+#include "nprintf.h"
+#include "net_rpc_server.h"
+
+#define MODNAME "ps2link"
+IRX_ID(MODNAME, 1, 8);
+
+////////////////////////////////////////////////////////////////////////
+// main
+//   start threads & init rpc & filesys
+int _start(int argc, char** argv)
+{
+	FlushDcache();
+	CpuEnableIntr();
+
+	sceCdInit(1);
+	sceCdStop();
+
+	SifInitRpc(0);
+
+	fsysMount();
+	printf("host: mounted\n");
+	cmdHandlerInit();
+	printf("IOP cmd thread started\n");
+	naplinkRpcInit();
+	printf("Naplink thread started\n");
+	initNetRPCServer();
+	printf("Net RPC server started\n");
+
+	installExceptionHandlers();
+
+	return 0;
+}

@@ -8,11 +8,11 @@ IRX_FILES = \
 	audsrv.irx \
 	ps2snd.irx \
 	ps2dev9.irx \
+	ps2ip-nm.irx \
 	netman.irx \
 	usbd.irx \
 	ps2kbd.irx \
-	smap.irx \
-	ps2ips.irx
+	smap.irx
 
 IRX_SRC_FILES := $(addprefix $(PS2SDK)/iop/irx/, $(IRX_FILES))
 IRX_TARGET_FILES := $(addprefix $(ISO_FOLDER_DIR)/, $(IRX_FILES))
@@ -21,12 +21,10 @@ $(IRX_TARGET_FILES): $(ISO_FOLDER_DIR)/%.irx: $(PS2SDK)/iop/irx/%.irx
 	$(MKDIR) -p $(ISO_FOLDER_DIR)
 	cp $< $@
 
-copy_irx: $(IRX_TARGET_FILES)
-
 $(ISO_FOLDER_DIR)/ps2client.exe: $(ISO_FOLDER_DIR)
 	cp assets/ps2client.exe $@
 
-copy_libs: copy_irx $(ISO_FOLDER_DIR)/ps2client.exe
+copy_libs: $(IRX_TARGET_FILES) $(ISO_FOLDER_DIR)/ps2client.exe
 
 # Sound files
 SOUND_INPUT_FILES = $(wildcard assets/sounds/*.wav) $(wildcard assets/sounds/**/*.wav)

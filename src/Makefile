@@ -1,12 +1,14 @@
-EE_BIN = build/iso/MAIN.00
+EE_BIN = build/iso/MAIN.ELF
 ISO_TGT = $(OUTPUT_DIR)/test.iso
 SRC_FILES = $(shell find $(PREFIX) -name "*.cc" -o -name "*.cpp" -o -name "*.c")
+IRX_EMBED_FILES += usbd.irx usbhdfsd.irx
 EE_OBJS = $(patsubst %.cc, build/%.o, $(SRC_FILES))
 EE_OBJS := $(patsubst %.c, build/%.o, $(EE_OBJS))
 EE_OBJS := $(patsubst %.cpp, build/%.o, $(EE_OBJS))
+#EE_OBJS += $(IRX_EMBED_FILES:.irx=_irx.o)
 EE_INCS := -I$(PS2SDK)/ports/include -Iinclude -Idependencies/egg-ps2-graphics-lib/include $(EE_INCS)
 EE_LDFLAGS  += -L$(PS2SDK)/ports/lib -Ldependencies/egg-ps2-graphics-lib/lib
-EE_LIBS = -legg-ps2-graphics-lib -legg -lnetman -lps2ip -ldraw -lgraph -lmath3d -ldma -lpad -lc -lstdc++ -lgs -ldebug -leedebug -laudsrv -lcdvd -lxcdvd -lkbd -lpacket2
+EE_LIBS = -legg-ps2-graphics-lib -legg -lnetman -lps2ip -ldraw -lgraph -lmath3d -ldma -lpad -lc -lstdc++ -lgs -ldebug -leedebug -laudsrv -lcdvd -lxcdvd -lkbd -lpacket2 -lpatches
 EE_OPTFLAGS = -g -std=gnu++20
 EE_CFLAGS += -g -DNO_VU0_VECTORS -DNO_ASM
 EE_CXXFLAGS += -g -DNO_VU0_VECTORS -DNO_ASM -frtti
@@ -29,6 +31,10 @@ clean: cleaniso cleancompile
 
 realclean: clean
 	rm -f  $(VSM_SOURCES)
+
+%_irx.c:
+	mkdir -p src/irx
+	$(PS2SDK)/bin/bin2c $(PS2SDK)/iop/irx/$*.irx src/irx/$@ $*_irx
 
 all: $(ISO_TGT)
 
