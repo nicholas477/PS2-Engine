@@ -22,6 +22,7 @@ I_DeleteThread
 I_StartThread
 I_GetThreadId
 I_ExitDeleteThread
+I_DelayThread
 thbase_IMPORTS_end
 
 ioman_IMPORTS_start
@@ -43,6 +44,7 @@ I_lwip_close
 I_lwip_bind
 I_lwip_accept
 I_lwip_setsockopt
+I_lwip_fcntl
 ps2ip_IMPORTS_end
 
 sifcmd_IMPORTS_start

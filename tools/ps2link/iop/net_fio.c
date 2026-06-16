@@ -708,6 +708,9 @@ int pko_file_serv(void *argv)
         return -1;
     }
 
+    const int flags = lwip_fcntl(sock, F_GETFL, 0);
+    lwip_fcntl(sock, F_SETFL, flags | O_NONBLOCK);
+
     ret = bind(sock, (struct sockaddr *)&server_addr,
                sizeof(server_addr));
     if (ret < 0) {
@@ -738,7 +741,8 @@ int pko_file_serv(void *argv)
         client_sock = accept(sock, (struct sockaddr *)&client_addr,
                              &client_len);
         if (client_sock < 0) {
-            dbgprintf("pko_file: accept error (%d)", client_sock);
+            dbgprintf("pko_file: accept error (%d)\n", client_sock);
+            DelayThread(1000000);
             continue;
         }
 
